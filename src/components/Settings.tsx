@@ -8,10 +8,15 @@ import {
   Server,
   Cpu,
   RefreshCw,
+  Download,
+  Zap,
+  TrendingUp,
+  Star,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { LLMProvider, Model } from '../types';
 import { llmService } from '../services/llm';
+import { modelDiscoveryService, DiscoveredModel } from '../services/modelDiscovery';
 
 export default function Settings() {
   const [providers, setProviders] = useState<LLMProvider[]>([]);
@@ -20,6 +25,10 @@ export default function Settings() {
   const [testingProvider, setTestingProvider] = useState<string | null>(null);
   const [showAddProvider, setShowAddProvider] = useState(false);
   const [showAddModel, setShowAddModel] = useState(false);
+  const [discoveredModels, setDiscoveredModels] = useState<DiscoveredModel[]>([]);
+  const [discoveringModels, setDiscoveringModels] = useState<string | null>(null);
+  const [showModelPicker, setShowModelPicker] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState<LLMProvider | null>(null);
   const [newProvider, setNewProvider] = useState({
     name: 'lm_studio' as const,
     endpoint_url: 'http://localhost:1234',
@@ -127,11 +136,97 @@ export default function Settings() {
     setTestingProvider(provider.id);
     try {
       const result = await llmService.testConnection(provider);
-      alert(result ? 'Connection successful!' : 'Connection failed. Please check the endpoint URL.');
+      if (result) {
+        const discoveryResult = await modelDiscoveryService.discoverModels(provider);
+        if (discoveryResult.success) {
+          alert(`Connection successful! Found ${discoveryResult.models.length} models.`);
+        } else {
+          alert('Connection successful!');
+        }
+      } else {
+        alert('Connection failed. Please check the endpoint URL.');
+      }
     } catch (error) {
       alert('Connection failed. Please check the endpoint URL and try again.');
     } finally {
       setTestingProvider(null);
+    }
+  };
+
+  const discoverModels = async (provider: LLMProvider) => {
+    setDiscoveringModels(provider.id);
+    try {
+      const result = await modelDiscoveryService.discoverModels(provider);
+      if (result.success) {
+        setDiscoveredModels(result.models);
+        setSelectedProvider(provider);
+        setShowModelPicker(true);
+      } else {
+        alert(`Failed to discover models: ${result.error}`);
+      }
+    } catch (error) {
+      alert('Failed to discover models. Please check the provider connection.');
+    } finally {
+      setDiscoveringModels(null);
+    }
+  };
+
+  const bulkImportModels = async (provider: LLMProvider) => {
+    setDiscoveringModels(provider.id);
+    try {
+      const result = await modelDiscoveryService.discoverModels(provider);
+      if (!result.success) {
+        alert(`Failed to discover models: ${result.error}`);
+        return;
+      }
+
+      const importResult = await modelDiscoveryService.bulkImportModels(
+        provider.id,
+        result.models
+      );
+
+      alert(
+        `Import complete!\n` +
+        `Imported: ${importResult.imported}\n` +
+        `Skipped: ${importResult.skipped}\n` +
+        `Errors: ${importResult.errors.length}`
+      );
+
+      await loadSettings();
+    } catch (error) {
+      alert('Failed to import models. Please check the console for details.');
+    } finally {
+      setDiscoveringModels(null);
+    }
+  };
+
+  const addDiscoveredModel = async (discoveredModel: DiscoveredModel) => {
+    if (!selectedProvider) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('models')
+        .insert([{
+          provider_id: selectedProvider.id,
+          model_name: discoveredModel.model_name,
+          display_name: discoveredModel.display_name,
+          context_window: discoveredModel.context_window,
+          use_case: 'general',
+          is_available: true,
+          performance_metrics: {},
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setModels([data, ...models]);
+        setDiscoveredModels(discoveredModels.filter(m => m.id !== discoveredModel.id));
+      }
+    } catch (error) {
+      console.error('Failed to add model:', error);
+      alert('Failed to add model. It may already exist.');
     }
   };
 
@@ -257,6 +352,26 @@ export default function Settings() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => discoverModels(provider)}
+                      disabled={discoveringModels === provider.id || !provider.is_active}
+                      className="p-2 hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+                      title="Discover available models"
+                    >
+                      {discoveringModels === provider.id ? (
+                        <Loader2 size={18} className="animate-spin text-cyan-400" />
+                      ) : (
+                        <Zap size={18} className="text-cyan-400" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => bulkImportModels(provider)}
+                      disabled={discoveringModels === provider.id || !provider.is_active}
+                      className="p-2 hover:bg-slate-800 rounded-lg transition-colors disabled:opacity-50"
+                      title="Import all models"
+                    >
+                      <Download size={18} className="text-green-400" />
+                    </button>
                     <button
                       onClick={() => testProviderConnection(provider)}
                       disabled={testingProvider === provider.id}
@@ -518,6 +633,112 @@ export default function Settings() {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showModelPicker && selectedProvider && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-xl font-bold">Available Models</h3>
+                <p className="text-slate-400 text-sm">
+                  {selectedProvider.name.replace('_', ' ')} - {discoveredModels.length} models found
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setShowModelPicker(false);
+                  setDiscoveredModels([]);
+                  setSelectedProvider(null);
+                }}
+                className="text-slate-400 hover:text-white"
+              >
+                <XCircle size={24} />
+              </button>
+            </div>
+
+            {discoveredModels.length === 0 ? (
+              <div className="text-center py-12">
+                <Cpu size={48} className="mx-auto mb-4 text-slate-600" />
+                <p className="text-slate-400">No models discovered</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {discoveredModels.map((model) => (
+                  <div
+                    key={model.id}
+                    className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-cyan-500/50 transition-all"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-semibold">{model.display_name}</h4>
+                          {model.state === 'loaded' && (
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-green-500/10 text-green-400 text-xs rounded-full">
+                              <CheckCircle size={12} />
+                              Loaded
+                            </span>
+                          )}
+                          {model.state === 'not-loaded' && (
+                            <span className="px-2 py-0.5 bg-slate-700 text-slate-400 text-xs rounded-full">
+                              Not Loaded
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-slate-400 text-xs mb-2">{model.model_name}</p>
+                        <div className="flex items-center gap-3 text-xs text-slate-500">
+                          {model.context_window && (
+                            <span>{model.context_window.toLocaleString()} tokens</span>
+                          )}
+                          {model.quantization && (
+                            <span className="px-2 py-0.5 bg-slate-700 rounded">{model.quantization}</span>
+                          )}
+                          {model.arch && (
+                            <span className="px-2 py-0.5 bg-slate-700 rounded">{model.arch}</span>
+                          )}
+                          {model.type && model.type !== 'llm' && (
+                            <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded">{model.type}</span>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => addDiscoveredModel(model)}
+                        className="ml-4 px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+                      >
+                        Add Model
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={async () => {
+                  if (!selectedProvider) return;
+                  await bulkImportModels(selectedProvider);
+                  setShowModelPicker(false);
+                  setDiscoveredModels([]);
+                  setSelectedProvider(null);
+                }}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg font-medium hover:opacity-90 transition-opacity"
+              >
+                Import All Models
+              </button>
+              <button
+                onClick={() => {
+                  setShowModelPicker(false);
+                  setDiscoveredModels([]);
+                  setSelectedProvider(null);
+                }}
+                className="flex-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg font-medium transition-colors"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
