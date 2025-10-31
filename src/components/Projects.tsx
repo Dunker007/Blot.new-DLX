@@ -8,7 +8,6 @@ import {
   GitBranch,
   Clock,
   Search,
-  Filter,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Project, ProjectTemplate } from '../types';

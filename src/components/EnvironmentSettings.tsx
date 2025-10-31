@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import { environmentDetector, EnvironmentMode } from '../services/environmentDetector';
 import { providerRouter } from '../services/providerRouter';
-import { projectSyncService } from '../services/projectSync';
 
 export default function EnvironmentSettings() {
   const [currentMode, setCurrentMode] = useState<EnvironmentMode>('local');
@@ -157,7 +156,7 @@ export default function EnvironmentSettings() {
           {modeOptions.map((option) => {
             const Icon = option.icon;
             const isActive = currentMode === option.id;
-            const colorClasses = {
+            const colorClasses: Record<string, string> = {
               green: isActive ? 'border-green-500 bg-green-500/10' : 'border-slate-800',
               cyan: isActive ? 'border-cyan-500 bg-cyan-500/10' : 'border-slate-800',
               blue: isActive ? 'border-blue-500 bg-blue-500/10' : 'border-slate-800',

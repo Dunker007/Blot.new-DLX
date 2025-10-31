@@ -1,15 +1,34 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "dlx-studios",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "AI-powered web development platform with intelligent token management and hybrid cloud architecture",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "deploy:vercel": "vercel --prod",
+    "deploy:netlify": "netlify deploy --prod",
+    "deploy:railway": "railway up",
+    "docker:build": "docker build -t dlx-studios .",
+    "docker:run": "docker-compose up -d",
+    "docker:stop": "docker-compose down",
+    "check": "npm run typecheck && npm run lint && npm run build"
   },
+  "keywords": [
+    "ai",
+    "llm",
+    "web-development",
+    "token-management",
+    "react",
+    "typescript",
+    "supabase"
+  ],
+  "author": "DLX Studios",
+  "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "lucide-react": "^0.344.0",
