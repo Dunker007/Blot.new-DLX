@@ -79,3 +79,23 @@ export interface ProjectTemplate {
   created_at: string;
   updated_at: string;
 }
+
+export interface TradingStrategy {
+  id: string;
+  project_id?: string;
+  user_id: string;
+  name: string;
+  description: string;
+  strategy_type: 'trend_following' | 'mean_reversion' | 'arbitrage' | 'market_making' | 'custom';
+  parameters: Record<string, any>;
+  is_active: boolean;
+  performance_metrics: {
+    total_trades?: number;
+    win_rate?: number;
+    profit_loss?: number;
+    sharpe_ratio?: number;
+    max_drawdown?: number;
+  };
+  created_at: string;
+  updated_at: string;
+}
