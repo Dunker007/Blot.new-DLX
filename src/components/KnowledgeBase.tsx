@@ -8,11 +8,8 @@ import {
   Users,
   Plus,
   Search,
-  Star,
   Tag,
   Pin,
-  Archive,
-  Edit2,
   Trash2,
   Sparkles,
 } from 'lucide-react';
@@ -20,7 +17,6 @@ import { supabase } from '../lib/supabase';
 import { KnowledgeBase as KB, AgentPersona, AgentHandoff } from '../types';
 
 export default function KnowledgeBase() {
-  const [activeTab, setActiveTab] = useState<'all' | 'personas' | 'handoffs' | 'snippets' | 'tips'>('all');
   const [knowledge, setKnowledge] = useState<KB[]>([]);
   const [personas, setPersonas] = useState<AgentPersona[]>([]);
   const [handoffs, setHandoffs] = useState<AgentHandoff[]>([]);

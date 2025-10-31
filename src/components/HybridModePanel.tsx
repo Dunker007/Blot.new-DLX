@@ -8,7 +8,6 @@ import {
   XCircle,
   AlertCircle,
   RefreshCw,
-  Settings,
   Info,
 } from 'lucide-react';
 import { hybridBridge, LocalProviderConfig } from '../services/hybridBridge';
