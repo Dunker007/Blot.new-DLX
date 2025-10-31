@@ -1,0 +1,7 @@
+{
+  "name": "DLX Cognitive Co-Pilot",
+  "description": "An AI-powered command center interface that acts as a sentient strategic partner for operators. It leverages the Gemini API for multi-modal interaction, including real-time conversation, data analysis, content generation, and operational automation.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
