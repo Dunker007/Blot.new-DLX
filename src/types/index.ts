@@ -181,3 +181,79 @@ export interface EnhancedModel extends Model {
   cost_tier: 'free' | 'low' | 'medium' | 'high' | 'premium';
   is_local: boolean;
 }
+
+export interface KnowledgeBase {
+  id: string;
+  user_id?: string;
+  project_id?: string;
+  category: 'persona' | 'handoff' | 'context' | 'snippet' | 'template' | 'tip' | 'note' | 'general';
+  title: string;
+  content: string;
+  tags: string[];
+  metadata: Record<string, any>;
+  is_pinned: boolean;
+  is_archived: boolean;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgentPersona {
+  id: string;
+  user_id?: string;
+  name: string;
+  role: 'developer' | 'designer' | 'analyst' | 'architect' | 'devops' | 'assistant' | 'specialist';
+  description: string;
+  traits: Record<string, any>;
+  capabilities: string[];
+  communication_style: string;
+  preferred_tools: string[];
+  is_active: boolean;
+  avatar_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AgentHandoff {
+  id: string;
+  project_id?: string;
+  conversation_id?: string;
+  from_persona_id?: string;
+  to_persona_id?: string;
+  context_summary: string;
+  current_state: string;
+  next_steps: string[];
+  warnings: string[];
+  code_references: Record<string, any>;
+  dependencies: string[];
+  created_at: string;
+}
+
+export interface MemoryContext {
+  id: string;
+  project_id: string;
+  context_type: 'session' | 'task' | 'feature' | 'bugfix' | 'refactor' | 'research';
+  title: string;
+  content: string;
+  status: 'active' | 'completed' | 'paused' | 'abandoned';
+  priority: number;
+  related_files: string[];
+  decisions_made: Record<string, any>;
+  blockers: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KnowledgeSnippet {
+  id: string;
+  user_id?: string;
+  language: string;
+  title: string;
+  description: string;
+  code: string;
+  tags: string[];
+  usage_count: number;
+  is_favorite: boolean;
+  created_at: string;
+  updated_at: string;
+}

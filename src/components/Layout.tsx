@@ -5,6 +5,7 @@ import {
   Code,
   FolderKanban,
   TrendingUp,
+  Brain,
   Settings,
   Menu,
   X,
@@ -28,6 +29,7 @@ const navItems: NavItem[] = [
   { id: 'dev-lab', label: 'Dev Lab', icon: MessageSquare },
   { id: 'workspace', label: 'Workspace', icon: Code },
   { id: 'projects', label: 'Projects', icon: FolderKanban },
+  { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
   { id: 'trading', label: 'Trading Bots', icon: TrendingUp },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];

@@ -6,6 +6,7 @@ import Workspace from './components/Workspace';
 import Projects from './components/Projects';
 import TradingBots from './components/TradingBots';
 import EnhancedSettings from './components/EnhancedSettings';
+import KnowledgeBase from './components/KnowledgeBase';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -22,6 +23,8 @@ function App() {
         return <Projects />;
       case 'trading':
         return <TradingBots />;
+      case 'knowledge':
+        return <KnowledgeBase />;
       case 'settings':
         return <EnhancedSettings />;
       default:
