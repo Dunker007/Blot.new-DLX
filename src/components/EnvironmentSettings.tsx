@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { environmentDetector, EnvironmentMode } from '../services/environmentDetector';
 import { providerRouter } from '../services/providerRouter';
+import HybridModePanel from './HybridModePanel';
 
 export default function EnvironmentSettings() {
   const [currentMode, setCurrentMode] = useState<EnvironmentMode>('local');
@@ -236,6 +237,11 @@ export default function EnvironmentSettings() {
             </div>
           )}
         </div>
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Hybrid Mode (bolt.new + .diy)</h2>
+        <HybridModePanel />
       </div>
 
       <div>

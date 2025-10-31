@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
+    "proxy": "node local-proxy-server.js",
+    "hybrid": "npm run proxy",
     "deploy:vercel": "vercel --prod",
     "deploy:netlify": "netlify deploy --prod",
     "deploy:railway": "railway up",
