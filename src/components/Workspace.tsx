@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { FileCode, Play, Save, FolderOpen, Plus, Trash2, File } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { FileCode, Play, Save, FolderOpen, Plus, Trash2, File, Users, Wifi, WifiOff } from 'lucide-react';
+import { realtimeSyncService } from '../services/realtimeSync';
 
 interface FileItem {
   name: string;
@@ -27,6 +28,37 @@ export default function App() {
   const [activeFileIndex, setActiveFileIndex] = useState(0);
   const [showNewFileModal, setShowNewFileModal] = useState(false);
   const [newFileName, setNewFileName] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [activeUsers, setActiveUsers] = useState(0);
+  const [cursors, setCursors] = useState<any[]>([]);
+
+  useEffect(() => {
+    const projectId = 'demo-project';
+    const userId = 'demo-user';
+
+    realtimeSyncService.createSession(projectId, userId).then(session => {
+      if (session) {
+        setIsConnected(true);
+
+        realtimeSyncService.subscribeToProject(projectId, {
+          onCursorUpdate: (cursor) => {
+            setCursors(prev => {
+              const filtered = prev.filter(c => c.session_id !== cursor.session_id);
+              return [...filtered, cursor];
+            });
+          },
+          onPresenceChange: (presence) => {
+            setActiveUsers(presence.length);
+          },
+        });
+      }
+    });
+
+    return () => {
+      realtimeSyncService.endSession();
+      realtimeSyncService.unsubscribeAll();
+    };
+  }, []);
 
   const activeFile = files[activeFileIndex];
 
@@ -90,7 +122,26 @@ export default function App() {
           <h1 className="text-4xl font-bold mb-2">Code Workspace</h1>
           <p className="text-slate-400 text-lg">Build and test your code with AI assistance</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg">
+            {isConnected ? (
+              <>
+                <Wifi size={16} className="text-green-400" />
+                <span className="text-sm text-slate-300">Connected</span>
+              </>
+            ) : (
+              <>
+                <WifiOff size={16} className="text-red-400" />
+                <span className="text-sm text-slate-300">Offline</span>
+              </>
+            )}
+          </div>
+          {activeUsers > 0 && (
+            <div className="flex items-center gap-2 px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg">
+              <Users size={16} className="text-cyan-400" />
+              <span className="text-sm text-slate-300">{activeUsers} active</span>
+            </div>
+          )}
           <button
             onClick={saveFiles}
             className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition-colors"

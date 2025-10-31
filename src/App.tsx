@@ -7,6 +7,7 @@ import Projects from './components/Projects';
 import TradingBots from './components/TradingBots';
 import EnhancedSettings from './components/EnhancedSettings';
 import KnowledgeBase from './components/KnowledgeBase';
+import ConnectionDashboard from './components/ConnectionDashboard';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -25,6 +26,8 @@ function App() {
         return <TradingBots />;
       case 'knowledge':
         return <KnowledgeBase />;
+      case 'connections':
+        return <ConnectionDashboard />;
       case 'settings':
         return <EnhancedSettings />;
       default:

@@ -1,5 +1,6 @@
 import { LLMProvider, Model } from '../types';
 import { tokenTrackingService } from './tokenTracking';
+import { requestCache } from './requestCache';
 
 export interface LLMMessage {
   role: 'user' | 'assistant' | 'system';
@@ -23,6 +24,8 @@ export interface SendMessageOptions {
   conversationId?: string;
   projectId?: string;
   trackUsage?: boolean;
+  useCache?: boolean;
+  signal?: AbortSignal;
 }
 
 export class LLMService {
@@ -57,9 +60,20 @@ export class LLMService {
       throw new Error('Provider not available');
     }
 
+    if (options?.useCache !== false && !onStream) {
+      const cached = requestCache.get(messages, modelId);
+      if (cached) {
+        return cached;
+      }
+    }
+
     try {
-      const response = await this.sendToProvider(provider, model, messages, onStream);
+      const response = await this.sendToProvider(provider, model, messages, onStream, options?.signal);
       const responseTime = Date.now() - startTime;
+
+      if (options?.useCache !== false && !onStream) {
+        requestCache.set(messages, modelId, response);
+      }
 
       if (options?.trackUsage !== false) {
         await tokenTrackingService.logTokenUsage({
@@ -100,7 +114,8 @@ export class LLMService {
     provider: LLMProvider,
     model: Model,
     messages: LLMMessage[],
-    onStream?: (chunk: StreamChunk) => void
+    onStream?: (chunk: StreamChunk) => void,
+    signal?: AbortSignal
   ): Promise<LLMResponse> {
     const endpoint = `${provider.endpoint_url}/v1/chat/completions`;
 
@@ -116,6 +131,7 @@ export class LLMService {
         stream: !!onStream,
         temperature: 0.7,
       }),
+      signal,
     });
 
     if (!response.ok) {

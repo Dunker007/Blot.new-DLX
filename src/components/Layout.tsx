@@ -9,7 +9,8 @@ import {
   Settings,
   Menu,
   X,
-  Sparkles
+  Sparkles,
+  Activity
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'knowledge', label: 'Knowledge Base', icon: Brain },
   { id: 'trading', label: 'Trading Bots', icon: TrendingUp },
+  { id: 'connections', label: 'Connections', icon: Activity },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 

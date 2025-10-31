@@ -6,6 +6,9 @@ export interface LocalProviderConfig {
   status: 'checking' | 'connected' | 'disconnected' | 'error';
   lastCheck?: Date;
   latency?: number;
+  consecutiveFailures?: number;
+  lastSuccessful?: Date;
+  availableModels?: string[];
 }
 
 export interface HybridModeConfig {
@@ -14,6 +17,9 @@ export interface HybridModeConfig {
   localProviders: LocalProviderConfig[];
   fallbackToCloud: boolean;
   maxLatency: number;
+  maxRetries: number;
+  retryDelay: number;
+  connectionPoolSize: number;
 }
 
 export class HybridBridgeService {
@@ -23,9 +29,20 @@ export class HybridBridgeService {
     localProviders: [],
     fallbackToCloud: true,
     maxLatency: 5000,
+    maxRetries: 3,
+    retryDelay: 1000,
+    connectionPoolSize: 5,
   };
 
   private healthCheckInterval?: number;
+  private requestQueue: Array<{
+    resolve: (value: LLMResponse | null) => void;
+    reject: (error: Error) => void;
+    messages: LLMMessage[];
+    model: string;
+    onStream?: (chunk: string) => void;
+  }> = [];
+  private activeRequests = 0;
 
   async initialize(localEndpoints: string[] = []): Promise<void> {
     const defaultEndpoints = [
@@ -41,6 +58,8 @@ export class HybridBridgeService {
       name: this.getProviderName(endpoint),
       endpoint,
       status: 'checking' as const,
+      consecutiveFailures: 0,
+      availableModels: [],
     }));
 
     await this.checkAllProviders();
@@ -99,22 +118,49 @@ export class HybridBridgeService {
         provider.status = 'connected';
         provider.latency = Date.now() - startTime;
         provider.lastCheck = new Date();
+        provider.consecutiveFailures = 0;
+        provider.lastSuccessful = new Date();
+
+        try {
+          const data = await response.json();
+          provider.availableModels = data.data?.map((m: any) => m.id) || [];
+        } catch {
+          provider.availableModels = [];
+        }
+
         console.log(`✓ ${provider.name} connected (${provider.latency}ms)`);
       } else {
-        provider.status = 'disconnected';
-        provider.lastCheck = new Date();
+        this.handleProviderFailure(provider);
       }
     } catch (error) {
-      provider.status = 'disconnected';
-      provider.lastCheck = new Date();
+      this.handleProviderFailure(provider);
       console.log(`✗ ${provider.name} not available`);
     }
+  }
+
+  private handleProviderFailure(provider: LocalProviderConfig): void {
+    provider.status = 'disconnected';
+    provider.lastCheck = new Date();
+    provider.consecutiveFailures = (provider.consecutiveFailures || 0) + 1;
   }
 
   async sendToLocalProvider(
     messages: LLMMessage[],
     model: string = 'local-model',
     onStream?: (chunk: string) => void
+  ): Promise<LLMResponse | null> {
+    if (this.activeRequests >= this.config.connectionPoolSize) {
+      return this.queueRequest(messages, model, onStream);
+    }
+
+    return this.executeWithRetry(messages, model, onStream);
+  }
+
+  private async executeWithRetry(
+    messages: LLMMessage[],
+    model: string,
+    onStream?: (chunk: string) => void,
+    attempt: number = 0
   ): Promise<LLMResponse | null> {
     const availableProvider = this.getAvailableLocalProvider();
 
@@ -123,7 +169,12 @@ export class HybridBridgeService {
       return null;
     }
 
+    this.activeRequests++;
+
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), this.config.maxLatency);
+
       const response = await fetch(`${availableProvider.endpoint}/v1/chat/completions`, {
         method: 'POST',
         headers: {
@@ -135,11 +186,17 @@ export class HybridBridgeService {
           stream: !!onStream,
           temperature: 0.7,
         }),
+        signal: controller.signal,
       });
+
+      clearTimeout(timeout);
 
       if (!response.ok) {
         throw new Error(`Local provider error: ${response.statusText}`);
       }
+
+      availableProvider.consecutiveFailures = 0;
+      availableProvider.lastSuccessful = new Date();
 
       if (onStream && response.body) {
         return this.handleLocalStream(response.body, onStream);
@@ -154,10 +211,55 @@ export class HybridBridgeService {
         tokens: data.usage?.total_tokens || 0,
       };
     } catch (error) {
-      console.error('Local provider request failed:', error);
-      availableProvider.status = 'error';
+      console.error(`Local provider request failed (attempt ${attempt + 1}):`, error);
+      this.handleProviderFailure(availableProvider);
+
+      if (attempt < this.config.maxRetries - 1) {
+        await this.delay(this.config.retryDelay * Math.pow(2, attempt));
+        return this.executeWithRetry(messages, model, onStream, attempt + 1);
+      }
+
       return null;
+    } finally {
+      this.activeRequests--;
+      this.processQueue();
     }
+  }
+
+  private queueRequest(
+    messages: LLMMessage[],
+    model: string,
+    onStream?: (chunk: string) => void
+  ): Promise<LLMResponse | null> {
+    return new Promise((resolve, reject) => {
+      this.requestQueue.push({
+        resolve,
+        reject,
+        messages,
+        model,
+        onStream,
+      });
+    });
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.requestQueue.length === 0 || this.activeRequests >= this.config.connectionPoolSize) {
+      return;
+    }
+
+    const request = this.requestQueue.shift();
+    if (!request) return;
+
+    try {
+      const result = await this.executeWithRetry(request.messages, request.model, request.onStream);
+      request.resolve(result);
+    } catch (error) {
+      request.reject(error as Error);
+    }
+  }
+
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   private async handleLocalStream(
@@ -206,8 +308,12 @@ export class HybridBridgeService {
 
   private getAvailableLocalProvider(): LocalProviderConfig | null {
     const connected = this.config.localProviders
-      .filter(p => p.status === 'connected')
-      .sort((a, b) => (a.latency || 999) - (b.latency || 999));
+      .filter(p => p.status === 'connected' && (p.consecutiveFailures || 0) < 3)
+      .sort((a, b) => {
+        const aScore = (a.latency || 999) + (a.consecutiveFailures || 0) * 100;
+        const bScore = (b.latency || 999) + (b.consecutiveFailures || 0) * 100;
+        return aScore - bScore;
+      });
 
     return connected[0] || null;
   }
@@ -250,6 +356,20 @@ export class HybridBridgeService {
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
     }
+    this.requestQueue = [];
+    this.activeRequests = 0;
+  }
+
+  getQueueSize(): number {
+    return this.requestQueue.length;
+  }
+
+  getActiveRequests(): number {
+    return this.activeRequests;
+  }
+
+  updateConfig(updates: Partial<HybridModeConfig>): void {
+    this.config = { ...this.config, ...updates };
   }
 
   async testLocalConnection(endpoint: string): Promise<{
