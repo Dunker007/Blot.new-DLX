@@ -5,7 +5,7 @@ import DevLab from './components/DevLab';
 import Workspace from './components/Workspace';
 import Projects from './components/Projects';
 import TradingBots from './components/TradingBots';
-import Settings from './components/Settings';
+import EnhancedSettings from './components/EnhancedSettings';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -23,7 +23,7 @@ function App() {
       case 'trading':
         return <TradingBots />;
       case 'settings':
-        return <Settings />;
+        return <EnhancedSettings />;
       default:
         return <Dashboard onNavigate={setCurrentView} />;
     }

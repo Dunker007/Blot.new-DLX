@@ -169,6 +169,10 @@ export default function DevLab() {
           if (!chunk.done) {
             setStreamingContent((prev) => prev + chunk.content);
           }
+        },
+        {
+          conversationId: activeConversation,
+          trackUsage: true,
         }
       );
 

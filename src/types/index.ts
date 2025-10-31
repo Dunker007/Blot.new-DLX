@@ -99,3 +99,85 @@ export interface TradingStrategy {
   created_at: string;
   updated_at: string;
 }
+
+export interface TokenUsageLog {
+  id: string;
+  conversation_id?: string;
+  project_id?: string;
+  provider_id: string;
+  model_id: string;
+  user_id?: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  estimated_cost: number;
+  response_time_ms: number;
+  status: 'success' | 'failed' | 'cached' | 'rate_limited';
+  error_message?: string;
+  metadata: Record<string, any>;
+  created_at: string;
+}
+
+export interface ProviderConfig {
+  id: string;
+  provider_id: string;
+  cost_per_input_token: number;
+  cost_per_output_token: number;
+  rate_limit_per_minute: number;
+  rate_limit_per_day: number;
+  token_limit_per_request: number;
+  is_free: boolean;
+  config_metadata: Record<string, any>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TokenBudget {
+  id: string;
+  user_id?: string;
+  project_id?: string;
+  budget_type: 'daily' | 'monthly' | 'project' | 'total';
+  token_limit: number;
+  tokens_used: number;
+  cost_limit: number;
+  cost_spent: number;
+  reset_at: string;
+  alert_threshold: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DeploymentEnvironment {
+  id: string;
+  environment_name: 'local' | 'cloud' | 'hybrid';
+  user_id?: string;
+  is_primary: boolean;
+  sync_enabled: boolean;
+  settings: Record<string, any>;
+  last_sync_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProjectExport {
+  id: string;
+  project_id: string;
+  export_type: 'full' | 'incremental' | 'conversation_only';
+  file_size_bytes: number;
+  export_format: 'json' | 'zip';
+  storage_path?: string;
+  expires_at: string;
+  created_at: string;
+}
+
+export interface EnhancedLLMProvider extends LLMProvider {
+  provider_type: 'local' | 'cloud' | 'hybrid';
+  health_status: 'healthy' | 'degraded' | 'down' | 'unknown';
+  last_health_check?: string;
+}
+
+export interface EnhancedModel extends Model {
+  cost_tier: 'free' | 'low' | 'medium' | 'high' | 'premium';
+  is_local: boolean;
+}

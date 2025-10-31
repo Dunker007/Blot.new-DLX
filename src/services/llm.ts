@@ -1,4 +1,5 @@
 import { LLMProvider, Model } from '../types';
+import { tokenTrackingService } from './tokenTracking';
 
 export interface LLMMessage {
   role: 'user' | 'assistant' | 'system';
@@ -9,11 +10,19 @@ export interface LLMResponse {
   content: string;
   model: string;
   tokens?: number;
+  promptTokens?: number;
+  completionTokens?: number;
 }
 
 export interface StreamChunk {
   content: string;
   done: boolean;
+}
+
+export interface SendMessageOptions {
+  conversationId?: string;
+  projectId?: string;
+  trackUsage?: boolean;
 }
 
 export class LLMService {
@@ -33,9 +42,12 @@ export class LLMService {
   async sendMessage(
     messages: LLMMessage[],
     modelId: string,
-    onStream?: (chunk: StreamChunk) => void
+    onStream?: (chunk: StreamChunk) => void,
+    options?: SendMessageOptions
   ): Promise<LLMResponse> {
+    const startTime = Date.now();
     const model = this.models.get(modelId);
+
     if (!model) {
       throw new Error('Model not found');
     }
@@ -45,7 +57,43 @@ export class LLMService {
       throw new Error('Provider not available');
     }
 
-    return this.sendToProvider(provider, model, messages, onStream);
+    try {
+      const response = await this.sendToProvider(provider, model, messages, onStream);
+      const responseTime = Date.now() - startTime;
+
+      if (options?.trackUsage !== false) {
+        await tokenTrackingService.logTokenUsage({
+          conversationId: options?.conversationId,
+          projectId: options?.projectId,
+          providerId: provider.id,
+          modelId: model.id,
+          promptTokens: response.promptTokens || 0,
+          completionTokens: response.completionTokens || 0,
+          responseTimeMs: responseTime,
+          status: 'success',
+        });
+      }
+
+      return response;
+    } catch (error) {
+      const responseTime = Date.now() - startTime;
+
+      if (options?.trackUsage !== false) {
+        await tokenTrackingService.logTokenUsage({
+          conversationId: options?.conversationId,
+          projectId: options?.projectId,
+          providerId: provider.id,
+          modelId: model.id,
+          promptTokens: 0,
+          completionTokens: 0,
+          responseTimeMs: responseTime,
+          status: 'failed',
+          errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+
+      throw error;
+    }
   }
 
   private async sendToProvider(
@@ -83,6 +131,8 @@ export class LLMService {
       content: data.choices[0].message.content,
       model: model.model_name,
       tokens: data.usage?.total_tokens,
+      promptTokens: data.usage?.prompt_tokens || 0,
+      completionTokens: data.usage?.completion_tokens || 0,
     };
   }
 
