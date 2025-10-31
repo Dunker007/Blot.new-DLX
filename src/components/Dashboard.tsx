@@ -7,8 +7,9 @@ import {
   Zap,
   ArrowRight,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isDemoMode } from '../lib/supabase';
 import { Project } from '../types';
+import { demoProjects, demoStats } from '../services/demoData';
 
 interface DashboardProps {
   onNavigate: (view: string) => void;
@@ -33,6 +34,14 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     try {
       setLoading(true);
       setError(null);
+
+      // Use demo data if in demo mode
+      if (isDemoMode) {
+        setProjects(demoProjects);
+        setStats(demoStats);
+        setLoading(false);
+        return;
+      }
 
       const { data: projectsData, error: projectsError } = await supabase
         .from('projects')
@@ -149,6 +158,31 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
           Your AI-powered web development command center
         </p>
       </div>
+
+      {isDemoMode && (
+        <div className="bg-gradient-to-r from-cyan-500/10 to-blue-500/10 border border-cyan-500/30 rounded-xl p-6">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0 w-12 h-12 bg-cyan-500/20 rounded-lg flex items-center justify-center">
+              <Zap className="text-cyan-400" size={24} />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-cyan-400 font-semibold text-lg mb-2">Demo Mode Active</h3>
+              <p className="text-slate-300 mb-3">
+                You're viewing demo data. To unlock full functionality with your own projects:
+              </p>
+              <ol className="text-slate-400 text-sm space-y-1 mb-4 list-decimal list-inside">
+                <li>Create a free Supabase account at <a href="https://supabase.com" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:underline">supabase.com</a></li>
+                <li>Create a new project and copy your credentials</li>
+                <li>Update the <code className="bg-slate-800 px-2 py-1 rounded text-cyan-400">.env</code> file with your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY</li>
+                <li>Restart the development server</li>
+              </ol>
+              <p className="text-slate-500 text-xs">
+                💡 All features work in demo mode, but data won't persist between sessions.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat) => {

@@ -9,8 +9,9 @@ import {
   Clock,
   Search,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isDemoMode } from '../lib/supabase';
 import { Project, ProjectTemplate } from '../types';
+import { demoProjects } from '../services/demoData';
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -39,6 +40,14 @@ export default function Projects() {
   const loadProjects = async () => {
     try {
       setLoading(true);
+
+      // Use demo data if in demo mode
+      if (isDemoMode) {
+        setProjects(demoProjects);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -54,6 +63,12 @@ export default function Projects() {
   };
 
   const loadTemplates = async () => {
+    // Skip loading templates in demo mode
+    if (isDemoMode) {
+      setTemplates([]);
+      return;
+    }
+
     const { data } = await supabase
       .from('project_templates')
       .select('*')
@@ -65,6 +80,23 @@ export default function Projects() {
 
   const createProject = async () => {
     try {
+      // In demo mode, just add to local state
+      if (isDemoMode) {
+        const mockProject: Project = {
+          id: `demo-${Date.now()}`,
+          user_id: 'demo-user',
+          ...newProject,
+          settings: {},
+          metadata: {},
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+        setProjects([mockProject, ...projects]);
+        setShowCreateModal(false);
+        resetNewProject();
+        return;
+      }
+
       const { data, error } = await supabase
         .from('projects')
         .insert([newProject])

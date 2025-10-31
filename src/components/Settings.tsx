@@ -13,10 +13,11 @@ import {
   TrendingUp,
   Star,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isDemoMode } from '../lib/supabase';
 import { LLMProvider, Model } from '../types';
 import { llmService } from '../services/llm';
 import { modelDiscoveryService, DiscoveredModel } from '../services/modelDiscovery';
+import { demoProviders, demoModels } from '../services/demoData';
 
 export default function Settings() {
   const [providers, setProviders] = useState<LLMProvider[]>([]);
@@ -50,6 +51,14 @@ export default function Settings() {
   const loadSettings = async () => {
     try {
       setLoading(true);
+
+      // Use demo data if in demo mode
+      if (isDemoMode) {
+        setProviders(demoProviders);
+        setModels(demoModels);
+        setLoading(false);
+        return;
+      }
 
       const { data: providersData, error: providersError } = await supabase
         .from('llm_providers')
