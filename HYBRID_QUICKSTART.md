@@ -1,8 +1,8 @@
-# Hybrid Mode Quick Start
+# Hybrid Cloud Quick Start
 
 ## 🚀 5-Minute Setup
 
-Want to use **bolt.new's interface** with **your local AI models**? Here's how:
+Get seamless **.diy + bolt.new sync**, **cloud backups**, and **multi-environment deployment**!
 
 ### 1. Start Your Local AI
 
@@ -36,23 +36,54 @@ Go to **Settings → Environment → Hybrid Mode** and toggle ON.
 
 ## ✅ That's It!
 
-Now when you use bolt.new:
-- Requests go to YOUR local models
-- You pay $0 for AI tokens
-- Your code stays on your machine
-- Auto-fallback to cloud if local fails
+Now you have:
+- ⚡ Requests go to YOUR local models
+- 💰 Pay $0 for AI tokens
+- 🔒 Code stays on your machine
+- ☁️ Auto-fallback to cloud if local fails
+- 🔄 Automatic project synchronization
+- 💾 Cloud backup & restore
+- 🚀 Multi-environment deployment
 
 ## 🧪 Quick Test
 
+### Test 1: Local Connection
 ```bash
-# Check if it's working
 curl http://localhost:8000/providers
 ```
+Should show: "connected" ✓
 
-Should show your providers as "connected" ✓
+### Test 2: Sync Projects
+1. Go to **Hybrid Mode Panel**
+2. Click **Bi-Sync ⇄** button
+3. Should show: "✓ Sync Complete!"
+
+### Test 3: Discover Models
+1. Go to **Settings → Providers & Models**
+2. Click lightning bolt **⚡** icon
+3. Should show: List of available models
+
+## 🔄 Daily Workflow
+
+### Morning
+```
+1. Start LM Studio/Ollama
+2. npm run hybrid
+3. Open DLX Studios
+4. Click Bi-Sync ⇄
+5. Start working!
+```
+
+### Evening
+```
+1. Click Bi-Sync ⇄
+2. Verify "Sync Complete!"
+3. Close everything
+```
 
 ## 💡 How It Works
 
+### Hybrid AI Routing
 ```
 You type in bolt.new
       ↓
@@ -63,16 +94,45 @@ Your local AI responds
 Appears in bolt.new
 ```
 
-## 🎯 Use Cases
+### Project Synchronization
+```
+Local Changes ⇄ Cloud Storage
+      ↓
+Automatic Conflict Detection
+      ↓
+Smart Merge or Manual Resolution
+      ↓
+Always in Sync!
+```
 
-- **Development**: $0 tokens while coding
-- **Privacy**: Sensitive code never leaves your machine
-- **Offline**: Keep working without internet
-- **Speed**: Local = faster responses
+## 🎯 Key Features
+
+### Project Sync
+- **Upload ↑**: Push local changes to cloud
+- **Download ↓**: Pull cloud changes to local
+- **Bi-Sync ⇄**: Sync both directions automatically
+
+### Cloud Backups
+- Automatic snapshots before major operations
+- One-click restore to any point in time
+- Backup history with metadata
+
+### Multi-Environment Deploy
+- Local Development
+- Development Server
+- Staging
+- Production
+
+### Conflict Resolution
+- Automatic detection
+- Smart merging
+- Manual resolution options
 
 ## 📖 More Info
 
-See [HYBRID_MODE.md](./HYBRID_MODE.md) for complete documentation.
+- **Complete Guide**: [HYBRID_CLOUD_INTEGRATION.md](./HYBRID_CLOUD_INTEGRATION.md)
+- **Original Hybrid Mode**: [HYBRID_MODE.md](./HYBRID_MODE.md)
+- **AI Features**: [AI_FEATURES.md](./AI_FEATURES.md)
 
 ## 🆘 Troubleshooting
 

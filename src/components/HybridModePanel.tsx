@@ -9,13 +9,22 @@ import {
   AlertCircle,
   RefreshCw,
   Info,
+  Upload,
+  Download,
+  ArrowLeftRight,
+  Save,
+  Clock,
 } from 'lucide-react';
 import { hybridBridge, LocalProviderConfig } from '../services/hybridBridge';
+import { projectSyncService, SyncResult } from '../services/projectSync';
 
 export default function HybridModePanel() {
   const [status, setStatus] = useState(hybridBridge.getStatus());
   const [checking, setChecking] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<SyncResult | null>(null);
+  const [lastSync, setLastSync] = useState<Date | null>(null);
 
   useEffect(() => {
     const initialize = async () => {
@@ -45,6 +54,24 @@ export default function HybridModePanel() {
   const toggleHybridMode = () => {
     hybridBridge.setEnabled(!status.enabled);
     setStatus(hybridBridge.getStatus());
+  };
+
+  const handleSync = async (direction: 'upload' | 'download' | 'bidirectional') => {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const result = await projectSyncService.bidirectionalSync(direction);
+      setSyncResult(result);
+      setLastSync(new Date());
+
+      if (result.success) {
+        setTimeout(() => setSyncResult(null), 5000);
+      }
+    } catch (error) {
+      console.error('Sync failed:', error);
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const getStatusIcon = (provider: LocalProviderConfig) => {
@@ -223,6 +250,81 @@ export default function HybridModePanel() {
           <div className="text-xs text-slate-400">Status</div>
           <div className="text-sm font-bold">{isHybridActive ? 'Active' : 'Cloud'}</div>
         </div>
+      </div>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ArrowLeftRight size={18} className="text-cyan-400" />
+            <span className="font-semibold">Project Sync</span>
+          </div>
+          {lastSync && (
+            <div className="flex items-center gap-1 text-xs text-slate-400">
+              <Clock size={12} />
+              <span>{lastSync.toLocaleTimeString()}</span>
+            </div>
+          )}
+        </div>
+
+        {syncResult && (
+          <div className={`text-xs p-3 rounded-lg border ${
+            syncResult.success
+              ? 'bg-green-500/10 border-green-500/20 text-green-400'
+              : 'bg-red-500/10 border-red-500/20 text-red-400'
+          }`}>
+            <div className="font-semibold mb-1">
+              {syncResult.success ? 'Sync Complete!' : 'Sync Issues'}
+            </div>
+            <div className="space-y-0.5 text-slate-300">
+              {syncResult.projectsUploaded > 0 && (
+                <div>↑ {syncResult.projectsUploaded} project(s) uploaded</div>
+              )}
+              {syncResult.projectsDownloaded > 0 && (
+                <div>↓ {syncResult.projectsDownloaded} project(s) downloaded</div>
+              )}
+              {syncResult.conflicts.length > 0 && (
+                <div>⚠ {syncResult.conflicts.length} conflict(s) detected</div>
+              )}
+              {syncResult.errors.length > 0 && (
+                <div className="text-red-400">{syncResult.errors[0]}</div>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-2">
+          <button
+            onClick={() => handleSync('upload')}
+            disabled={syncing}
+            className="flex flex-col items-center gap-1 p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Upload size={16} className="text-cyan-400" />
+            <span className="text-xs">Upload</span>
+          </button>
+          <button
+            onClick={() => handleSync('download')}
+            disabled={syncing}
+            className="flex flex-col items-center gap-1 p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download size={16} className="text-blue-400" />
+            <span className="text-xs">Download</span>
+          </button>
+          <button
+            onClick={() => handleSync('bidirectional')}
+            disabled={syncing}
+            className="flex flex-col items-center gap-1 p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-green-500/50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ArrowLeftRight size={16} className="text-green-400" />
+            <span className="text-xs">Bi-Sync</span>
+          </button>
+        </div>
+
+        {syncing && (
+          <div className="flex items-center justify-center gap-2 text-sm text-cyan-400">
+            <RefreshCw size={14} className="animate-spin" />
+            <span>Syncing projects...</span>
+          </div>
+        )}
       </div>
     </div>
   );
