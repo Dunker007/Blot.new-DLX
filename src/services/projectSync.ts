@@ -57,24 +57,30 @@ export class ProjectSyncService {
       version: '1.0.0',
     };
 
-    const { data: project } = await supabase
+    // Parallel fetch of project and related data
+    const projectPromise = supabase
       .from('projects')
       .select('*')
       .eq('id', projectId)
       .single();
 
-    if (!project) {
+    const conversationsPromise = (exportType === 'full' || exportType === 'conversation_only')
+      ? supabase.from('conversations').select('*').eq('project_id', projectId)
+      : Promise.resolve({ data: null, error: null });
+
+    const [projectResult, conversationsResult] = await Promise.all([
+      projectPromise,
+      conversationsPromise
+    ]);
+
+    if (!projectResult.data) {
       throw new Error('Project not found');
     }
 
-    exportData.project = project;
+    exportData.project = projectResult.data;
 
     if (exportType === 'full' || exportType === 'conversation_only') {
-      const { data: conversations } = await supabase
-        .from('conversations')
-        .select('*')
-        .eq('project_id', projectId);
-
+      const conversations = conversationsResult.data;
       exportData.conversations = conversations || [];
 
       if (conversations && conversations.length > 0) {
@@ -92,16 +98,18 @@ export class ProjectSyncService {
       }
     }
 
+    // Parallelize blob creation and database insert
     const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
 
-    await supabase.from('project_exports').insert([{
+    // Fire and forget the export log (don't wait for it)
+    supabase.from('project_exports').insert([{
       project_id: projectId,
       export_type: exportType,
       file_size_bytes: blob.size,
       export_format: 'json',
       created_at: new Date().toISOString(),
-    }]);
+    }]).catch(err => console.error('Failed to log export:', err));
 
     return blob;
   }
@@ -133,27 +141,31 @@ export class ProjectSyncService {
     }
 
     if (data.conversations && data.conversations.length > 0) {
-      const conversationMap = new Map<string, string>();
-
-      for (const conversation of data.conversations) {
-        const oldId = conversation.id;
+      // Batch insert conversations instead of one-by-one
+      const conversationsToInsert = data.conversations.map(conv => {
         const conversationData = {
-          ...conversation,
+          ...conv,
           project_id: newProject.id,
         };
         delete (conversationData as any).id;
         delete (conversationData as any).created_at;
         delete (conversationData as any).updated_at;
+        return conversationData;
+      });
 
-        const { data: newConversation } = await supabase
-          .from('conversations')
-          .insert([conversationData])
-          .select()
-          .single();
+      const { data: newConversations } = await supabase
+        .from('conversations')
+        .insert(conversationsToInsert)
+        .select();
 
-        if (newConversation) {
-          conversationMap.set(oldId, newConversation.id);
-        }
+      // Map old IDs to new IDs
+      const conversationMap = new Map<string, string>();
+      if (newConversations) {
+        data.conversations.forEach((oldConv, idx) => {
+          if (newConversations[idx]) {
+            conversationMap.set(oldConv.id, newConversations[idx].id);
+          }
+        });
       }
 
       if (data.messages && data.messages.length > 0) {
