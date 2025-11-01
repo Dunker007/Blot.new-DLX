@@ -120,12 +120,22 @@ export class LLMService {
   ): Promise<LLMResponse> {
     const endpoint = `${provider.endpoint_url}/v1/chat/completions`;
 
-    // Create timeout controller if no signal provided
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.DEFAULT_TIMEOUT);
+    // Create timeout controller
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), this.DEFAULT_TIMEOUT);
     
-    // Combine provided signal with timeout
-    const combinedSignal = signal || controller.signal;
+    // Combine signals: listen to both user signal and timeout
+    let combinedSignal = timeoutController.signal;
+    if (signal) {
+      // Create a combined abort controller that responds to either signal
+      const combinedController = new AbortController();
+      
+      const abortHandler = () => combinedController.abort();
+      signal.addEventListener('abort', abortHandler, { once: true });
+      timeoutController.signal.addEventListener('abort', abortHandler, { once: true });
+      
+      combinedSignal = combinedController.signal;
+    }
     
     try {
       const response = await fetch(endpoint, {

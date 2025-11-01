@@ -48,6 +48,12 @@ export interface DeploymentEnvironment {
 }
 
 export class ProjectSyncService {
+  private logExports: boolean = true; // Flag to control export logging
+
+  setExportLogging(enabled: boolean): void {
+    this.logExports = enabled;
+  }
+
   async exportProject(
     projectId: string,
     exportType: 'full' | 'incremental' | 'conversation_only' = 'full'
@@ -98,18 +104,20 @@ export class ProjectSyncService {
       }
     }
 
-    // Parallelize blob creation and database insert
+    // Create blob
     const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
 
-    // Fire and forget the export log (don't wait for it)
-    supabase.from('project_exports').insert([{
-      project_id: projectId,
-      export_type: exportType,
-      file_size_bytes: blob.size,
-      export_format: 'json',
-      created_at: new Date().toISOString(),
-    }]).catch(err => console.error('Failed to log export:', err));
+    // Optionally log the export (async, non-blocking)
+    if (this.logExports) {
+      supabase.from('project_exports').insert([{
+        project_id: projectId,
+        export_type: exportType,
+        file_size_bytes: blob.size,
+        export_format: 'json',
+        created_at: new Date().toISOString(),
+      }]).catch(err => console.error('Failed to log export:', err));
+    }
 
     return blob;
   }

@@ -461,6 +461,7 @@ export class AdvancedCacheService {
       key.startsWith(this.config.storagePrefix)
     );
 
+    let loadedSize = 0;
     keys.forEach(storageKey => {
       try {
         const data = localStorage.getItem(storageKey);
@@ -472,6 +473,7 @@ export class AdvancedCacheService {
           const now = Date.now();
           if (now <= entry.timestamp + entry.ttl) {
             this.cache.set(cacheKey, entry);
+            loadedSize += this.estimateSize(entry);
           } else {
             localStorage.removeItem(storageKey);
           }
@@ -481,6 +483,10 @@ export class AdvancedCacheService {
         localStorage.removeItem(storageKey);
       }
     });
+    
+    // Update cached size after loading from disk
+    this.cachedTotalSize = loadedSize;
+    this.stats.memoryUsage = loadedSize;
   }
 
   /**

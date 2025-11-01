@@ -206,13 +206,10 @@ class MultiModelOrchestratorService {
         }
       }
 
-      // 3. Fallback to original logic with parallel strategy analysis
-      const [complexity, strategyResult] = await Promise.all([
-        Promise.resolve(this.analyzeTaskComplexity(messages)),
-        this.selectOptimalStrategy(messages, this.analyzeTaskComplexity(messages))
-      ]);
+      // 3. Fallback to original logic
+      const complexity = this.analyzeTaskComplexity(messages);
+      const strategy = await this.selectOptimalStrategy(messages, complexity);
       
-      const strategy = strategyResult;
       if (!strategy) {
         throw new Error('No suitable model strategy found');
       }
