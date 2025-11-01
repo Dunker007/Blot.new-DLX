@@ -1,5 +1,4 @@
-import { supabase } from '../lib/supabase';
-import { TokenUsageLog, ProviderConfig, TokenBudget } from '../types';
+import { storage } from '../lib/storage';
 
 export interface TokenTrackingOptions {
   conversationId?: string;
@@ -11,21 +10,63 @@ export interface TokenTrackingOptions {
   responseTimeMs: number;
   status?: 'success' | 'failed' | 'cached' | 'rate_limited';
   errorMessage?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
-export class TokenTrackingService {
-  async logTokenUsage(options: TokenTrackingOptions): Promise<TokenUsageLog | null> {
-    const totalTokens = options.promptTokens + options.completionTokens;
+interface TokenUsageLog {
+  id?: number;
+  timestamp: Date;
+  conversation_id?: string;
+  project_id?: string;
+  provider_id: string;
+  model_id: string;
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+  estimated_cost: number;
+  response_time_ms: number;
+  status: string;
+  error_message?: string;
+  metadata?: Record<string, unknown>;
+}
 
-    const providerConfig = await this.getProviderConfig(options.providerId);
+interface TokenMetrics {
+  totalTokens: number;
+  totalCost: number;
+  requestCount: number;
+  averageTokensPerRequest: number;
+  averageResponseTime: number;
+  successRate: number;
+}
+
+interface ProviderUsageStats {
+  provider_id: string;
+  provider_name: string;
+  request_count: number;
+  total_tokens: number;
+  total_cost: number;
+}
+
+class TokenTrackingService {
+  private readonly COST_PER_1K_TOKENS: Record<string, { input: number; output: number }> = {
+    'gpt-4': { input: 0.03, output: 0.06 },
+    'gpt-4-turbo': { input: 0.01, output: 0.03 },
+    'gpt-3.5-turbo': { input: 0.001, output: 0.002 },
+    'claude-3-opus': { input: 0.015, output: 0.075 },
+    'claude-3-sonnet': { input: 0.003, output: 0.015 },
+    'claude-3-haiku': { input: 0.00025, output: 0.00125 },
+  };
+
+  async logTokenUsage(options: TokenTrackingOptions): Promise<void> {
+    const totalTokens = options.promptTokens + options.completionTokens;
     const estimatedCost = this.calculateCost(
+      options.modelId,
       options.promptTokens,
-      options.completionTokens,
-      providerConfig
+      options.completionTokens
     );
 
-    const logEntry = {
+    const log: TokenUsageLog = {
+      timestamp: new Date(),
       conversation_id: options.conversationId,
       project_id: options.projectId,
       provider_id: options.providerId,
@@ -37,234 +78,142 @@ export class TokenTrackingService {
       response_time_ms: options.responseTimeMs,
       status: options.status || 'success',
       error_message: options.errorMessage,
-      metadata: options.metadata || {},
+      metadata: options.metadata,
     };
 
-    const { data, error } = await supabase
-      .from('token_usage_logs')
-      .insert([logEntry])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Failed to log token usage:', error);
-      return null;
-    }
-
-    if (options.projectId) {
-      await this.updateBudgetUsage(options.projectId, totalTokens, estimatedCost);
-    }
-
-    return data;
+    await storage.insert('tokens', log);
   }
 
-  async getProviderConfig(providerId: string): Promise<ProviderConfig | null> {
-    const { data, error } = await supabase
-      .from('provider_configs')
-      .select('*')
-      .eq('provider_id', providerId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Failed to get provider config:', error);
-      return null;
-    }
-
-    return data;
+  private calculateCost(modelId: string, promptTokens: number, completionTokens: number): number {
+    const costs = this.COST_PER_1K_TOKENS[modelId] || { input: 0.001, output: 0.002 };
+    return (promptTokens / 1000) * costs.input + (completionTokens / 1000) * costs.output;
   }
 
-  calculateCost(
-    promptTokens: number,
-    completionTokens: number,
-    config: ProviderConfig | null
-  ): number {
-    if (!config || config.is_free) {
-      return 0;
-    }
-
-    const inputCost = (promptTokens / 1_000_000) * config.cost_per_input_token;
-    const outputCost = (completionTokens / 1_000_000) * config.cost_per_output_token;
-
-    return inputCost + outputCost;
-  }
-
-  async updateBudgetUsage(
-    projectId: string,
-    tokensUsed: number,
-    costSpent: number
-  ): Promise<void> {
-    const { data: budgets } = await supabase
-      .from('token_budgets')
-      .select('*')
-      .eq('project_id', projectId)
-      .eq('is_active', true);
-
-    if (budgets && budgets.length > 0) {
-      for (const budget of budgets) {
-        const newTokensUsed = budget.tokens_used + tokensUsed;
-        const newCostSpent = budget.cost_spent + costSpent;
-
-        await supabase
-          .from('token_budgets')
-          .update({
-            tokens_used: newTokensUsed,
-            cost_spent: newCostSpent,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', budget.id);
-
-        if (this.shouldSendAlert(budget, newTokensUsed, newCostSpent)) {
-          console.warn(`Budget alert: Project ${projectId} has exceeded ${budget.alert_threshold}% of budget`);
-        }
-      }
-    }
-  }
-
-  private shouldSendAlert(
-    budget: TokenBudget,
-    newTokensUsed: number,
-    newCostSpent: number
-  ): boolean {
-    const tokenPercentage = (newTokensUsed / budget.token_limit) * 100;
-    const costPercentage = (newCostSpent / budget.cost_limit) * 100;
-
-    return tokenPercentage >= budget.alert_threshold ||
-           costPercentage >= budget.alert_threshold;
-  }
-
-  async getUsageStats(options: {
-    conversationId?: string;
-    projectId?: string;
-    startDate?: Date;
-    endDate?: Date;
-  }): Promise<{
-    totalTokens: number;
-    totalCost: number;
-    requestCount: number;
-    avgResponseTime: number;
-  }> {
-    let query = supabase
-      .from('token_usage_logs')
-      .select('*');
-
-    if (options.conversationId) {
-      query = query.eq('conversation_id', options.conversationId);
-    }
-
-    if (options.projectId) {
-      query = query.eq('project_id', options.projectId);
-    }
-
-    if (options.startDate) {
-      query = query.gte('created_at', options.startDate.toISOString());
-    }
-
-    if (options.endDate) {
-      query = query.lte('created_at', options.endDate.toISOString());
-    }
-
-    const { data, error } = await query;
-
-    if (error || !data) {
-      console.error('Failed to get usage stats:', error);
+  async getTokenMetrics(
+    startDate?: Date,
+    endDate?: Date,
+    projectId?: string
+  ): Promise<TokenMetrics> {
+    const { data: logs } = await storage.select('tokens');
+    
+    if (!logs) {
       return {
         totalTokens: 0,
         totalCost: 0,
         requestCount: 0,
-        avgResponseTime: 0,
+        averageTokensPerRequest: 0,
+        averageResponseTime: 0,
+        successRate: 0,
       };
     }
 
-    const totalTokens = data.reduce((sum, log) => sum + log.total_tokens, 0);
-    const totalCost = data.reduce((sum, log) => sum + log.estimated_cost, 0);
-    const totalResponseTime = data.reduce((sum, log) => sum + log.response_time_ms, 0);
+    // Filter logs based on criteria
+    let filteredLogs = logs as TokenUsageLog[];
+    
+    if (startDate) {
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startDate);
+    }
+    if (endDate) {
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= endDate);
+    }
+    if (projectId) {
+      filteredLogs = filteredLogs.filter(log => log.project_id === projectId);
+    }
+
+    if (filteredLogs.length === 0) {
+      return {
+        totalTokens: 0,
+        totalCost: 0,
+        requestCount: 0,
+        averageTokensPerRequest: 0,
+        averageResponseTime: 0,
+        successRate: 0,
+      };
+    }
+
+    const totalTokens = filteredLogs.reduce((sum, log) => sum + log.total_tokens, 0);
+    const totalCost = filteredLogs.reduce((sum, log) => sum + log.estimated_cost, 0);
+    const totalResponseTime = filteredLogs.reduce((sum, log) => sum + log.response_time_ms, 0);
+    const successfulRequests = filteredLogs.filter(log => log.status === 'success').length;
 
     return {
       totalTokens,
       totalCost,
-      requestCount: data.length,
-      avgResponseTime: data.length > 0 ? totalResponseTime / data.length : 0,
+      requestCount: filteredLogs.length,
+      averageTokensPerRequest: totalTokens / filteredLogs.length,
+      averageResponseTime: totalResponseTime / filteredLogs.length,
+      successRate: successfulRequests / filteredLogs.length,
     };
   }
 
-  async getBudgetStatus(projectId?: string): Promise<TokenBudget[]> {
-    let query = supabase
-      .from('token_budgets')
-      .select('*')
-      .eq('is_active', true);
-
-    if (projectId) {
-      query = query.eq('project_id', projectId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('Failed to get budget status:', error);
-      return [];
-    }
-
-    return data || [];
-  }
-
-  async checkBudgetAvailable(projectId: string): Promise<boolean> {
-    const budgets = await this.getBudgetStatus(projectId);
-
-    for (const budget of budgets) {
-      if (budget.tokens_used >= budget.token_limit) {
-        return false;
-      }
-
-      if (budget.cost_spent >= budget.cost_limit) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  async getTopProviders(limit: number = 5): Promise<Array<{
-    provider_id: string;
-    provider_name: string;
-    request_count: number;
-    total_tokens: number;
-    total_cost: number;
-  }>> {
-    const { data: logs } = await supabase
-      .from('token_usage_logs')
-      .select('provider_id, total_tokens, estimated_cost');
-
+  async getProviderUsage(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<ProviderUsageStats[]> {
+    const { data: logs } = await storage.select('tokens');
+    
     if (!logs) return [];
 
-    const { data: providers } = await supabase
-      .from('llm_providers')
-      .select('id, name');
+    // Filter logs by date if provided
+    let filteredLogs = logs as TokenUsageLog[];
+    if (startDate) {
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startDate);
+    }
+    if (endDate) {
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= endDate);
+    }
 
-    if (!providers) return [];
+    // Aggregate by provider
+    const providerStats = new Map<string, ProviderUsageStats>();
 
-    const providerMap = new Map(providers.map(p => [p.id, p.name]));
+    filteredLogs.forEach(log => {
+      const providerId = log.provider_id;
+      const existing = providerStats.get(providerId) || {
+        provider_id: providerId,
+        provider_name: providerId, // Simplified - no separate provider name lookup
+        request_count: 0,
+        total_tokens: 0,
+        total_cost: 0,
+      };
 
-    const aggregated = logs.reduce((acc, log) => {
-      const existing = acc.get(log.provider_id);
-      if (existing) {
-        existing.request_count++;
-        existing.total_tokens += log.total_tokens;
-        existing.total_cost += log.estimated_cost;
-      } else {
-        acc.set(log.provider_id, {
-          provider_id: log.provider_id,
-          provider_name: providerMap.get(log.provider_id) || 'Unknown',
-          request_count: 1,
-          total_tokens: log.total_tokens,
-          total_cost: log.estimated_cost,
-        });
-      }
-      return acc;
-    }, new Map());
+      existing.request_count++;
+      existing.total_tokens += log.total_tokens;
+      existing.total_cost += log.estimated_cost;
 
-    return Array.from(aggregated.values())
+      providerStats.set(providerId, existing);
+    });
+
+    return Array.from(providerStats.values())
       .sort((a, b) => b.request_count - a.request_count)
-      .slice(0, limit);
+      .slice(0, 10); // Top 10 providers
+  }
+
+  // Simple in-memory budget checking
+  private budgets = new Map<string, { limit: number; spent: number; period: string }>();
+
+  setBudget(projectId: string, limit: number, period: 'daily' | 'monthly' = 'monthly'): void {
+    this.budgets.set(projectId, { limit, spent: 0, period });
+  }
+
+  async checkBudget(projectId: string): Promise<{ withinBudget: boolean; usage: number; limit: number }> {
+    const budget = this.budgets.get(projectId);
+    if (!budget) {
+      return { withinBudget: true, usage: 0, limit: 0 };
+    }
+
+    // Get current period spending
+    const now = new Date();
+    const startDate = budget.period === 'daily' 
+      ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      : new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const metrics = await this.getTokenMetrics(startDate, now, projectId);
+    
+    return {
+      withinBudget: metrics.totalCost <= budget.limit,
+      usage: metrics.totalCost,
+      limit: budget.limit,
+    };
   }
 }
 

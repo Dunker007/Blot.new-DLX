@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Sparkles, Lightbulb, Zap, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
-import { multiModelOrchestrator } from '../services/multiModelOrchestrator';
+import { multiModelOrchestratorService } from '../services/multiModelOrchestrator';
 import { contextManager } from '../services/contextManager';
 import { LLMMessage } from '../services/llm';
 
@@ -30,7 +30,7 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
     const newSuggestions: AISuggestion[] = [];
 
     if (currentContext && currentContext.length > 10) {
-      const taskComplexity = await multiModelOrchestrator.analyzeTaskComplexity(currentContext);
+      const taskComplexity = await multiModelOrchestratorService.analyzeTaskComplexity([{ role: 'user', content: currentContext }]);
       setComplexity(taskComplexity);
 
       if (taskComplexity.level === 'expert' || taskComplexity.level === 'complex') {
