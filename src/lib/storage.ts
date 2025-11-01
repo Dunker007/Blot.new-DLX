@@ -13,6 +13,7 @@ class LightweightStorage {
   private dbName = 'dlx-studios';
   private version = 1;
   private db: IDBDatabase | null = null;
+  private readonly OPERATION_TIMEOUT = 5000; // 5 seconds
 
   constructor() {
     this.initDB();
@@ -22,9 +23,25 @@ class LightweightStorage {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
       
-      request.onerror = () => reject(request.error);
+      // Add timeout to DB initialization
+      const timeout = setTimeout(() => {
+        reject(new Error('Database initialization timeout'));
+      }, this.OPERATION_TIMEOUT);
+      
+      request.onerror = () => {
+        clearTimeout(timeout);
+        reject(request.error);
+      };
+      
       request.onsuccess = () => {
+        clearTimeout(timeout);
         this.db = request.result;
+        
+        // Add error handler for database-level errors
+        this.db.onerror = (event) => {
+          console.error('Database error:', event);
+        };
+        
         resolve();
       };
       
@@ -54,19 +71,21 @@ class LightweightStorage {
   async select(table: string): Promise<StorageResponse<any[]>> {
     try {
       await this.ensureDB();
-      return new Promise((resolve) => {
-        const transaction = this.db!.transaction([table], 'readonly');
-        const store = transaction.objectStore(table);
-        const request = store.getAll();
-        
-        request.onsuccess = () => {
-          resolve({ data: request.result, error: null });
-        };
-        
-        request.onerror = () => {
-          resolve({ data: null, error: request.error });
-        };
-      });
+      return this.withTimeout(
+        new Promise((resolve, reject) => {
+          const transaction = this.db!.transaction([table], 'readonly');
+          const store = transaction.objectStore(table);
+          const request = store.getAll();
+          
+          request.onsuccess = () => {
+            resolve({ data: request.result, error: null });
+          };
+          
+          request.onerror = () => {
+            reject(request.error || new Error('Select operation failed'));
+          };
+        })
+      );
     } catch (error) {
       return { data: null, error: error as Error };
     }
@@ -75,19 +94,21 @@ class LightweightStorage {
   async insert(table: string, data: any): Promise<StorageResponse<any>> {
     try {
       await this.ensureDB();
-      return new Promise((resolve) => {
-        const transaction = this.db!.transaction([table], 'readwrite');
-        const store = transaction.objectStore(table);
-        const request = store.add(data);
-        
-        request.onsuccess = () => {
-          resolve({ data: data, error: null });
-        };
-        
-        request.onerror = () => {
-          resolve({ data: null, error: request.error });
-        };
-      });
+      return this.withTimeout(
+        new Promise((resolve, reject) => {
+          const transaction = this.db!.transaction([table], 'readwrite');
+          const store = transaction.objectStore(table);
+          const request = store.add(data);
+          
+          request.onsuccess = () => {
+            resolve({ data: data, error: null });
+          };
+          
+          request.onerror = () => {
+            reject(request.error || new Error('Insert operation failed'));
+          };
+        })
+      );
     } catch (error) {
       return { data: null, error: error as Error };
     }
@@ -96,19 +117,21 @@ class LightweightStorage {
   async update(table: string, data: any): Promise<StorageResponse<any>> {
     try {
       await this.ensureDB();
-      return new Promise((resolve) => {
-        const transaction = this.db!.transaction([table], 'readwrite');
-        const store = transaction.objectStore(table);
-        const request = store.put(data);
-        
-        request.onsuccess = () => {
-          resolve({ data: data, error: null });
-        };
-        
-        request.onerror = () => {
-          resolve({ data: null, error: request.error });
-        };
-      });
+      return this.withTimeout(
+        new Promise((resolve, reject) => {
+          const transaction = this.db!.transaction([table], 'readwrite');
+          const store = transaction.objectStore(table);
+          const request = store.put(data);
+          
+          request.onsuccess = () => {
+            resolve({ data: data, error: null });
+          };
+          
+          request.onerror = () => {
+            reject(request.error || new Error('Update operation failed'));
+          };
+        })
+      );
     } catch (error) {
       return { data: null, error: error as Error };
     }
@@ -117,22 +140,34 @@ class LightweightStorage {
   async delete(table: string, id: string | number): Promise<StorageResponse<void>> {
     try {
       await this.ensureDB();
-      return new Promise((resolve) => {
-        const transaction = this.db!.transaction([table], 'readwrite');
-        const store = transaction.objectStore(table);
-        const request = store.delete(id);
-        
-        request.onsuccess = () => {
-          resolve({ data: null, error: null });
-        };
-        
-        request.onerror = () => {
-          resolve({ data: null, error: request.error });
-        };
-      });
+      return this.withTimeout(
+        new Promise((resolve, reject) => {
+          const transaction = this.db!.transaction([table], 'readwrite');
+          const store = transaction.objectStore(table);
+          const request = store.delete(id);
+          
+          request.onsuccess = () => {
+            resolve({ data: null, error: null });
+          };
+          
+          request.onerror = () => {
+            reject(request.error || new Error('Delete operation failed'));
+          };
+        })
+      );
     } catch (error) {
       return { data: null, error: error as Error };
     }
+  }
+
+  // Helper method to add timeout to any promise
+  private async withTimeout<T>(promise: Promise<T>): Promise<T> {
+    return Promise.race([
+      promise,
+      new Promise<T>((_, reject) => 
+        setTimeout(() => reject(new Error('Operation timeout')), this.OPERATION_TIMEOUT)
+      )
+    ]);
   }
 
   // Supabase-compatible query methods
@@ -172,7 +207,7 @@ class LightweightStorage {
 
   private async ensureDB(): Promise<void> {
     if (!this.db) {
-      await this.initDB();
+      await this.withTimeout(this.initDB());
     }
   }
 

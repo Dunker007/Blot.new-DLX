@@ -31,6 +31,7 @@ export interface SendMessageOptions {
 export class LLMService {
   private providers: LLMProvider[] = [];
   private models: Map<string, Model> = new Map();
+  private readonly DEFAULT_TIMEOUT = 60000; // 60 seconds
 
   setProviders(providers: LLMProvider[]) {
     this.providers = providers.sort((a, b) => a.priority - b.priority);
@@ -119,37 +120,64 @@ export class LLMService {
   ): Promise<LLMResponse> {
     const endpoint = `${provider.endpoint_url}/v1/chat/completions`;
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(provider.api_key && { 'Authorization': `Bearer ${provider.api_key}` }),
-      },
-      body: JSON.stringify({
+    // Create timeout controller
+    const timeoutController = new AbortController();
+    const timeoutId = setTimeout(() => timeoutController.abort(), this.DEFAULT_TIMEOUT);
+    
+    // Combine signals: listen to both user signal and timeout
+    let combinedSignal = timeoutController.signal;
+    if (signal) {
+      // Create a combined abort controller that responds to either signal
+      const combinedController = new AbortController();
+      
+      const abortHandler = () => combinedController.abort();
+      signal.addEventListener('abort', abortHandler, { once: true });
+      timeoutController.signal.addEventListener('abort', abortHandler, { once: true });
+      
+      combinedSignal = combinedController.signal;
+    }
+    
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(provider.api_key && { 'Authorization': `Bearer ${provider.api_key}` }),
+        },
+        body: JSON.stringify({
+          model: model.model_name,
+          messages,
+          stream: !!onStream,
+          temperature: 0.7,
+        }),
+        signal: combinedSignal,
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      if (onStream && response.body) {
+        return this.handleStreamResponse(response.body, model.model_name, onStream);
+      }
+
+      const data = await response.json();
+      return {
+        content: data.choices[0].message.content,
         model: model.model_name,
-        messages,
-        stream: !!onStream,
-        temperature: 0.7,
-      }),
-      signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`);
+        tokens: data.usage?.total_tokens,
+        promptTokens: data.usage?.prompt_tokens || 0,
+        completionTokens: data.usage?.completion_tokens || 0,
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout or cancelled');
+      }
+      throw error;
     }
-
-    if (onStream && response.body) {
-      return this.handleStreamResponse(response.body, model.model_name, onStream);
-    }
-
-    const data = await response.json();
-    return {
-      content: data.choices[0].message.content,
-      model: model.model_name,
-      tokens: data.usage?.total_tokens,
-      promptTokens: data.usage?.prompt_tokens || 0,
-      completionTokens: data.usage?.completion_tokens || 0,
-    };
   }
 
   private async handleStreamResponse(
