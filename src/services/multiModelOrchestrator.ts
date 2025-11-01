@@ -141,7 +141,7 @@ export class MultiModelOrchestratorService {
         );
         break;
 
-      case 'expert':
+      case 'expert': {
         const expertModels = availableModels
           .filter(m => m.context_window >= 32000)
           .sort((a, b) => b.context_window - a.context_window);
@@ -158,6 +158,7 @@ export class MultiModelOrchestratorService {
           m.id !== primaryModel?.id && m.id !== fallbackModel?.id && m.context_window >= 8000
         );
         break;
+      }
     }
 
     if (!primaryModel) return null;

@@ -30,7 +30,6 @@ export default function App() {
   const [newFileName, setNewFileName] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [activeUsers, setActiveUsers] = useState(0);
-  const [cursors, setCursors] = useState<any[]>([]);
 
   useEffect(() => {
     const projectId = 'demo-project';
@@ -41,12 +40,6 @@ export default function App() {
         setIsConnected(true);
 
         realtimeSyncService.subscribeToProject(projectId, {
-          onCursorUpdate: (cursor) => {
-            setCursors(prev => {
-              const filtered = prev.filter(c => c.session_id !== cursor.session_id);
-              return [...filtered, cursor];
-            });
-          },
           onPresenceChange: (presence) => {
             setActiveUsers(presence.length);
           },

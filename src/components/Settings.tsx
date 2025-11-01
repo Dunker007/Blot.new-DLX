@@ -10,8 +10,6 @@ import {
   RefreshCw,
   Download,
   Zap,
-  TrendingUp,
-  Star,
 } from 'lucide-react';
 import { supabase, isDemoMode } from '../lib/supabase';
 import { LLMProvider, Model } from '../types';
