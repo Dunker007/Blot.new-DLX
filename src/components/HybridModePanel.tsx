@@ -12,7 +12,6 @@ import {
   Upload,
   Download,
   ArrowLeftRight,
-  Save,
   Clock,
 } from 'lucide-react';
 import { hybridBridge, LocalProviderConfig } from '../services/hybridBridge';

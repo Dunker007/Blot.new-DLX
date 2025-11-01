@@ -56,21 +56,6 @@ export default function ConnectionDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return 'text-green-400';
-      case 'disconnected':
-        return 'text-red-400';
-      case 'checking':
-        return 'text-yellow-400';
-      case 'error':
-        return 'text-orange-400';
-      default:
-        return 'text-slate-400';
-    }
-  };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'connected':

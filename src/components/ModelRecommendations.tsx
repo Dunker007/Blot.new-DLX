@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Star, TrendingUp, Zap, DollarSign, Brain, Clock } from 'lucide-react';
+import { Star, TrendingUp, Zap, Brain, Clock } from 'lucide-react';
 import { modelDiscoveryService } from '../services/modelDiscovery';
 import { Model } from '../types';
 

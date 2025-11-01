@@ -78,7 +78,7 @@ export class ContextManagerService {
 
   private slidingWindowOptimization(messages: LLMMessage[], targetTokens: number): LLMMessage[] {
     const recentMessages = messages.slice(-10);
-    let currentTokens = this.calculateContextUsage(recentMessages);
+    const currentTokens = this.calculateContextUsage(recentMessages);
 
     if (currentTokens <= targetTokens) {
       return recentMessages;
@@ -109,7 +109,7 @@ export class ContextManagerService {
       .filter(msg => this.isImportantMessage(msg));
 
     const combined = [...importantMessages, ...recentMessages];
-    let currentTokens = this.calculateContextUsage(combined);
+    const currentTokens = this.calculateContextUsage(combined);
 
     if (currentTokens <= targetTokens) {
       return combined;
