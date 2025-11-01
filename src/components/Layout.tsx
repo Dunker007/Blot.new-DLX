@@ -12,7 +12,8 @@ import {
   Sparkles,
   Activity
 } from 'lucide-react';
-import { components, gradients, utils } from '../styles/designSystem';
+// Temporarily commenting out design system import for debugging
+// import { components, gradients, utils } from '../styles/designSystem';
 
 interface LayoutProps {
   children: ReactNode;
