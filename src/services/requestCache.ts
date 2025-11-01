@@ -120,23 +120,24 @@ export class RequestCacheService {
   }
 
   private generateKey(messages: LLMMessage[], modelId: string): string {
-    const normalized = messages.map(m => ({
-      role: m.role,
-      content: m.content.trim().toLowerCase(),
-    }));
-
-    const messageHash = JSON.stringify(normalized);
-    return `${modelId}:${this.hashString(messageHash)}`;
+    // Use a more efficient hash that doesn't require full JSON stringify
+    let hashInput = modelId;
+    for (const m of messages) {
+      hashInput += `|${m.role}:${m.content.trim().toLowerCase()}`;
+    }
+    return this.hashString(hashInput);
   }
 
   private hashString(str: string): string {
-    let hash = 0;
+    // FNV-1a hash algorithm - faster and better distribution than simple loop
+    let hash = 2166136261; // FNV offset basis
+    
     for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+      hash ^= str.charCodeAt(i);
+      hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
     }
-    return hash.toString(36);
+    
+    return (hash >>> 0).toString(36); // Convert to unsigned and base-36
   }
 
   private evictLRU(): void {
