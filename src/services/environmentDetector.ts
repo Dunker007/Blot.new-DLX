@@ -19,8 +19,11 @@ export interface EnvironmentInfo {
 
 export class EnvironmentDetectorService {
   private currentEnvironment: EnvironmentInfo | null = null;
+  private providerCache: { data: any[]; timestamp: number } | null = null;
+  private readonly CACHE_TTL = 60000; // 60 seconds
 
   detectEnvironment(): EnvironmentInfo {
+    // Cache environment detection result
     if (this.currentEnvironment) {
       return this.currentEnvironment;
     }
@@ -181,10 +184,16 @@ export class EnvironmentDetectorService {
       };
     }
 
-    const { data: providers } = await supabase
-      .from('llm_providers')
-      .select('*')
-      .eq('is_active', true);
+    // Use cache for provider data
+    let providers = this.providerCache?.data;
+    const now = Date.now();
+
+    if (!providers || !this.providerCache || now - this.providerCache.timestamp > this.CACHE_TTL) {
+      const { data } = await supabase.from('llm_providers').select('*').eq('is_active', true);
+
+      providers = data || [];
+      this.providerCache = { data: providers, timestamp: now };
+    }
 
     const hasLocalProviders = providers?.some(
       p => p.endpoint_url.includes('localhost') || p.endpoint_url.includes('127.0.0.1')

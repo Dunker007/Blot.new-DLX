@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 
-// Gradually restoring components with error boundaries
-import AICommandCenter from './components/AICommandCenter';
-// import KnowledgeBase from './components/KnowledgeBase';
-import ConnectionDashboard from './components/ConnectionDashboard';
-import EnhancedSettings from './components/EnhancedSettings';
-import Projects from './components/Projects';
 import SafeLayout from './components/SafeLayout';
-// import CryptoIntegration from './components/CryptoIntegration';
-// import CryptoTradingHub from './components/CryptoTradingHub';
-// import AIMagicDevLab from './components/AIMagicDevLab';
-import Workspace from './components/Workspace';
+
+// Lazy load components for code splitting
+const AICommandCenter = lazy(() => import('./components/AICommandCenter'));
+const ConnectionDashboard = lazy(() => import('./components/ConnectionDashboard'));
+const EnhancedSettings = lazy(() => import('./components/EnhancedSettings'));
+const Projects = lazy(() => import('./components/Projects'));
+const Workspace = lazy(() => import('./components/Workspace'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      <p className="text-slate-400">Loading...</p>
+    </div>
+  </div>
+);
 
 // import EnhancedAnalyticsDashboard from './components/EnhancedAnalyticsDashboard';
 // import BusinessModelGenerator from './components/BusinessModelGenerator';
@@ -82,7 +89,7 @@ function App() {
 
   return (
     <SafeLayout currentView={currentView} onViewChange={setCurrentView}>
-      {renderView()}
+      <Suspense fallback={<LoadingFallback />}>{renderView()}</Suspense>
       {/* AIGuide temporarily disabled for debugging */}
     </SafeLayout>
   );

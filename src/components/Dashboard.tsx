@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { ArrowRight, Code2, FolderKanban, MessageSquare, TrendingUp, Zap } from 'lucide-react';
 
@@ -10,7 +10,7 @@ interface DashboardProps {
   onNavigate: (view: string) => void;
 }
 
-export default function Dashboard({ onNavigate }: DashboardProps) {
+function Dashboard({ onNavigate }: DashboardProps) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [stats, setStats] = useState({
     totalProjects: 0,
@@ -21,11 +21,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -55,9 +51,7 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
       const deployedCount =
         allProjectsData?.filter((p: any) => p.status === 'deployed').length || 0;
 
-      const { data: conversationsData } = await supabase
-        .from('conversations')
-        .select('*');
+      const { data: conversationsData } = await supabase.from('conversations').select('*');
 
       const conversationsCount = conversationsData?.length || 0;
 
@@ -74,45 +68,56 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const quickActions = [
-    {
-      title: 'Start Dev Lab',
-      description: 'Chat with AI to plan and build',
-      icon: MessageSquare,
-      action: () => onNavigate('dev-lab'),
-      gradient: 'from-cyan-500 to-blue-600',
-    },
-    {
-      title: 'Open Workspace',
-      description: 'Code with AI assistance',
-      icon: Code2,
-      action: () => onNavigate('workspace'),
-      gradient: 'from-blue-500 to-slate-600',
-    },
-    {
-      title: 'New Project',
-      description: 'Create from templates',
-      icon: FolderKanban,
-      action: () => onNavigate('projects'),
-      gradient: 'from-green-500 to-emerald-600',
-    },
-    {
-      title: 'Trading Bot',
-      description: 'Build crypto strategies',
-      icon: TrendingUp,
-      action: () => onNavigate('trading'),
-      gradient: 'from-orange-500 to-red-600',
-    },
-  ];
+  useEffect(() => {
+    loadDashboardData();
+  }, [loadDashboardData]);
 
-  const statCards = [
-    { label: 'Total Projects', value: stats.totalProjects, icon: FolderKanban },
-    { label: 'Active', value: stats.activeProjects, icon: Zap },
-    { label: 'Deployed', value: stats.deployedProjects, icon: TrendingUp },
-    { label: 'Conversations', value: stats.conversations, icon: MessageSquare },
-  ];
+  // Memoize static data to prevent recreation on every render
+  const quickActions = useMemo(
+    () => [
+      {
+        title: 'Start Dev Lab',
+        description: 'Chat with AI to plan and build',
+        icon: MessageSquare,
+        action: () => onNavigate('dev-lab'),
+        gradient: 'from-cyan-500 to-blue-600',
+      },
+      {
+        title: 'Open Workspace',
+        description: 'Code with AI assistance',
+        icon: Code2,
+        action: () => onNavigate('workspace'),
+        gradient: 'from-blue-500 to-slate-600',
+      },
+      {
+        title: 'New Project',
+        description: 'Create from templates',
+        icon: FolderKanban,
+        action: () => onNavigate('projects'),
+        gradient: 'from-green-500 to-emerald-600',
+      },
+      {
+        title: 'Trading Bot',
+        description: 'Build crypto strategies',
+        icon: TrendingUp,
+        action: () => onNavigate('trading'),
+        gradient: 'from-orange-500 to-red-600',
+      },
+    ],
+    [onNavigate]
+  );
+
+  const statCards = useMemo(
+    () => [
+      { label: 'Total Projects', value: stats.totalProjects, icon: FolderKanban },
+      { label: 'Active', value: stats.activeProjects, icon: Zap },
+      { label: 'Deployed', value: stats.deployedProjects, icon: TrendingUp },
+      { label: 'Conversations', value: stats.conversations, icon: MessageSquare },
+    ],
+    [stats]
+  );
 
   if (loading) {
     return (
@@ -294,3 +299,5 @@ export default function Dashboard({ onNavigate }: DashboardProps) {
     </div>
   );
 }
+
+export default memo(Dashboard);

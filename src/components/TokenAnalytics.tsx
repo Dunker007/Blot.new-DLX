@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   AlertTriangle,
@@ -15,7 +15,7 @@ import { providerRouter } from '../services/providerRouter';
 import { tokenTrackingService } from '../services/tokenTracking';
 import { TokenBudget } from '../types';
 
-export default function TokenAnalytics() {
+function TokenAnalytics() {
   const [stats, setStats] = useState({
     totalTokens: 0,
     totalCost: 0,
@@ -39,11 +39,7 @@ export default function TokenAnalytics() {
     providers: true,
   });
 
-  useEffect(() => {
-    loadAnalytics();
-  }, []);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -68,22 +64,27 @@ export default function TokenAnalytics() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const toggleSection = (section: keyof typeof expandedSections) => {
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
+
+  const toggleSection = useCallback((section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section],
     }));
-  };
+  }, []);
 
-  const formatCost = (cost: number): string => {
+  // Memoize formatting functions
+  const formatCost = useCallback((cost: number): string => {
     if (cost === 0) return 'Free';
     if (cost < 0.01) return '< $0.01';
     return `$${cost.toFixed(2)}`;
-  };
+  }, []);
 
-  const formatNumber = (num: number): string => {
+  const formatNumber = useCallback((num: number): string => {
     if (num >= 1_000_000) {
       return `${(num / 1_000_000).toFixed(2)}M`;
     }
@@ -91,7 +92,7 @@ export default function TokenAnalytics() {
       return `${(num / 1_000).toFixed(2)}K`;
     }
     return num.toString();
-  };
+  }, []);
 
   const getBudgetStatus = (
     budget: TokenBudget
@@ -353,3 +354,5 @@ export default function TokenAnalytics() {
     </div>
   );
 }
+
+export default memo(TokenAnalytics);
