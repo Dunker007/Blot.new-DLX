@@ -31,6 +31,7 @@ export interface SendMessageOptions {
 export class LLMService {
   private providers: LLMProvider[] = [];
   private models: Map<string, Model> = new Map();
+  private readonly DEFAULT_TIMEOUT = 60000; // 60 seconds
 
   setProviders(providers: LLMProvider[]) {
     this.providers = providers.sort((a, b) => a.priority - b.priority);
@@ -143,19 +144,48 @@ export class LLMService {
     if (!response.ok) {
       throw new Error(`API error: ${response.statusText}`);
     }
+    
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(provider.api_key && { 'Authorization': `Bearer ${provider.api_key}` }),
+        },
+        body: JSON.stringify({
+          model: model.model_name,
+          messages,
+          stream: !!onStream,
+          temperature: 0.7,
+        }),
+        signal: combinedSignal,
+      });
 
-    if (onStream && response.body) {
-      return this.handleStreamResponse(response.body, model.model_name, onStream);
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
+      }
+
+      if (onStream && response.body) {
+        return this.handleStreamResponse(response.body, model.model_name, onStream);
+      }
+
+      const data = await response.json();
+      return {
+        content: data.choices[0].message.content,
+        model: model.model_name,
+        tokens: data.usage?.total_tokens,
+        promptTokens: data.usage?.prompt_tokens || 0,
+        completionTokens: data.usage?.completion_tokens || 0,
+      };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout or cancelled');
+      }
+      throw error;
     }
-
-    const data = await response.json();
-    return {
-      content: data.choices[0].message.content,
-      model: model.model_name,
-      tokens: data.usage?.total_tokens,
-      promptTokens: data.usage?.prompt_tokens || 0,
-      completionTokens: data.usage?.completion_tokens || 0,
-    };
   }
 
   private async handleStreamResponse(

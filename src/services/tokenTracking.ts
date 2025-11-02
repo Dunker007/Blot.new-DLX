@@ -133,6 +133,30 @@ class TokenTrackingService {
       };
     }
 
+    // Single-pass filtering and aggregation for better performance
+    let totalTokens = 0;
+    let totalCost = 0;
+    let totalResponseTime = 0;
+    let successfulRequests = 0;
+    let requestCount = 0;
+
+    const startTime = startDate?.getTime();
+    const endTime = endDate?.getTime();
+
+    for (const log of logs as TokenUsageLog[]) {
+      const logTime = new Date(log.timestamp).getTime();
+      
+      // Apply filters
+      if (startTime && logTime < startTime) continue;
+      if (endTime && logTime > endTime) continue;
+      if (projectId && log.project_id !== projectId) continue;
+
+      // Aggregate in same pass
+      requestCount++;
+      totalTokens += log.total_tokens;
+      totalCost += log.estimated_cost;
+      totalResponseTime += log.response_time_ms;
+      if (log.status === 'success') successfulRequests++;
     // Filter logs based on criteria
     let filteredLogs = logs as TokenUsageLog[];
 
@@ -146,7 +170,7 @@ class TokenTrackingService {
       filteredLogs = filteredLogs.filter(log => log.project_id === projectId);
     }
 
-    if (filteredLogs.length === 0) {
+    if (requestCount === 0) {
       return {
         totalTokens: 0,
         totalCost: 0,
@@ -157,18 +181,13 @@ class TokenTrackingService {
       };
     }
 
-    const totalTokens = filteredLogs.reduce((sum, log) => sum + log.total_tokens, 0);
-    const totalCost = filteredLogs.reduce((sum, log) => sum + log.estimated_cost, 0);
-    const totalResponseTime = filteredLogs.reduce((sum, log) => sum + log.response_time_ms, 0);
-    const successfulRequests = filteredLogs.filter(log => log.status === 'success').length;
-
     return {
       totalTokens,
       totalCost,
-      requestCount: filteredLogs.length,
-      averageTokensPerRequest: totalTokens / filteredLogs.length,
-      averageResponseTime: totalResponseTime / filteredLogs.length,
-      successRate: successfulRequests / filteredLogs.length,
+      requestCount,
+      averageTokensPerRequest: totalTokens / requestCount,
+      averageResponseTime: totalResponseTime / requestCount,
+      successRate: successfulRequests / requestCount,
     };
   }
 
@@ -200,34 +219,35 @@ class TokenTrackingService {
 
     if (!logs) return [];
 
-    // Filter logs by date if provided
-    let filteredLogs = logs as TokenUsageLog[];
-    if (startDate) {
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startDate);
-    }
-    if (endDate) {
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= endDate);
-    }
-
-    // Aggregate by provider
+    // Single-pass filtering and aggregation
     const providerStats = new Map<string, ProviderUsageStats>();
+    const startTime = startDate?.getTime();
+    const endTime = endDate?.getTime();
 
-    filteredLogs.forEach(log => {
+    for (const log of logs as TokenUsageLog[]) {
+      const logTime = new Date(log.timestamp).getTime();
+      
+      // Apply date filters
+      if (startTime && logTime < startTime) continue;
+      if (endTime && logTime > endTime) continue;
+
       const providerId = log.provider_id;
-      const existing = providerStats.get(providerId) || {
-        provider_id: providerId,
-        provider_name: providerId, // Simplified - no separate provider name lookup
-        request_count: 0,
-        total_tokens: 0,
-        total_cost: 0,
-      };
-
-      existing.request_count++;
-      existing.total_tokens += log.total_tokens;
-      existing.total_cost += log.estimated_cost;
-
-      providerStats.set(providerId, existing);
-    });
+      const existing = providerStats.get(providerId);
+      
+      if (existing) {
+        existing.request_count++;
+        existing.total_tokens += log.total_tokens;
+        existing.total_cost += log.estimated_cost;
+      } else {
+        providerStats.set(providerId, {
+          provider_id: providerId,
+          provider_name: providerId,
+          request_count: 1,
+          total_tokens: log.total_tokens,
+          total_cost: log.estimated_cost,
+        });
+      }
+    }
 
     return Array.from(providerStats.values())
       .sort((a, b) => b.request_count - a.request_count)

@@ -195,8 +195,13 @@ class MultiModelOrchestratorService {
     onStream?: (chunk: { content: string; done: boolean }) => void
   ): Promise<SimpleResponse> {
     try {
+      // Check all options in parallel for faster response
+      const [lmStudioAvailable, luxrigAvailable] = await Promise.all([
+        lmStudioService.isAvailable(),
+        this.checkLuxrigAvailability()
+      ]);
+
       // 1. Try direct LM Studio connection for immediate cost savings
-      const lmStudioAvailable = await lmStudioService.isAvailable();
       if (lmStudioAvailable) {
         const lastMessage = messages[messages.length - 1];
         const complexity = lmStudioService.analyzeComplexity(lastMessage.content);
@@ -223,17 +228,16 @@ class MultiModelOrchestratorService {
       }
 
       // 2. Try LuxRig bridge as secondary option
-      const luxrigAvailable = await this.checkLuxrigAvailability();
       if (luxrigAvailable) {
         try {
-          console.log('� Routing to LuxRig bridge...');
+          console.log('🌉 Routing to LuxRig bridge...');
           return await this.routeToLuxrig(messages);
         } catch (error) {
           console.warn('⚠️ LuxRig bridge failed, falling back to cloud...', error);
         }
       }
 
-      // 2. Fallback to original logic
+      // 3. Fallback to original logic
       const complexity = this.analyzeTaskComplexity(messages);
       const strategy = await this.selectOptimalStrategy(messages, complexity);
 
@@ -241,12 +245,17 @@ class MultiModelOrchestratorService {
         throw new Error('No suitable model strategy found');
       }
 
-      // 3. Execute with selected model
-      const response = await llmService.sendMessage(messages, strategy.modelId, onStream);
+      // 4. Execute with selected model
+      const response = await llmService.sendMessage(
+        messages,
+        strategy.modelId,
+        onStream
+      );
 
       return {
         content: response.content,
         model: strategy.modelId,
+        tokens: response.tokens || 0
         tokens: 0, // TODO: Extract token count from response
       };
     } catch (error) {

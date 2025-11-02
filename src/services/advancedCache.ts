@@ -34,6 +34,7 @@ export class AdvancedCacheService {
   private stats: CacheStats;
   private cleanupInterval: number | null = null;
   private persistenceInterval: number | null = null;
+  private cachedTotalSize: number = 0; // Track size incrementally
 
   constructor(config: Partial<CacheConfig> = {}) {
     this.config = {
@@ -142,12 +143,21 @@ export class AdvancedCacheService {
       compressed,
     };
 
+    const entrySize = this.estimateSize(entry);
+    
+    // Remove old entry size if updating existing key
+    const oldEntry = this.cache.get(key);
+    if (oldEntry) {
+      this.cachedTotalSize -= this.estimateSize(oldEntry);
+    }
+
     // Ensure we don't exceed memory limit
     this.ensureCapacity(this.estimateSize(entry));
 
     this.cache.set(key, entry);
+    this.cachedTotalSize += entrySize;
     this.stats.sets++;
-    this.updateMemoryUsage();
+    this.stats.memoryUsage = this.cachedTotalSize;
 
     // Persist to disk if enabled
     if (this.config.persistToDisk) {
@@ -159,8 +169,11 @@ export class AdvancedCacheService {
    * Delete item from cache
    */
   delete(key: string): boolean {
+    const entry = this.cache.get(key);
     const existed = this.cache.delete(key);
-    if (existed) {
+    
+    if (existed && entry) {
+      this.cachedTotalSize -= this.estimateSize(entry);
       this.stats.deletes++;
       this.updateMemoryUsage();
 
@@ -190,8 +203,9 @@ export class AdvancedCacheService {
    */
   clear(): void {
     this.cache.clear();
+    this.cachedTotalSize = 0;
     this.stats.deletes += this.cache.size;
-    this.updateMemoryUsage();
+    this.stats.memoryUsage = 0;
 
     if (this.config.persistToDisk) {
       // Clear all persisted entries
@@ -350,7 +364,7 @@ export class AdvancedCacheService {
         this.stats.evictions++;
 
         if (evictedEntry) {
-          currentSize -= this.estimateSize(evictedEntry);
+          this.cachedTotalSize -= this.estimateSize(evictedEntry);
         }
       } else {
         break; // Safety break
@@ -377,15 +391,19 @@ export class AdvancedCacheService {
   }
 
   private calculateTotalSize(): number {
+    // Deprecated - use cachedTotalSize instead
+    // Kept for compatibility but recalculates and updates cache
     let total = 0;
     for (const entry of this.cache.values()) {
       total += this.estimateSize(entry);
     }
+    this.cachedTotalSize = total;
     return total;
   }
 
   private updateMemoryUsage(): void {
-    this.stats.memoryUsage = this.calculateTotalSize();
+    // Deprecated - memory is now tracked incrementally
+    this.stats.memoryUsage = this.cachedTotalSize;
   }
 
   private updateHitRate(): void {
@@ -432,6 +450,7 @@ export class AdvancedCacheService {
 
     const keys = Object.keys(localStorage).filter(key => key.startsWith(this.config.storagePrefix));
 
+    let loadedSize = 0;
     keys.forEach(storageKey => {
       try {
         const data = localStorage.getItem(storageKey);
@@ -443,6 +462,7 @@ export class AdvancedCacheService {
           const now = Date.now();
           if (now <= entry.timestamp + entry.ttl) {
             this.cache.set(cacheKey, entry);
+            loadedSize += this.estimateSize(entry);
           } else {
             localStorage.removeItem(storageKey);
           }
@@ -452,6 +472,10 @@ export class AdvancedCacheService {
         localStorage.removeItem(storageKey);
       }
     });
+    
+    // Update cached size after loading from disk
+    this.cachedTotalSize = loadedSize;
+    this.stats.memoryUsage = loadedSize;
   }
 
   /**

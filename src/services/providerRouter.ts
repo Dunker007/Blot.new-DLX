@@ -18,14 +18,24 @@ export interface RoutingResult {
 }
 
 export class ProviderRouterService {
+  private providerCache: { data: EnhancedLLMProvider[]; timestamp: number } | null = null;
+  private modelCache: { data: EnhancedModel[]; timestamp: number } | null = null;
+  private readonly CACHE_TTL = 30000; // 30 seconds
+
   async selectBestProvider(options: RouterOptions = {}): Promise<RoutingResult | null> {
-    const providers = await this.getAvailableProviders();
-    const models = await this.getAvailableModels();
+    // Parallel fetch of providers and models
+    const [providers, models] = await Promise.all([
+      this.getAvailableProviders(),
+      this.getAvailableModels()
+    ]);
 
     if (providers.length === 0 || models.length === 0) {
       console.error('No providers or models available');
       return null;
     }
+
+    // Create provider lookup map for O(1) access instead of O(n) find()
+    const providerMap = new Map(providers.map(p => [p.id, p]));
 
     let candidates = models.filter(model => {
       if (options.useCase && model.use_case !== options.useCase && model.use_case !== 'general') {
@@ -52,7 +62,7 @@ export class ProviderRouterService {
     }
 
     for (const model of candidates) {
-      const provider = providers.find(p => p.id === model.provider_id);
+      const provider = providerMap.get(model.provider_id);
       if (!provider || !provider.is_active || provider.health_status === 'down') {
         continue;
       }
@@ -75,7 +85,7 @@ export class ProviderRouterService {
     }
 
     const fallbackModel = candidates[0];
-    const fallbackProvider = providers.find(p => p.id === fallbackModel.provider_id);
+    const fallbackProvider = providerMap.get(fallbackModel.provider_id);
 
     if (!fallbackProvider) {
       return null;
@@ -92,6 +102,11 @@ export class ProviderRouterService {
   }
 
   async getAvailableProviders(): Promise<EnhancedLLMProvider[]> {
+    // Use cache if available and fresh
+    if (this.providerCache && Date.now() - this.providerCache.timestamp < this.CACHE_TTL) {
+      return this.providerCache.data;
+    }
+
     const { data, error } = await supabase
       .from('llm_providers')
       .select('*')
@@ -100,18 +115,26 @@ export class ProviderRouterService {
 
     if (error) {
       console.error('Failed to get providers:', error);
-      return [];
+      return this.providerCache?.data || [];
     }
 
-    return (data || []) as EnhancedLLMProvider[];
+    const providers = (data || []) as EnhancedLLMProvider[];
+    this.providerCache = { data: providers, timestamp: Date.now() };
+    return providers;
   }
 
   async getAvailableModels(): Promise<EnhancedModel[]> {
+    // Use cache if available and fresh
+    if (this.modelCache && Date.now() - this.modelCache.timestamp < this.CACHE_TTL) {
+      return this.modelCache.data;
+    }
+
+    // Get providers first (will use cache if available)
     const providers = await this.getAvailableProviders();
     const providerIds = providers.map(p => p.id);
 
     if (providerIds.length === 0) {
-      return [];
+      return this.modelCache?.data || [];
     }
 
     const { data, error } = await supabase
@@ -122,10 +145,18 @@ export class ProviderRouterService {
 
     if (error) {
       console.error('Failed to get models:', error);
-      return [];
+      return this.modelCache?.data || [];
     }
 
-    return (data || []) as EnhancedModel[];
+    const models = (data || []) as EnhancedModel[];
+    this.modelCache = { data: models, timestamp: Date.now() };
+    return models;
+  }
+
+  // Clear cache when providers/models are updated
+  clearCache(): void {
+    this.providerCache = null;
+    this.modelCache = null;
   }
 
   async checkProviderHealth(providerId: string): Promise<boolean> {

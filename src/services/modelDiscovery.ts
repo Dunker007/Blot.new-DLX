@@ -228,11 +228,21 @@ export class ModelDiscoveryService {
     useCase?: 'coding' | 'analysis' | 'creative' | 'general',
     preferLocal?: boolean
   ): Promise<ModelRecommendation[]> {
-    const { data: models } = await supabase
-      .from('models')
-      .select('*, llm_providers!inner(*)')
-      .eq('is_available', true)
-      .eq('llm_providers.is_active', true);
+    // Fetch models and usage stats in parallel
+    const [modelsResult, usageStatsResult] = await Promise.all([
+      supabase
+        .from('models')
+        .select('*, llm_providers!inner(*)')
+        .eq('is_available', true)
+        .eq('llm_providers.is_active', true),
+      supabase
+        .from('token_usage_logs')
+        .select('model_id, status, response_time_ms')
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+    ]);
+
+    const models = modelsResult.data;
+    const usageStats = usageStatsResult.data;
 
     if (!models || models.length === 0) return [];
 
@@ -246,7 +256,24 @@ export class ModelDiscoveryService {
       { successRate: number; avgResponseTime: number; totalCalls: number }
     >();
 
+    // Single-pass aggregation of usage stats
     if (usageStats) {
+      const grouped = new Map<string, { success: number; total: number; totalTime: number }>();
+      
+      for (const log of usageStats) {
+        const existing = grouped.get(log.model_id);
+        if (existing) {
+          existing.total++;
+          if (log.status === 'success') existing.success++;
+          existing.totalTime += log.response_time_ms;
+        } else {
+          grouped.set(log.model_id, {
+            success: log.status === 'success' ? 1 : 0,
+            total: 1,
+            totalTime: log.response_time_ms,
+          });
+        }
+      }
       const grouped = usageStats.reduce(
         (acc, log) => {
           if (!acc[log.model_id]) {
@@ -260,7 +287,7 @@ export class ModelDiscoveryService {
         {} as Record<string, { success: number; total: number; totalTime: number }>
       );
 
-      for (const [modelId, stats] of Object.entries(grouped)) {
+      for (const [modelId, stats] of grouped) {
         modelStats.set(modelId, {
           successRate: stats.success / stats.total,
           avgResponseTime: stats.totalTime / stats.total,
