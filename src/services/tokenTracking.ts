@@ -84,14 +84,16 @@ class TokenTrackingService {
     await storage.insert('tokens', log);
   }
 
-  async getTokenUsage(conversationId: string): Promise<Array<{
-    promptTokens: number;
-    completionTokens: number;
-    totalTokens: number;
-    estimatedCost: number;
-    responseTimeMs: number;
-    status: string;
-  }>> {
+  async getTokenUsage(conversationId: string): Promise<
+    Array<{
+      promptTokens: number;
+      completionTokens: number;
+      totalTokens: number;
+      estimatedCost: number;
+      responseTimeMs: number;
+      status: string;
+    }>
+  > {
     const { data: logs } = await storage.select('tokens');
 
     if (!logs || !Array.isArray(logs)) {
@@ -145,7 +147,7 @@ class TokenTrackingService {
 
     for (const log of logs as TokenUsageLog[]) {
       const logTime = new Date(log.timestamp).getTime();
-      
+
       // Apply filters
       if (startTime && logTime < startTime) continue;
       if (endTime && logTime > endTime) continue;
@@ -157,17 +159,6 @@ class TokenTrackingService {
       totalCost += log.estimated_cost;
       totalResponseTime += log.response_time_ms;
       if (log.status === 'success') successfulRequests++;
-    // Filter logs based on criteria
-    let filteredLogs = logs as TokenUsageLog[];
-
-    if (startDate) {
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startDate);
-    }
-    if (endDate) {
-      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= endDate);
-    }
-    if (projectId) {
-      filteredLogs = filteredLogs.filter(log => log.project_id === projectId);
     }
 
     if (requestCount === 0) {
@@ -209,9 +200,7 @@ class TokenTrackingService {
 
   async getTopProviders(limit: number = 10): Promise<ProviderUsageStats[]> {
     const providers = await this.getProviderUsage();
-    return providers
-      .sort((a, b) => b.request_count - a.request_count)
-      .slice(0, limit);
+    return providers.sort((a, b) => b.request_count - a.request_count).slice(0, limit);
   }
 
   async getProviderUsage(startDate?: Date, endDate?: Date): Promise<ProviderUsageStats[]> {
@@ -226,14 +215,14 @@ class TokenTrackingService {
 
     for (const log of logs as TokenUsageLog[]) {
       const logTime = new Date(log.timestamp).getTime();
-      
+
       // Apply date filters
       if (startTime && logTime < startTime) continue;
       if (endTime && logTime > endTime) continue;
 
       const providerId = log.provider_id;
       const existing = providerStats.get(providerId);
-      
+
       if (existing) {
         existing.request_count++;
         existing.total_tokens += log.total_tokens;
