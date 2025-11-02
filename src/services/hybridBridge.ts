@@ -80,15 +80,11 @@ export class HybridBridgeService {
   }
 
   async checkAllProviders(): Promise<void> {
-    const checks = this.config.localProviders.map(provider =>
-      this.checkProvider(provider)
-    );
+    const checks = this.config.localProviders.map(provider => this.checkProvider(provider));
 
     await Promise.allSettled(checks);
 
-    const anyConnected = this.config.localProviders.some(
-      p => p.status === 'connected'
-    );
+    const anyConnected = this.config.localProviders.some(p => p.status === 'connected');
 
     if (anyConnected && !this.config.enabled) {
       console.log('Local providers detected - hybrid mode auto-enabled');
@@ -108,7 +104,7 @@ export class HybridBridgeService {
         signal: controller.signal,
         mode: 'cors',
         headers: {
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
       });
 
@@ -327,9 +323,7 @@ export class HybridBridgeService {
     return {
       enabled: this.config.enabled,
       hasLocalProviders: this.config.localProviders.length > 0,
-      connectedProviders: this.config.localProviders.filter(
-        p => p.status === 'connected'
-      ).length,
+      connectedProviders: this.config.localProviders.filter(p => p.status === 'connected').length,
       providers: [...this.config.localProviders],
     };
   }
@@ -345,9 +339,7 @@ export class HybridBridgeService {
   shouldUseLocal(): boolean {
     if (!this.config.enabled) return false;
 
-    const hasConnectedProvider = this.config.localProviders.some(
-      p => p.status === 'connected'
-    );
+    const hasConnectedProvider = this.config.localProviders.some(p => p.status === 'connected');
 
     return this.config.preferLocal && hasConnectedProvider;
   }
@@ -428,9 +420,7 @@ export class HybridBridgeService {
   }
 
   getRecommendedMode(): 'local' | 'cloud' | 'hybrid' {
-    const connectedCount = this.config.localProviders.filter(
-      p => p.status === 'connected'
-    ).length;
+    const connectedCount = this.config.localProviders.filter(p => p.status === 'connected').length;
 
     if (connectedCount === 0) return 'cloud';
     if (connectedCount > 0) return 'hybrid';

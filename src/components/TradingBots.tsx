@@ -1,18 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  TrendingUp,
-  Plus,
-  Trash2,
-  Edit2,
-  Play,
-  Pause,
   Activity,
   BarChart3,
   DollarSign,
+  Edit2,
+  Pause,
+  Play,
+  Plus,
+  Trash2,
   TrendingDown,
+  TrendingUp,
 } from 'lucide-react';
+
 import { supabase } from '../lib/supabase';
-import { TradingStrategy, Project } from '../types';
+import { Project, TradingStrategy } from '../types';
 
 export default function TradingBots() {
   const [strategies, setStrategies] = useState<TradingStrategy[]>([]);
@@ -38,10 +40,7 @@ export default function TradingBots() {
       setLoading(true);
 
       const [strategiesResult, projectsResult] = await Promise.all([
-        supabase
-          .from('trading_strategies')
-          .select('*')
-          .order('updated_at', { ascending: false }),
+        supabase.from('trading_strategies').select('*').order('updated_at', { ascending: false }),
         supabase
           .from('projects')
           .select('*')
@@ -104,9 +103,7 @@ export default function TradingBots() {
 
       if (error) throw error;
 
-      setStrategies(
-        strategies.map((s) => (s.id === selectedStrategy.id ? selectedStrategy : s))
-      );
+      setStrategies(strategies.map(s => (s.id === selectedStrategy.id ? selectedStrategy : s)));
       setShowEditModal(false);
       setSelectedStrategy(null);
     } catch (error) {
@@ -123,7 +120,7 @@ export default function TradingBots() {
 
       if (error) throw error;
 
-      setStrategies(strategies.filter((s) => s.id !== id));
+      setStrategies(strategies.filter(s => s.id !== id));
     } catch (error) {
       console.error('Failed to delete strategy:', error);
       alert('Failed to delete strategy. Please try again.');
@@ -139,9 +136,7 @@ export default function TradingBots() {
 
       if (error) throw error;
 
-      setStrategies(
-        strategies.map((s) => (s.id === id ? { ...s, is_active: !currentStatus } : s))
-      );
+      setStrategies(strategies.map(s => (s.id === id ? { ...s, is_active: !currentStatus } : s)));
     } catch (error) {
       console.error('Failed to toggle strategy status:', error);
       alert('Failed to toggle strategy status. Please try again.');
@@ -203,9 +198,7 @@ export default function TradingBots() {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-3">
             <Play size={24} className="text-green-400" />
-            <span className="text-3xl font-bold">
-              {strategies.filter((s) => s.is_active).length}
-            </span>
+            <span className="text-3xl font-bold">{strategies.filter(s => s.is_active).length}</span>
           </div>
           <div className="text-slate-400 text-sm">Active Strategies</div>
         </div>
@@ -220,10 +213,7 @@ export default function TradingBots() {
           <div className="flex items-center justify-between mb-3">
             <DollarSign size={24} className="text-yellow-400" />
             <span className="text-3xl font-bold">
-              {strategies.reduce(
-                (acc, s) => acc + (s.performance_metrics.total_trades || 0),
-                0
-              )}
+              {strategies.reduce((acc, s) => acc + (s.performance_metrics.total_trades || 0), 0)}
             </span>
           </div>
           <div className="text-slate-400 text-sm">Total Trades</div>
@@ -243,8 +233,8 @@ export default function TradingBots() {
 
       {strategies.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {strategies.map((strategy) => {
-            const project = projects.find((p) => p.id === strategy.project_id);
+          {strategies.map(strategy => {
+            const project = projects.find(p => p.id === strategy.project_id);
             return (
               <div
                 key={strategy.id}
@@ -391,7 +381,7 @@ export default function TradingBots() {
                 <input
                   type="text"
                   value={newStrategy.name}
-                  onChange={(e) => setNewStrategy({ ...newStrategy, name: e.target.value })}
+                  onChange={e => setNewStrategy({ ...newStrategy, name: e.target.value })}
                   placeholder="My Trading Strategy"
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -400,9 +390,7 @@ export default function TradingBots() {
                 <label className="block text-sm text-slate-400 mb-2">Description</label>
                 <textarea
                   value={newStrategy.description}
-                  onChange={(e) =>
-                    setNewStrategy({ ...newStrategy, description: e.target.value })
-                  }
+                  onChange={e => setNewStrategy({ ...newStrategy, description: e.target.value })}
                   placeholder="Describe your strategy..."
                   rows={3}
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
@@ -413,7 +401,7 @@ export default function TradingBots() {
                   <label className="block text-sm text-slate-400 mb-2">Strategy Type</label>
                   <select
                     value={newStrategy.strategy_type}
-                    onChange={(e) =>
+                    onChange={e =>
                       setNewStrategy({ ...newStrategy, strategy_type: e.target.value as any })
                     }
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
@@ -426,18 +414,14 @@ export default function TradingBots() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm text-slate-400 mb-2">
-                    Project (optional)
-                  </label>
+                  <label className="block text-sm text-slate-400 mb-2">Project (optional)</label>
                   <select
                     value={newStrategy.project_id}
-                    onChange={(e) =>
-                      setNewStrategy({ ...newStrategy, project_id: e.target.value })
-                    }
+                    onChange={e => setNewStrategy({ ...newStrategy, project_id: e.target.value })}
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                   >
                     <option value="">None</option>
-                    {projects.map((project) => (
+                    {projects.map(project => (
                       <option key={project.id} value={project.id}>
                         {project.name}
                       </option>
@@ -478,9 +462,7 @@ export default function TradingBots() {
                 <input
                   type="text"
                   value={selectedStrategy.name}
-                  onChange={(e) =>
-                    setSelectedStrategy({ ...selectedStrategy, name: e.target.value })
-                  }
+                  onChange={e => setSelectedStrategy({ ...selectedStrategy, name: e.target.value })}
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -488,7 +470,7 @@ export default function TradingBots() {
                 <label className="block text-sm text-slate-400 mb-2">Description</label>
                 <textarea
                   value={selectedStrategy.description}
-                  onChange={(e) =>
+                  onChange={e =>
                     setSelectedStrategy({ ...selectedStrategy, description: e.target.value })
                   }
                   rows={3}
@@ -500,7 +482,7 @@ export default function TradingBots() {
                   <label className="block text-sm text-slate-400 mb-2">Strategy Type</label>
                   <select
                     value={selectedStrategy.strategy_type}
-                    onChange={(e) =>
+                    onChange={e =>
                       setSelectedStrategy({
                         ...selectedStrategy,
                         strategy_type: e.target.value as any,
@@ -519,13 +501,13 @@ export default function TradingBots() {
                   <label className="block text-sm text-slate-400 mb-2">Project</label>
                   <select
                     value={selectedStrategy.project_id || ''}
-                    onChange={(e) =>
+                    onChange={e =>
                       setSelectedStrategy({ ...selectedStrategy, project_id: e.target.value })
                     }
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                   >
                     <option value="">None</option>
-                    {projects.map((project) => (
+                    {projects.map(project => (
                       <option key={project.id} value={project.id}>
                         {project.name}
                       </option>

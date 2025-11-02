@@ -26,11 +26,9 @@ export class EnvironmentDetectorService {
     }
 
     const hostname = window.location.hostname;
-    const isDlxStudiosAi = hostname === 'dlxstudios.ai' ||
-                           hostname.endsWith('.dlxstudios.ai');
-    const isLocalhost = hostname === 'localhost' ||
-                        hostname === '127.0.0.1' ||
-                        hostname.startsWith('192.168.');
+    const isDlxStudiosAi = hostname === 'dlxstudios.ai' || hostname.endsWith('.dlxstudios.ai');
+    const isLocalhost =
+      hostname === 'localhost' || hostname === '127.0.0.1' || hostname.startsWith('192.168.');
 
     let mode: EnvironmentMode = 'local';
 
@@ -113,14 +111,14 @@ export class EnvironmentDetectorService {
         })
         .eq('id', current.id);
     } else {
-      await supabase
-        .from('deployment_environments')
-        .insert([{
+      await supabase.from('deployment_environments').insert([
+        {
           environment_name: mode,
           is_primary: true,
           sync_enabled: mode === 'hybrid' || mode === 'cloud',
           settings: {},
-        }]);
+        },
+      ]);
     }
 
     this.currentEnvironment = null;
@@ -188,12 +186,12 @@ export class EnvironmentDetectorService {
       .select('*')
       .eq('is_active', true);
 
-    const hasLocalProviders = providers?.some(p =>
-      p.endpoint_url.includes('localhost') || p.endpoint_url.includes('127.0.0.1')
+    const hasLocalProviders = providers?.some(
+      p => p.endpoint_url.includes('localhost') || p.endpoint_url.includes('127.0.0.1')
     );
 
-    const hasCloudProviders = providers?.some(p =>
-      !p.endpoint_url.includes('localhost') && !p.endpoint_url.includes('127.0.0.1')
+    const hasCloudProviders = providers?.some(
+      p => !p.endpoint_url.includes('localhost') && !p.endpoint_url.includes('127.0.0.1')
     );
 
     if (hasLocalProviders && hasCloudProviders) {
