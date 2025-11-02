@@ -15,9 +15,25 @@ export interface ContextOptimizationResult {
 
 export class ContextManagerService {
   private readonly TOKENS_PER_CHAR = 0.25;
+  private tokenCache = new Map<string, number>();
 
   estimateTokens(text: string): number {
-    return Math.ceil(text.length * this.TOKENS_PER_CHAR);
+    // Cache token calculations to avoid repeated computation
+    const cached = this.tokenCache.get(text);
+    if (cached !== undefined) {
+      return cached;
+    }
+
+    const tokens = Math.ceil(text.length * this.TOKENS_PER_CHAR);
+
+    // Limit cache size to prevent memory issues
+    if (this.tokenCache.size > 1000) {
+      const firstKey = this.tokenCache.keys().next().value;
+      this.tokenCache.delete(firstKey);
+    }
+
+    this.tokenCache.set(text, tokens);
+    return tokens;
   }
 
   calculateContextUsage(messages: LLMMessage[]): number {

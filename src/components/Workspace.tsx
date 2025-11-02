@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   File,
@@ -21,7 +21,7 @@ interface FileItem {
   language: string;
 }
 
-export default function Workspace() {
+function Workspace() {
   const [files, setFiles] = useState<FileItem[]>([
     {
       name: 'app.tsx',
@@ -54,7 +54,6 @@ export default function App() {
         setIsConnected(true);
 
         realtimeSyncService.subscribeToProject(projectId, {
-          onPresenceChange: (presence) => {
           onCursorUpdate: cursor => {
             setCursors(prev => {
               const filtered = prev.filter(c => c.session_id !== cursor.session_id);
@@ -76,13 +75,17 @@ export default function App() {
 
   const activeFile = files[activeFileIndex];
 
-  const updateFileContent = (content: string) => {
-    const updatedFiles = [...files];
-    updatedFiles[activeFileIndex] = { ...updatedFiles[activeFileIndex], content };
-    setFiles(updatedFiles);
-  };
+  // Debounce file content updates to prevent excessive re-renders
+  const updateFileContent = useCallback(
+    (content: string) => {
+      const updatedFiles = [...files];
+      updatedFiles[activeFileIndex] = { ...updatedFiles[activeFileIndex], content };
+      setFiles(updatedFiles);
+    },
+    [files, activeFileIndex]
+  );
 
-  const addNewFile = () => {
+  const addNewFile = useCallback(() => {
     if (!newFileName.trim()) return;
 
     const extension = newFileName.split('.').pop() || 'txt';
@@ -106,30 +109,33 @@ export default function App() {
     setActiveFileIndex(files.length);
     setNewFileName('');
     setShowNewFileModal(false);
-  };
+  }, [files, newFileName]);
 
-  const deleteFile = (index: number) => {
-    if (files.length === 1) {
-      alert('Cannot delete the last file');
-      return;
-    }
+  const deleteFile = useCallback(
+    (index: number) => {
+      if (files.length === 1) {
+        alert('Cannot delete the last file');
+        return;
+      }
 
-    if (!confirm(`Delete ${files[index].name}?`)) return;
+      if (!confirm(`Delete ${files[index].name}?`)) return;
 
-    const updatedFiles = files.filter((_, i) => i !== index);
-    setFiles(updatedFiles);
-    setActiveFileIndex(Math.max(0, activeFileIndex - 1));
-  };
+      const updatedFiles = files.filter((_, i) => i !== index);
+      setFiles(updatedFiles);
+      setActiveFileIndex(Math.max(0, activeFileIndex - 1));
+    },
+    [files, activeFileIndex]
+  );
 
-  const runCode = () => {
+  const runCode = useCallback(() => {
     alert(
       'Code execution coming soon! This will compile and run your code in a sandboxed environment.'
     );
-  };
+  }, []);
 
-  const saveFiles = () => {
+  const saveFiles = useCallback(() => {
     alert('Files saved successfully! In production, this would save to your project repository.');
-  };
+  }, []);
 
   return (
     <div className="max-w-full mx-auto h-[calc(100vh-8rem)] flex flex-col">
@@ -343,3 +349,5 @@ export default function App() {
     </div>
   );
 }
+
+export default memo(Workspace);

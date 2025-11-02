@@ -5,6 +5,7 @@
  * No complex multi-agent workflows - fast and efficient.
  */
 import { storage } from '../lib/storage';
+import { advancedCache } from './advancedCache';
 import { llmService } from './llm';
 
 export interface BusinessModelInput {
@@ -105,6 +106,15 @@ class BusinessModelGeneratorService {
     const startTime = Date.now();
 
     try {
+      // Check cache first for similar business models
+      const cacheKey = `business_model_${input.industry}_${input.targetMarket}_${input.uniqueValue}`;
+      const cached = advancedCache.get<BusinessModel>(cacheKey);
+
+      if (cached && !onProgress) {
+        // Only return cached if no progress callback (user wants fresh generation with progress)
+        return cached;
+      }
+
       if (onProgress) onProgress('Analyzing market opportunity...', 10);
 
       // Generate comprehensive business model in one efficient call
@@ -133,6 +143,12 @@ class BusinessModelGeneratorService {
       const businessModel = this.parseBusinessModelResponse(response.content, input);
 
       if (onProgress) onProgress('Finalizing business model...', 90);
+
+      // Cache the result for 1 hour
+      advancedCache.set(cacheKey, businessModel, {
+        ttl: 60 * 60 * 1000, // 1 hour
+        tags: ['business_model', input.industry],
+      });
 
       // Save to storage
       await storage.insert('business_models', {

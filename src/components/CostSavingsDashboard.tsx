@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { CheckCircle, Cloud, DollarSign, Server, TrendingDown, Zap } from 'lucide-react';
 
@@ -13,7 +13,7 @@ interface CostSavings {
   lastSaving: string;
 }
 
-export default function CostSavingsDashboard() {
+function CostSavingsDashboard() {
   const [isLMStudioAvailable, setIsLMStudioAvailable] = useState(false);
   const [costData, setCostData] = useState<CostSavings>({
     totalSavings: 0,
@@ -24,19 +24,19 @@ export default function CostSavingsDashboard() {
   });
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
+  const checkLMStudioStatus = useCallback(async () => {
+    const available = await lmStudioService.isAvailable();
+    setIsLMStudioAvailable(available);
+  }, []);
+
   useEffect(() => {
     checkLMStudioStatus();
     // Check every 30 seconds
     const interval = setInterval(checkLMStudioStatus, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [checkLMStudioStatus]);
 
-  const checkLMStudioStatus = async () => {
-    const available = await lmStudioService.isAvailable();
-    setIsLMStudioAvailable(available);
-  };
-
-  const testConnection = async () => {
+  const testConnection = useCallback(async () => {
     setIsTestingConnection(true);
     try {
       const result = await lmStudioService.chat([
@@ -56,7 +56,13 @@ export default function CostSavingsDashboard() {
     } finally {
       setIsTestingConnection(false);
     }
-  };
+  }, []);
+
+  // Memoize cost calculations
+  const savingsPercentage = useMemo(() => {
+    const total = costData.localRequests + costData.cloudRequests;
+    return total > 0 ? ((costData.localRequests / total) * 100).toFixed(1) : '0.0';
+  }, [costData.localRequests, costData.cloudRequests]);
 
   return (
     <div
@@ -158,3 +164,5 @@ export default function CostSavingsDashboard() {
     </div>
   );
 }
+
+export default memo(CostSavingsDashboard);

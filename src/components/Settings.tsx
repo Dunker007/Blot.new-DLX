@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import {
   CheckCircle,
@@ -19,7 +19,7 @@ import { llmService } from '../services/llm';
 import { DiscoveredModel, modelDiscoveryService } from '../services/modelDiscovery';
 import { LLMProvider, Model } from '../types';
 
-export default function Settings() {
+function Settings() {
   const [providers, setProviders] = useState<LLMProvider[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,11 +44,7 @@ export default function Settings() {
     use_case: 'general' as const,
   });
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -81,9 +77,13 @@ export default function Settings() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const addProvider = async () => {
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
+
+  const addProvider = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('llm_providers')
@@ -107,7 +107,7 @@ export default function Settings() {
       console.error('Failed to add provider:', error);
       alert('Failed to add provider. Please check the console for details.');
     }
-  };
+  }, [providers, newProvider]);
 
   const deleteProvider = async (id: string) => {
     if (!confirm('Are you sure? This will also delete all associated models.')) return;
@@ -756,3 +756,5 @@ export default function Settings() {
     </div>
   );
 }
+
+export default memo(Settings);
