@@ -126,31 +126,21 @@ export class LLMService {
   ): Promise<LLMResponse> {
     const endpoint = `${provider.endpoint_url}/v1/chat/completions`;
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(provider.api_key && { Authorization: `Bearer ${provider.api_key}` }),
-      },
-      body: JSON.stringify({
-        model: model.model_name,
-        messages,
-        stream: !!onStream,
-        temperature: 0.7,
-      }),
-      signal,
-    });
+    // Create timeout controller and combine with user signal if provided
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.DEFAULT_TIMEOUT);
 
-    if (!response.ok) {
-      throw new Error(`API error: ${response.statusText}`);
-    }
-    
+    // Combine timeout signal with user-provided signal
+    const combinedSignal = signal
+      ? this.combineAbortSignals(signal, controller.signal)
+      : controller.signal;
+
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(provider.api_key && { 'Authorization': `Bearer ${provider.api_key}` }),
+          ...(provider.api_key && { Authorization: `Bearer ${provider.api_key}` }),
         },
         body: JSON.stringify({
           model: model.model_name,
@@ -186,6 +176,16 @@ export class LLMService {
       }
       throw error;
     }
+  }
+
+  private combineAbortSignals(signal1: AbortSignal, signal2: AbortSignal): AbortSignal {
+    const controller = new AbortController();
+
+    const onAbort = () => controller.abort();
+    signal1.addEventListener('abort', onAbort);
+    signal2.addEventListener('abort', onAbort);
+
+    return controller.signal;
   }
 
   private async handleStreamResponse(

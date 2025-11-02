@@ -238,18 +238,13 @@ export class ModelDiscoveryService {
       supabase
         .from('token_usage_logs')
         .select('model_id, status, response_time_ms')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
     ]);
 
     const models = modelsResult.data;
     const usageStats = usageStatsResult.data;
 
     if (!models || models.length === 0) return [];
-
-    const { data: usageStats } = await supabase
-      .from('token_usage_logs')
-      .select('model_id, status, response_time_ms')
-      .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
     const modelStats = new Map<
       string,
@@ -259,7 +254,7 @@ export class ModelDiscoveryService {
     // Single-pass aggregation of usage stats
     if (usageStats) {
       const grouped = new Map<string, { success: number; total: number; totalTime: number }>();
-      
+
       for (const log of usageStats) {
         const existing = grouped.get(log.model_id);
         if (existing) {
@@ -274,18 +269,6 @@ export class ModelDiscoveryService {
           });
         }
       }
-      const grouped = usageStats.reduce(
-        (acc, log) => {
-          if (!acc[log.model_id]) {
-            acc[log.model_id] = { success: 0, total: 0, totalTime: 0 };
-          }
-          acc[log.model_id].total++;
-          if (log.status === 'success') acc[log.model_id].success++;
-          acc[log.model_id].totalTime += log.response_time_ms;
-          return acc;
-        },
-        {} as Record<string, { success: number; total: number; totalTime: number }>
-      );
 
       for (const [modelId, stats] of grouped) {
         modelStats.set(modelId, {
