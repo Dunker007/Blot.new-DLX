@@ -1,6 +1,6 @@
 /**
  * Mobile Optimization Service
- * 
+ *
  * Provides utilities for detecting device capabilities, optimizing performance
  * for mobile devices, and managing responsive behavior across the application.
  */
@@ -62,7 +62,9 @@ class MobileOptimizationService {
     const screenHeight = window.screen.height;
 
     return {
-      isMobile: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) || screenWidth < 768,
+      isMobile:
+        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) ||
+        screenWidth < 768,
       isTablet: /iPad|Android/i.test(userAgent) && screenWidth >= 768 && screenWidth < 1024,
       isDesktop: screenWidth >= 1024,
       screenWidth,
@@ -71,7 +73,7 @@ class MobileOptimizationService {
       touchSupported: 'ontouchstart' in window,
       networkType: this.getNetworkType(),
       deviceMemory: (navigator as any).deviceMemory,
-      hardwareConcurrency: navigator.hardwareConcurrency
+      hardwareConcurrency: navigator.hardwareConcurrency,
     };
   }
 
@@ -79,7 +81,10 @@ class MobileOptimizationService {
    * Get network connection type if available
    */
   private getNetworkType(): string | undefined {
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
+    const connection =
+      (navigator as any).connection ||
+      (navigator as any).mozConnection ||
+      (navigator as any).webkitConnection;
     return connection?.type || connection?.effectiveType;
   }
 
@@ -88,8 +93,10 @@ class MobileOptimizationService {
    */
   private generateOptimizationConfig(): MobileOptimizationConfig {
     const isMobile = this.deviceInfo.isMobile;
-    const isLowEnd = Boolean((this.deviceInfo.deviceMemory && this.deviceInfo.deviceMemory <= 2) || 
-                     (this.deviceInfo.hardwareConcurrency && this.deviceInfo.hardwareConcurrency <= 2));
+    const isLowEnd = Boolean(
+      (this.deviceInfo.deviceMemory && this.deviceInfo.deviceMemory <= 2) ||
+        (this.deviceInfo.hardwareConcurrency && this.deviceInfo.hardwareConcurrency <= 2)
+    );
 
     return {
       enableLazyLoading: isMobile || isLowEnd,
@@ -97,7 +104,7 @@ class MobileOptimizationService {
       optimizeImages: isMobile,
       enableOfflineMode: isMobile,
       maxConcurrentRequests: isLowEnd ? 2 : isMobile ? 4 : 8,
-      cacheStrategy: isLowEnd ? 'minimal' : isMobile ? 'moderate' : 'aggressive'
+      cacheStrategy: isLowEnd ? 'minimal' : isMobile ? 'moderate' : 'aggressive',
     };
   }
 
@@ -138,7 +145,7 @@ class MobileOptimizationService {
         this.deviceInfo.orientation = newOrientation;
         this.deviceInfo.screenWidth = window.innerWidth;
         this.deviceInfo.screenHeight = window.innerHeight;
-        
+
         this.orientationChangeListeners.forEach(listener => {
           listener(newOrientation);
         });
@@ -153,9 +160,10 @@ class MobileOptimizationService {
    * Update optimization configuration based on current performance
    */
   private updateOptimizationConfig(): void {
-    const isSlowConnection = this.performanceMetrics.effectiveType === 'slow-2g' || 
-                           this.performanceMetrics.effectiveType === '2g';
-    
+    const isSlowConnection =
+      this.performanceMetrics.effectiveType === 'slow-2g' ||
+      this.performanceMetrics.effectiveType === '2g';
+
     if (isSlowConnection) {
       this.config.enableLazyLoading = true;
       this.config.reduceAnimations = true;
@@ -197,9 +205,13 @@ class MobileOptimizationService {
    * Check if device supports advanced features
    */
   supportsAdvancedFeatures(): boolean {
-    return !this.deviceInfo.isMobile || 
-           Boolean((this.deviceInfo.deviceMemory && this.deviceInfo.deviceMemory > 2) ||
-           (this.deviceInfo.hardwareConcurrency && this.deviceInfo.hardwareConcurrency > 2));
+    return (
+      !this.deviceInfo.isMobile ||
+      Boolean(
+        (this.deviceInfo.deviceMemory && this.deviceInfo.deviceMemory > 2) ||
+          (this.deviceInfo.hardwareConcurrency && this.deviceInfo.hardwareConcurrency > 2)
+      )
+    );
   }
 
   /**
@@ -227,7 +239,7 @@ class MobileOptimizationService {
    */
   onOrientationChange(callback: (orientation: 'portrait' | 'landscape') => void): () => void {
     this.orientationChangeListeners.push(callback);
-    
+
     // Return unsubscribe function
     return () => {
       const index = this.orientationChangeListeners.indexOf(callback);
@@ -265,7 +277,7 @@ class MobileOptimizationService {
   debounce<T extends (...args: any[]) => void>(func: T, wait: number): T {
     let timeout: NodeJS.Timeout;
     const optimizedWait = this.deviceInfo.isMobile ? Math.max(wait, 16) : wait; // Minimum 16ms on mobile
-    
+
     return ((...args: Parameters<T>) => {
       clearTimeout(timeout);
       timeout = setTimeout(() => func(...args), optimizedWait);
@@ -278,7 +290,7 @@ class MobileOptimizationService {
   throttle<T extends (...args: any[]) => void>(func: T, limit: number): T {
     let inThrottle: boolean;
     const optimizedLimit = this.deviceInfo.isMobile ? Math.max(limit, 16) : limit; // Minimum 16ms on mobile
-    
+
     return ((...args: Parameters<T>) => {
       if (!inThrottle) {
         func(...args);
@@ -294,8 +306,10 @@ class MobileOptimizationService {
   isLowPowerMode(): boolean {
     // This is a heuristic check - iOS Safari in low power mode has reduced performance
     if (this.deviceInfo.isMobile && /Safari/i.test(navigator.userAgent)) {
-      return this.performanceMetrics.effectiveType === 'slow-2g' || 
-             this.performanceMetrics.effectiveType === '2g';
+      return (
+        this.performanceMetrics.effectiveType === 'slow-2g' ||
+        this.performanceMetrics.effectiveType === '2g'
+      );
     }
     return false;
   }
@@ -305,12 +319,12 @@ class MobileOptimizationService {
    */
   getViewportSafeArea(): { top: number; bottom: number; left: number; right: number } {
     const computedStyle = getComputedStyle(document.documentElement);
-    
+
     return {
       top: parseInt(computedStyle.getPropertyValue('--safe-area-inset-top') || '0'),
       bottom: parseInt(computedStyle.getPropertyValue('--safe-area-inset-bottom') || '0'),
       left: parseInt(computedStyle.getPropertyValue('--safe-area-inset-left') || '0'),
-      right: parseInt(computedStyle.getPropertyValue('--safe-area-inset-right') || '0')
+      right: parseInt(computedStyle.getPropertyValue('--safe-area-inset-right') || '0'),
     };
   }
 

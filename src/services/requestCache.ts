@@ -133,7 +133,7 @@ export class RequestCacheService {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return hash.toString(36);
@@ -170,9 +170,12 @@ export class RequestCacheService {
   }
 
   private startCleanupInterval(): void {
-    setInterval(() => {
-      this.cleanup();
-    }, 5 * 60 * 1000);
+    setInterval(
+      () => {
+        this.cleanup();
+      },
+      5 * 60 * 1000
+    );
   }
 
   setMaxSize(size: number): void {
@@ -230,7 +233,9 @@ export class RequestCacheService {
     return entries;
   }
 
-  warmup(commonQueries: Array<{ messages: LLMMessage[]; modelId: string; response: LLMResponse }>): void {
+  warmup(
+    commonQueries: Array<{ messages: LLMMessage[]; modelId: string; response: LLMResponse }>
+  ): void {
     for (const query of commonQueries) {
       this.set(query.messages, query.modelId, query.response);
     }

@@ -65,7 +65,7 @@ export class AdvancedCacheService {
    */
   get<T>(key: string): T | null {
     const entry = this.cache.get(key);
-    
+
     if (!entry) {
       this.stats.misses++;
       this.updateHitRate();
@@ -106,8 +106,8 @@ export class AdvancedCacheService {
    * Set item in cache with advanced options
    */
   set<T>(
-    key: string, 
-    data: T, 
+    key: string,
+    data: T,
     options: {
       ttl?: number;
       tags?: string[];
@@ -115,19 +115,14 @@ export class AdvancedCacheService {
       compress?: boolean;
     } = {}
   ): void {
-    const {
-      ttl = this.config.defaultTTL,
-      tags = [],
-      priority = 1,
-      compress = false,
-    } = options;
+    const { ttl = this.config.defaultTTL, tags = [], priority = 1, compress = false } = options;
 
     let finalData = data;
     let compressed = false;
 
     // Auto-compression for large objects
     const dataSize = this.estimateSize(data);
-    if (compress || (dataSize > this.config.compressionThreshold)) {
+    if (compress || dataSize > this.config.compressionThreshold) {
       try {
         finalData = JSON.stringify(data) as T;
         compressed = true;
@@ -149,7 +144,7 @@ export class AdvancedCacheService {
 
     // Ensure we don't exceed memory limit
     this.ensureCapacity(this.estimateSize(entry));
-    
+
     this.cache.set(key, entry);
     this.stats.sets++;
     this.updateMemoryUsage();
@@ -168,7 +163,7 @@ export class AdvancedCacheService {
     if (existed) {
       this.stats.deletes++;
       this.updateMemoryUsage();
-      
+
       if (this.config.persistToDisk) {
         localStorage.removeItem(`${this.config.storagePrefix}${key}`);
       }
@@ -200,7 +195,7 @@ export class AdvancedCacheService {
 
     if (this.config.persistToDisk) {
       // Clear all persisted entries
-      const keys = Object.keys(localStorage).filter(key => 
+      const keys = Object.keys(localStorage).filter(key =>
         key.startsWith(this.config.storagePrefix)
       );
       keys.forEach(key => localStorage.removeItem(key));
@@ -251,7 +246,7 @@ export class AdvancedCacheService {
 
     return async (...args: Args): Promise<Return> => {
       const key = keyGenerator(...args);
-      
+
       // Check cache first
       const cached = this.get<Return>(key);
       if (cached !== null) {
@@ -274,7 +269,7 @@ export class AdvancedCacheService {
    * Smart cache warming based on usage patterns
    */
   async warmCache(keys: string[], loader: (key: string) => Promise<any>): Promise<void> {
-    const promises = keys.map(async (key) => {
+    const promises = keys.map(async key => {
       if (!this.cache.has(key)) {
         try {
           const data = await loader(key);
@@ -325,12 +320,7 @@ export class AdvancedCacheService {
   /**
    * Cache dependency management
    */
-  setWithDependencies<T>(
-    key: string,
-    data: T,
-    dependencies: string[],
-    options: any = {}
-  ): void {
+  setWithDependencies<T>(key: string, data: T, dependencies: string[], options: any = {}): void {
     const tags = [...(options.tags || []), ...dependencies.map(dep => `dep:${dep}`)];
     this.set(key, data, { ...options, tags });
   }
@@ -350,7 +340,7 @@ export class AdvancedCacheService {
 
   private ensureCapacity(requiredSize: number): void {
     let currentSize = this.calculateTotalSize();
-    
+
     while (currentSize + requiredSize > this.config.maxSize && this.cache.size > 0) {
       // Evict least recently used item with lowest priority
       const keyToEvict = this.findLRUKey();
@@ -358,7 +348,7 @@ export class AdvancedCacheService {
         const evictedEntry = this.cache.get(keyToEvict);
         this.cache.delete(keyToEvict);
         this.stats.evictions++;
-        
+
         if (evictedEntry) {
           currentSize -= this.estimateSize(evictedEntry);
         }
@@ -376,7 +366,7 @@ export class AdvancedCacheService {
     for (const [key, entry] of this.cache.entries()) {
       // Prefer lower priority and older access time
       const score = entry.priority * 1000000 + entry.lastAccessed;
-      if (score < (lowestPriority * 1000000 + oldestTime)) {
+      if (score < lowestPriority * 1000000 + oldestTime) {
         oldestKey = key;
         oldestTime = entry.lastAccessed;
         lowestPriority = entry.priority;
@@ -440,9 +430,7 @@ export class AdvancedCacheService {
   private loadFromDisk(): void {
     if (!this.config.persistToDisk) return;
 
-    const keys = Object.keys(localStorage).filter(key => 
-      key.startsWith(this.config.storagePrefix)
-    );
+    const keys = Object.keys(localStorage).filter(key => key.startsWith(this.config.storagePrefix));
 
     keys.forEach(storageKey => {
       try {
@@ -450,7 +438,7 @@ export class AdvancedCacheService {
         if (data) {
           const entry = JSON.parse(data);
           const cacheKey = storageKey.replace(this.config.storagePrefix, '');
-          
+
           // Check if still valid
           const now = Date.now();
           if (now <= entry.timestamp + entry.ttl) {

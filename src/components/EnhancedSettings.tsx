@@ -1,17 +1,12 @@
 import { useState } from 'react';
-import {
-  Settings as SettingsIcon,
-  Server,
-  BarChart3,
-  Globe,
-  Brain,
-  Activity,
-} from 'lucide-react';
+
+import { Activity, BarChart3, Brain, Globe, Server, Settings as SettingsIcon } from 'lucide-react';
+
+import EnvironmentSettings from './EnvironmentSettings';
+import ModelPerformanceDashboard from './ModelPerformanceDashboard';
+import ModelRecommendations from './ModelRecommendations';
 import Settings from './Settings';
 import TokenAnalytics from './TokenAnalytics';
-import EnvironmentSettings from './EnvironmentSettings';
-import ModelRecommendations from './ModelRecommendations';
-import ModelPerformanceDashboard from './ModelPerformanceDashboard';
 
 type TabType = 'providers' | 'recommendations' | 'performance' | 'analytics' | 'environment';
 
@@ -38,7 +33,7 @@ export default function EnhancedSettings() {
 
       <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
         <div className="flex border-b border-slate-800">
-          {tabs.map((tab) => {
+          {tabs.map(tab => {
             const Icon = tab.icon;
             return (
               <button

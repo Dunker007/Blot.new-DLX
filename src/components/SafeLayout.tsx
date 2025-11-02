@@ -1,17 +1,16 @@
 import { ReactNode, useState } from 'react';
+
 import {
-  LayoutDashboard,
-  MessageSquare,
-  Code,
-  FolderKanban,
-  TrendingUp,
+  Activity,
   Brain,
-  Settings,
+  FolderKanban,
+  LayoutDashboard,
   Menu,
+  MessageSquare,
+  Settings,
   X,
-  Sparkles,
-  Activity
 } from 'lucide-react';
+
 import { safeComponents, safeGradients, safeUtils } from '../styles/safeDesignSystem';
 
 interface LayoutProps {
@@ -40,7 +39,9 @@ const SafeLayout = ({ children, currentView, onViewChange }: LayoutProps) => {
   return (
     <div className={safeComponents.pageBackground}>
       {/* Header */}
-      <nav className={`fixed top-0 left-0 right-0 h-16 ${safeComponents.sectionBackground} border-b border-white/10 z-50 ${safeUtils.spaceBetween} px-6`}>
+      <nav
+        className={`fixed top-0 left-0 right-0 h-16 ${safeComponents.sectionBackground} border-b border-white/10 z-50 ${safeUtils.spaceBetween} px-6`}
+      >
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className={`lg:hidden ${safeComponents.buttonGhost}`}
@@ -52,9 +53,7 @@ const SafeLayout = ({ children, currentView, onViewChange }: LayoutProps) => {
           <div className={`bg-gradient-to-r ${safeGradients.primary} p-2 rounded-lg`}>
             <Brain className="w-6 h-6 text-white" />
           </div>
-          <span className={`text-2xl font-bold ${safeUtils.textGradient}`}>
-            DLX Studios
-          </span>
+          <span className={`text-2xl font-bold ${safeUtils.textGradient}`}>DLX Studios</span>
           <span className="text-sm text-slate-400 hidden sm:block">AI Development</span>
         </div>
 
@@ -71,10 +70,10 @@ const SafeLayout = ({ children, currentView, onViewChange }: LayoutProps) => {
         }`}
       >
         <nav className="p-4 space-y-2">
-          {navItems.map((item) => {
+          {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = currentView === item.id;
-            
+
             return (
               <button
                 key={item.id}
@@ -97,9 +96,7 @@ const SafeLayout = ({ children, currentView, onViewChange }: LayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className="lg:ml-64 pt-16 min-h-screen">
-        {children}
-      </main>
+      <main className="lg:ml-64 pt-16 min-h-screen">{children}</main>
 
       {/* Overlay for mobile */}
       {sidebarOpen && (

@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, Lightbulb, Zap, TrendingUp, AlertCircle, CheckCircle } from 'lucide-react';
-import { multiModelOrchestratorService } from '../services/multiModelOrchestrator';
+import { useEffect, useState } from 'react';
+
+import { AlertCircle, CheckCircle, Lightbulb, Sparkles, TrendingUp, Zap } from 'lucide-react';
+
 import { contextManager } from '../services/contextManager';
 import { LLMMessage } from '../services/llm';
+import { multiModelOrchestratorService } from '../services/multiModelOrchestrator';
 
 interface AISuggestion {
   type: 'optimization' | 'warning' | 'tip' | 'insight';
@@ -30,7 +32,9 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
     const newSuggestions: AISuggestion[] = [];
 
     if (currentContext && currentContext.length > 10) {
-      const taskComplexity = await multiModelOrchestratorService.analyzeTaskComplexity([{ role: 'user', content: currentContext }]);
+      const taskComplexity = await multiModelOrchestratorService.analyzeTaskComplexity([
+        { role: 'user', content: currentContext },
+      ]);
       setComplexity(taskComplexity);
 
       if (taskComplexity.level === 'expert' || taskComplexity.level === 'complex') {
@@ -62,7 +66,8 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
         newSuggestions.push({
           type: 'optimization',
           title: 'Long Conversation',
-          description: 'This conversation has many messages. You might get better results by starting a new focused conversation.',
+          description:
+            'This conversation has many messages. You might get better results by starting a new focused conversation.',
           action: 'Start fresh conversation',
           priority: 'medium',
         });
@@ -77,7 +82,8 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
         newSuggestions.push({
           type: 'tip',
           title: 'Code-Heavy Conversation',
-          description: 'Consider using a coding-specific model for better code understanding and generation.',
+          description:
+            'Consider using a coding-specific model for better code understanding and generation.',
           action: 'Switch to coding model',
           priority: 'medium',
         });
@@ -98,18 +104,25 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
 
   const getIcon = (type: AISuggestion['type']) => {
     switch (type) {
-      case 'optimization': return TrendingUp;
-      case 'warning': return AlertCircle;
-      case 'tip': return Lightbulb;
-      case 'insight': return Sparkles;
+      case 'optimization':
+        return TrendingUp;
+      case 'warning':
+        return AlertCircle;
+      case 'tip':
+        return Lightbulb;
+      case 'insight':
+        return Sparkles;
     }
   };
 
   const getColor = (priority: AISuggestion['priority']) => {
     switch (priority) {
-      case 'high': return 'text-red-400 bg-red-500/10 border-red-500/20';
-      case 'medium': return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
-      case 'low': return 'text-green-400 bg-green-500/10 border-green-500/20';
+      case 'high':
+        return 'text-red-400 bg-red-500/10 border-red-500/20';
+      case 'medium':
+        return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20';
+      case 'low':
+        return 'text-green-400 bg-green-500/10 border-green-500/20';
     }
   };
 
@@ -157,7 +170,9 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
             </div>
             <div>
               <div className="text-xs text-slate-500">Tokens</div>
-              <div className="text-lg font-semibold">{contextStats.totalTokens.toLocaleString()}</div>
+              <div className="text-lg font-semibold">
+                {contextStats.totalTokens.toLocaleString()}
+              </div>
             </div>
             <div className="col-span-2">
               <div className="flex items-center justify-between text-xs text-slate-500 mb-1">
@@ -170,8 +185,8 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
                     contextStats.utilizationPercent > 80
                       ? 'bg-red-500'
                       : contextStats.utilizationPercent > 60
-                      ? 'bg-yellow-500'
-                      : 'bg-green-500'
+                        ? 'bg-yellow-500'
+                        : 'bg-green-500'
                   }`}
                   style={{ width: `${Math.min(100, contextStats.utilizationPercent)}%` }}
                 />
@@ -187,10 +202,7 @@ export default function AIAssistantPanel({ messages = [], currentContext }: AIAs
           const colorClass = getColor(suggestion.priority);
 
           return (
-            <div
-              key={idx}
-              className={`border rounded-lg p-3 ${colorClass}`}
-            >
+            <div key={idx} className={`border rounded-lg p-3 ${colorClass}`}>
               <div className="flex items-start gap-3">
                 <Icon size={16} className="mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">

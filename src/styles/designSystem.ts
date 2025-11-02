@@ -1,6 +1,6 @@
 /**
  * DLX Studios Design System
- * 
+ *
  * Unified premium theme for AI-powered development platform
  * Consistent colors, gradients, shadows, and spacing
  */
@@ -45,13 +45,13 @@ export const colors = {
     active: 'rgba(139, 92, 246, 0.2)',
     focus: 'rgba(139, 92, 246, 0.3)',
     disabled: 'rgba(100, 116, 139, 0.3)',
-  }
+  },
 };
 
 // Gradient Combinations
 export const gradients = {
   primary: 'from-purple-600 to-pink-600',
-  secondary: 'from-cyan-500 to-purple-600', 
+  secondary: 'from-cyan-500 to-purple-600',
   success: 'from-emerald-500 to-cyan-500',
   warning: 'from-amber-500 to-orange-500',
   background: 'from-slate-900 via-purple-900/20 to-slate-900',
@@ -92,30 +92,35 @@ export const spacing = {
 };
 
 // Component Base Classes
-const cardBase = 'bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-lg hover:shadow-xl hover:border-white/20 transition-all duration-300';
+const cardBase =
+  'bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl border border-white/10 shadow-lg hover:shadow-xl hover:border-white/20 transition-all duration-300';
 
 export const components = {
   // Cards
   card: cardBase,
   cardInteractive: `${cardBase} hover:scale-[1.02] cursor-pointer`,
-  
+
   // Buttons
-  buttonPrimary: 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed',
-  buttonSecondary: 'bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-lg border border-white/20 hover:border-white/40 transition-all duration-300',
-  buttonGhost: 'text-white hover:bg-white/10 font-medium px-4 py-2 rounded-lg transition-all duration-300',
-  
+  buttonPrimary:
+    'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg hover:shadow-xl hover:shadow-purple-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed',
+  buttonSecondary:
+    'bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-lg border border-white/20 hover:border-white/40 transition-all duration-300',
+  buttonGhost:
+    'text-white hover:bg-white/10 font-medium px-4 py-2 rounded-lg transition-all duration-300',
+
   // Inputs
-  input: 'bg-black/20 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-300',
-  
+  input:
+    'bg-black/20 border border-white/20 rounded-lg px-4 py-3 text-white placeholder-white/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-300',
+
   // Status Indicators
   statusOnline: 'w-2 h-2 bg-emerald-400 rounded-full animate-pulse',
   statusOffline: 'w-2 h-2 bg-red-400 rounded-full',
   statusWarning: 'w-2 h-2 bg-amber-400 rounded-full',
-  
+
   // Layout
   pageBackground: 'min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900',
   sectionBackground: 'bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm',
-  
+
   // Navigation
   navItem: `text-white/70 hover:text-white font-medium transition-colors duration-300`,
   navItemActive: `text-white font-semibold bg-white/10 px-3 py-2 rounded-lg`,
@@ -138,15 +143,15 @@ export const utils = {
   centerFlex: 'flex items-center justify-center',
   spaceBetween: 'flex items-center justify-between',
   flexCol: 'flex flex-col',
-  
+
   // Grid utilities
   gridAuto: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6',
   gridResponsive: 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6',
-  
+
   // Text utilities
   textGradient: 'bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent',
   textShadow: 'drop-shadow-sm',
-  
+
   // Interactive utilities
   hoverScale: 'hover:scale-105 transition-transform duration-300',
   hoverGlow: 'hover:shadow-lg hover:shadow-purple-500/25 transition-all duration-300',

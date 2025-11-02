@@ -49,8 +49,8 @@ export class ModelDiscoveryService {
       const response = await fetch(`${provider.endpoint_url}/v1/models`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/json',
-          ...(provider.api_key && { 'Authorization': `Bearer ${provider.api_key}` }),
+          Accept: 'application/json',
+          ...(provider.api_key && { Authorization: `Bearer ${provider.api_key}` }),
         },
         signal: controller.signal,
       });
@@ -148,15 +148,15 @@ export class ModelDiscoveryService {
       const isAvailable = discoveredModelNames.has(model.model_name);
 
       if (model.is_available !== isAvailable) {
-        await supabase
-          .from('models')
-          .update({ is_available: isAvailable })
-          .eq('id', model.id);
+        await supabase.from('models').update({ is_available: isAvailable }).eq('id', model.id);
       }
     }
   }
 
-  async bulkImportModels(providerId: string, models: DiscoveredModel[]): Promise<{
+  async bulkImportModels(
+    providerId: string,
+    models: DiscoveredModel[]
+  ): Promise<{
     imported: number;
     skipped: number;
     errors: string[];
@@ -179,9 +179,8 @@ export class ModelDiscoveryService {
       }
 
       try {
-        const { error } = await supabase
-          .from('models')
-          .insert([{
+        const { error } = await supabase.from('models').insert([
+          {
             provider_id: providerId,
             model_name: model.model_name,
             display_name: model.display_name,
@@ -189,7 +188,8 @@ export class ModelDiscoveryService {
             use_case: this.inferUseCase(model),
             is_available: true,
             performance_metrics: {},
-          }]);
+          },
+        ]);
 
         if (error) {
           errors.push(`${model.model_name}: ${error.message}`);
@@ -197,7 +197,9 @@ export class ModelDiscoveryService {
           imported++;
         }
       } catch (error) {
-        errors.push(`${model.model_name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        errors.push(
+          `${model.model_name}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
       }
     }
 
@@ -239,18 +241,24 @@ export class ModelDiscoveryService {
       .select('model_id, status, response_time_ms')
       .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
-    const modelStats = new Map<string, { successRate: number; avgResponseTime: number; totalCalls: number }>();
+    const modelStats = new Map<
+      string,
+      { successRate: number; avgResponseTime: number; totalCalls: number }
+    >();
 
     if (usageStats) {
-      const grouped = usageStats.reduce((acc, log) => {
-        if (!acc[log.model_id]) {
-          acc[log.model_id] = { success: 0, total: 0, totalTime: 0 };
-        }
-        acc[log.model_id].total++;
-        if (log.status === 'success') acc[log.model_id].success++;
-        acc[log.model_id].totalTime += log.response_time_ms;
-        return acc;
-      }, {} as Record<string, { success: number; total: number; totalTime: number }>);
+      const grouped = usageStats.reduce(
+        (acc, log) => {
+          if (!acc[log.model_id]) {
+            acc[log.model_id] = { success: 0, total: 0, totalTime: 0 };
+          }
+          acc[log.model_id].total++;
+          if (log.status === 'success') acc[log.model_id].success++;
+          acc[log.model_id].totalTime += log.response_time_ms;
+          return acc;
+        },
+        {} as Record<string, { success: number; total: number; totalTime: number }>
+      );
 
       for (const [modelId, stats] of Object.entries(grouped)) {
         modelStats.set(modelId, {

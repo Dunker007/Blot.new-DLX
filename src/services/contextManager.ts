@@ -48,7 +48,8 @@ export class ContextManagerService {
     let optimized: LLMMessage[];
     let strategy: string;
 
-    const targetTokens = maxTokens - (preserveSystemMessages ? this.calculateContextUsage(systemMessages) : 0);
+    const targetTokens =
+      maxTokens - (preserveSystemMessages ? this.calculateContextUsage(systemMessages) : 0);
 
     if (conversationMessages.length > 20) {
       optimized = this.slidingWindowOptimization(conversationMessages, targetTokens);
@@ -61,9 +62,7 @@ export class ContextManagerService {
       strategy = 'truncation';
     }
 
-    const finalMessages = preserveSystemMessages
-      ? [...systemMessages, ...optimized]
-      : optimized;
+    const finalMessages = preserveSystemMessages ? [...systemMessages, ...optimized] : optimized;
 
     const tokensRemoved = currentTokens - this.calculateContextUsage(finalMessages);
     const compressionRatio = this.calculateContextUsage(finalMessages) / currentTokens;
@@ -120,11 +119,24 @@ export class ContextManagerService {
 
   private isImportantMessage(message: LLMMessage): boolean {
     const importantKeywords = [
-      'error', 'bug', 'fix', 'problem', 'issue',
-      'important', 'critical', 'urgent',
-      'requirement', 'must', 'need',
-      'architecture', 'design', 'structure',
-      'api', 'endpoint', 'database', 'schema',
+      'error',
+      'bug',
+      'fix',
+      'problem',
+      'issue',
+      'important',
+      'critical',
+      'urgent',
+      'requirement',
+      'must',
+      'need',
+      'architecture',
+      'design',
+      'structure',
+      'api',
+      'endpoint',
+      'database',
+      'schema',
     ];
 
     const content = message.content.toLowerCase();
@@ -191,9 +203,21 @@ export class ContextManagerService {
   private extractTopics(messages: LLMMessage[]): string[] {
     const topics = new Set<string>();
     const technicalTerms = [
-      'api', 'database', 'frontend', 'backend', 'authentication',
-      'deployment', 'testing', 'optimization', 'refactoring', 'bug',
-      'feature', 'component', 'service', 'model', 'schema',
+      'api',
+      'database',
+      'frontend',
+      'backend',
+      'authentication',
+      'deployment',
+      'testing',
+      'optimization',
+      'refactoring',
+      'bug',
+      'feature',
+      'component',
+      'service',
+      'model',
+      'schema',
     ];
 
     messages.forEach(msg => {
@@ -222,11 +246,18 @@ export class ContextManagerService {
     return keyPoints;
   }
 
-  shouldCompressContext(currentTokens: number, maxTokens: number, threshold: number = 0.8): boolean {
+  shouldCompressContext(
+    currentTokens: number,
+    maxTokens: number,
+    threshold: number = 0.8
+  ): boolean {
     return currentTokens > maxTokens * threshold;
   }
 
-  getContextStats(messages: LLMMessage[], maxTokens: number): {
+  getContextStats(
+    messages: LLMMessage[],
+    maxTokens: number
+  ): {
     totalMessages: number;
     totalTokens: number;
     maxTokens: number;

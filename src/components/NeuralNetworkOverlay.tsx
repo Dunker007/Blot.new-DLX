@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface DataNode {
   id: string;
@@ -15,7 +15,13 @@ const NeuralNetworkOverlay: React.FC = () => {
   useEffect(() => {
     // Generate neural network nodes
     const networkNodes: DataNode[] = [
-      { id: 'core', x: 50, y: 50, value: 100, connections: ['input1', 'input2', 'output1', 'output2'] },
+      {
+        id: 'core',
+        x: 50,
+        y: 50,
+        value: 100,
+        connections: ['input1', 'input2', 'output1', 'output2'],
+      },
       { id: 'input1', x: 20, y: 30, value: 75, connections: ['core', 'hidden1'] },
       { id: 'input2', x: 20, y: 70, value: 85, connections: ['core', 'hidden2'] },
       { id: 'output1', x: 80, y: 30, value: 92, connections: ['core', 'hidden3'] },
@@ -25,14 +31,14 @@ const NeuralNetworkOverlay: React.FC = () => {
       { id: 'hidden3', x: 65, y: 15, value: 70, connections: ['output1', 'core'] },
       { id: 'hidden4', x: 65, y: 85, value: 72, connections: ['output2', 'core'] },
     ];
-    
+
     setNodes(networkNodes);
 
     // Animate connections
     const interval = setInterval(() => {
       const randomNode = networkNodes[Math.floor(Math.random() * networkNodes.length)];
       setActiveConnections(randomNode.connections.map(conn => `${randomNode.id}-${conn}`));
-      
+
       setTimeout(() => setActiveConnections([]), 1000);
     }, 2000);
 
@@ -44,12 +50,12 @@ const NeuralNetworkOverlay: React.FC = () => {
     const y1 = (node1.y / 100) * 200;
     const x2 = (node2.x / 100) * 300;
     const y2 = (node2.y / 100) * 200;
-    
+
     // Create curved path
     const midX = (x1 + x2) / 2;
     const midY = (y1 + y2) / 2;
     const offset = 20;
-    
+
     return `M ${x1} ${y1} Q ${midX} ${midY + offset} ${x2} ${y2}`;
   };
 
@@ -62,34 +68,36 @@ const NeuralNetworkOverlay: React.FC = () => {
             <stop offset="50%" stopColor="rgba(139, 92, 246, 0.6)" />
             <stop offset="100%" stopColor="rgba(236, 72, 153, 0.4)" />
           </linearGradient>
-          
+
           <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-            <feMerge> 
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
+            <feGaussianBlur stdDeviation="3" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
 
         {/* Render connections */}
-        {nodes.map(node => 
+        {nodes.map(node =>
           node.connections.map(connId => {
             const targetNode = nodes.find(n => n.id === connId);
             if (!targetNode) return null;
-            
+
             const connectionId = `${node.id}-${connId}`;
-            const isActive = activeConnections.includes(connectionId) || activeConnections.includes(`${connId}-${node.id}`);
-            
+            const isActive =
+              activeConnections.includes(connectionId) ||
+              activeConnections.includes(`${connId}-${node.id}`);
+
             return (
               <path
                 key={connectionId}
                 d={getConnectionPath(node, targetNode)}
-                stroke={isActive ? "url(#neuralGrad)" : "rgba(6, 182, 212, 0.2)"}
-                strokeWidth={isActive ? "2" : "1"}
+                stroke={isActive ? 'url(#neuralGrad)' : 'rgba(6, 182, 212, 0.2)'}
+                strokeWidth={isActive ? '2' : '1'}
                 fill="none"
-                filter={isActive ? "url(#glow)" : "none"}
-                className={isActive ? "animate-pulse" : ""}
+                filter={isActive ? 'url(#glow)' : 'none'}
+                className={isActive ? 'animate-pulse' : ''}
               />
             );
           })
@@ -100,7 +108,7 @@ const NeuralNetworkOverlay: React.FC = () => {
           const cx = (node.x / 100) * 300;
           const cy = (node.y / 100) * 200;
           const isCore = node.id === 'core';
-          
+
           return (
             <g key={node.id}>
               {/* Node glow */}
@@ -111,16 +119,16 @@ const NeuralNetworkOverlay: React.FC = () => {
                 fill="rgba(6, 182, 212, 0.1)"
                 className="animate-pulse"
               />
-              
+
               {/* Main node */}
               <circle
                 cx={cx}
                 cy={cy}
                 r={isCore ? 8 : 5}
-                fill={isCore ? "rgba(6, 182, 212, 1)" : "rgba(139, 92, 246, 0.8)"}
+                fill={isCore ? 'rgba(6, 182, 212, 1)' : 'rgba(139, 92, 246, 0.8)'}
                 filter="url(#glow)"
               />
-              
+
               {/* Value indicator */}
               <text
                 x={cx}

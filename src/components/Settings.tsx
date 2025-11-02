@@ -1,23 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  Plus,
-  Trash2,
   CheckCircle,
-  XCircle,
-  Loader2,
-  Server,
   Cpu,
-  RefreshCw,
   Download,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Server,
+  Trash2,
+  XCircle,
   Zap,
-  TrendingUp,
-  Star,
 } from 'lucide-react';
-import { supabase, isDemoMode } from '../lib/supabase';
-import { LLMProvider, Model } from '../types';
+
+import { isDemoMode, supabase } from '../lib/supabase';
+import { demoModels, demoProviders } from '../services/demoData';
 import { llmService } from '../services/llm';
-import { modelDiscoveryService, DiscoveredModel } from '../services/modelDiscovery';
-import { demoProviders, demoModels } from '../services/demoData';
+import { DiscoveredModel, modelDiscoveryService } from '../services/modelDiscovery';
+import { LLMProvider, Model } from '../types';
 
 export default function Settings() {
   const [providers, setProviders] = useState<LLMProvider[]>([]);
@@ -117,8 +117,8 @@ export default function Settings() {
 
       if (error) throw error;
 
-      setProviders(providers.filter((p) => p.id !== id));
-      setModels(models.filter((m) => m.provider_id !== id));
+      setProviders(providers.filter(p => p.id !== id));
+      setModels(models.filter(m => m.provider_id !== id));
     } catch (error) {
       console.error('Failed to delete provider:', error);
     }
@@ -133,9 +133,7 @@ export default function Settings() {
 
       if (error) throw error;
 
-      setProviders(
-        providers.map((p) => (p.id === id ? { ...p, is_active: !currentStatus } : p))
-      );
+      setProviders(providers.map(p => (p.id === id ? { ...p, is_active: !currentStatus } : p)));
     } catch (error) {
       console.error('Failed to toggle provider:', error);
     }
@@ -189,16 +187,13 @@ export default function Settings() {
         return;
       }
 
-      const importResult = await modelDiscoveryService.bulkImportModels(
-        provider.id,
-        result.models
-      );
+      const importResult = await modelDiscoveryService.bulkImportModels(provider.id, result.models);
 
       alert(
         `Import complete!\n` +
-        `Imported: ${importResult.imported}\n` +
-        `Skipped: ${importResult.skipped}\n` +
-        `Errors: ${importResult.errors.length}`
+          `Imported: ${importResult.imported}\n` +
+          `Skipped: ${importResult.skipped}\n` +
+          `Errors: ${importResult.errors.length}`
       );
 
       await loadSettings();
@@ -215,15 +210,17 @@ export default function Settings() {
     try {
       const { data, error } = await supabase
         .from('models')
-        .insert([{
-          provider_id: selectedProvider.id,
-          model_name: discoveredModel.model_name,
-          display_name: discoveredModel.display_name,
-          context_window: discoveredModel.context_window,
-          use_case: 'general',
-          is_available: true,
-          performance_metrics: {},
-        }])
+        .insert([
+          {
+            provider_id: selectedProvider.id,
+            model_name: discoveredModel.model_name,
+            display_name: discoveredModel.display_name,
+            context_window: discoveredModel.context_window,
+            use_case: 'general',
+            is_available: true,
+            performance_metrics: {},
+          },
+        ])
         .select()
         .single();
 
@@ -241,11 +238,7 @@ export default function Settings() {
 
   const addModel = async () => {
     try {
-      const { data, error } = await supabase
-        .from('models')
-        .insert([newModel])
-        .select()
-        .single();
+      const { data, error } = await supabase.from('models').insert([newModel]).select().single();
 
       if (error) throw error;
 
@@ -274,7 +267,7 @@ export default function Settings() {
 
       if (error) throw error;
 
-      setModels(models.filter((m) => m.id !== id));
+      setModels(models.filter(m => m.id !== id));
     } catch (error) {
       console.error('Failed to delete model:', error);
     }
@@ -289,9 +282,7 @@ export default function Settings() {
 
       if (error) throw error;
 
-      setModels(
-        models.map((m) => (m.id === id ? { ...m, is_available: !currentStatus } : m))
-      );
+      setModels(models.map(m => (m.id === id ? { ...m, is_available: !currentStatus } : m)));
     } catch (error) {
       console.error('Failed to toggle model:', error);
     }
@@ -332,7 +323,7 @@ export default function Settings() {
           </div>
 
           <div className="space-y-3">
-            {providers.map((provider) => (
+            {providers.map(provider => (
               <div
                 key={provider.id}
                 className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-all"
@@ -442,8 +433,8 @@ export default function Settings() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {models.map((model) => {
-              const provider = providers.find((p) => p.id === model.provider_id);
+            {models.map(model => {
+              const provider = providers.find(p => p.id === model.provider_id);
               return (
                 <div
                   key={model.id}
@@ -460,7 +451,9 @@ export default function Settings() {
                         <span className="px-2 py-1 bg-slate-800 text-slate-300 rounded">
                           {model.use_case}
                         </span>
-                        <span className="text-slate-500">{model.context_window.toLocaleString()} tokens</span>
+                        <span className="text-slate-500">
+                          {model.context_window.toLocaleString()} tokens
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -507,7 +500,7 @@ export default function Settings() {
                 <label className="block text-sm text-slate-400 mb-2">Provider Type</label>
                 <select
                   value={newProvider.name}
-                  onChange={(e) => setNewProvider({ ...newProvider, name: e.target.value as any })}
+                  onChange={e => setNewProvider({ ...newProvider, name: e.target.value as any })}
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 >
                   <option value="lm_studio">LM Studio</option>
@@ -522,7 +515,7 @@ export default function Settings() {
                 <input
                   type="text"
                   value={newProvider.endpoint_url}
-                  onChange={(e) => setNewProvider({ ...newProvider, endpoint_url: e.target.value })}
+                  onChange={e => setNewProvider({ ...newProvider, endpoint_url: e.target.value })}
                   placeholder="http://localhost:1234"
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -532,7 +525,7 @@ export default function Settings() {
                 <input
                   type="password"
                   value={newProvider.api_key}
-                  onChange={(e) => setNewProvider({ ...newProvider, api_key: e.target.value })}
+                  onChange={e => setNewProvider({ ...newProvider, api_key: e.target.value })}
                   placeholder="sk-..."
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -542,7 +535,9 @@ export default function Settings() {
                 <input
                   type="number"
                   value={newProvider.priority}
-                  onChange={(e) => setNewProvider({ ...newProvider, priority: parseInt(e.target.value) })}
+                  onChange={e =>
+                    setNewProvider({ ...newProvider, priority: parseInt(e.target.value) })
+                  }
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -574,11 +569,11 @@ export default function Settings() {
                 <label className="block text-sm text-slate-400 mb-2">Provider</label>
                 <select
                   value={newModel.provider_id}
-                  onChange={(e) => setNewModel({ ...newModel, provider_id: e.target.value })}
+                  onChange={e => setNewModel({ ...newModel, provider_id: e.target.value })}
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 >
                   <option value="">Select a provider</option>
-                  {providers.map((provider) => (
+                  {providers.map(provider => (
                     <option key={provider.id} value={provider.id}>
                       {provider.name.replace('_', ' ')}
                     </option>
@@ -590,7 +585,7 @@ export default function Settings() {
                 <input
                   type="text"
                   value={newModel.model_name}
-                  onChange={(e) => setNewModel({ ...newModel, model_name: e.target.value })}
+                  onChange={e => setNewModel({ ...newModel, model_name: e.target.value })}
                   placeholder="llama-2-7b"
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -600,7 +595,7 @@ export default function Settings() {
                 <input
                   type="text"
                   value={newModel.display_name}
-                  onChange={(e) => setNewModel({ ...newModel, display_name: e.target.value })}
+                  onChange={e => setNewModel({ ...newModel, display_name: e.target.value })}
                   placeholder="Llama 2 7B"
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -610,7 +605,9 @@ export default function Settings() {
                 <input
                   type="number"
                   value={newModel.context_window}
-                  onChange={(e) => setNewModel({ ...newModel, context_window: parseInt(e.target.value) })}
+                  onChange={e =>
+                    setNewModel({ ...newModel, context_window: parseInt(e.target.value) })
+                  }
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -618,7 +615,7 @@ export default function Settings() {
                 <label className="block text-sm text-slate-400 mb-2">Use Case</label>
                 <select
                   value={newModel.use_case}
-                  onChange={(e) => setNewModel({ ...newModel, use_case: e.target.value as any })}
+                  onChange={e => setNewModel({ ...newModel, use_case: e.target.value as any })}
                   className="w-full px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 >
                   <option value="general">General</option>
@@ -676,7 +673,7 @@ export default function Settings() {
               </div>
             ) : (
               <div className="space-y-2">
-                {discoveredModels.map((model) => (
+                {discoveredModels.map(model => (
                   <div
                     key={model.id}
                     className="bg-slate-800 border border-slate-700 rounded-lg p-4 hover:border-cyan-500/50 transition-all"
@@ -703,13 +700,17 @@ export default function Settings() {
                             <span>{model.context_window.toLocaleString()} tokens</span>
                           )}
                           {model.quantization && (
-                            <span className="px-2 py-0.5 bg-slate-700 rounded">{model.quantization}</span>
+                            <span className="px-2 py-0.5 bg-slate-700 rounded">
+                              {model.quantization}
+                            </span>
                           )}
                           {model.arch && (
                             <span className="px-2 py-0.5 bg-slate-700 rounded">{model.arch}</span>
                           )}
                           {model.type && model.type !== 'llm' && (
-                            <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded">{model.type}</span>
+                            <span className="px-2 py-0.5 bg-blue-500/10 text-blue-400 rounded">
+                              {model.type}
+                            </span>
                           )}
                         </div>
                       </div>

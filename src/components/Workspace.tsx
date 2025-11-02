@@ -1,5 +1,18 @@
-import { useState, useEffect } from 'react';
-import { FileCode, Play, Save, FolderOpen, Plus, Trash2, File, Users, Wifi, WifiOff } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import {
+  File,
+  FileCode,
+  FolderOpen,
+  Play,
+  Plus,
+  Save,
+  Trash2,
+  Users,
+  Wifi,
+  WifiOff,
+} from 'lucide-react';
+
 import { realtimeSyncService } from '../services/realtimeSync';
 
 interface FileItem {
@@ -30,7 +43,7 @@ export default function App() {
   const [newFileName, setNewFileName] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [activeUsers, setActiveUsers] = useState(0);
-  const [cursors, setCursors] = useState<any[]>([]);
+  const [_cursors, setCursors] = useState<any[]>([]);
 
   useEffect(() => {
     const projectId = 'demo-project';
@@ -41,13 +54,13 @@ export default function App() {
         setIsConnected(true);
 
         realtimeSyncService.subscribeToProject(projectId, {
-          onCursorUpdate: (cursor) => {
+          onCursorUpdate: cursor => {
             setCursors(prev => {
               const filtered = prev.filter(c => c.session_id !== cursor.session_id);
               return [...filtered, cursor];
             });
           },
-          onPresenceChange: (presence) => {
+          onPresenceChange: presence => {
             setActiveUsers(presence.length);
           },
         });
@@ -108,7 +121,9 @@ export default function App() {
   };
 
   const runCode = () => {
-    alert('Code execution coming soon! This will compile and run your code in a sandboxed environment.');
+    alert(
+      'Code execution coming soon! This will compile and run your code in a sandboxed environment.'
+    );
   };
 
   const saveFiles = () => {
@@ -192,7 +207,7 @@ export default function App() {
                 </div>
                 {files.length > 1 && (
                   <button
-                    onClick={(e) => {
+                    onClick={e => {
                       e.stopPropagation();
                       deleteFile(index);
                     }}
@@ -220,7 +235,7 @@ export default function App() {
           <div className="flex-1 p-6 overflow-auto">
             <textarea
               value={activeFile.content}
-              onChange={(e) => updateFileContent(e.target.value)}
+              onChange={e => updateFileContent(e.target.value)}
               className="w-full h-full bg-slate-950 text-slate-100 font-mono text-sm p-4 rounded-lg border border-slate-800 focus:outline-none focus:border-cyan-500 resize-none"
               placeholder="Start coding..."
               spellCheck={false}
@@ -239,9 +254,7 @@ export default function App() {
                 <div className="text-xs text-slate-500 mb-2">Console Output</div>
                 <div className="bg-slate-900 rounded p-3 font-mono text-xs">
                   <div className="text-green-400">Ready to run...</div>
-                  <div className="text-slate-500 mt-1">
-                    Click "Run" to execute your code
-                  </div>
+                  <div className="text-slate-500 mt-1">Click "Run" to execute your code</div>
                 </div>
               </div>
               <div>
@@ -294,8 +307,8 @@ export default function App() {
                 <input
                   type="text"
                   value={newFileName}
-                  onChange={(e) => setNewFileName(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && addNewFile()}
+                  onChange={e => setNewFileName(e.target.value)}
+                  onKeyPress={e => e.key === 'Enter' && addNewFile()}
                   placeholder="example.tsx"
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                   autoFocus

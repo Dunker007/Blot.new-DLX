@@ -1,4 +1,4 @@
-import React from 'react';
+
 
 function SimpleApp() {
   return (
@@ -7,7 +7,7 @@ function SimpleApp() {
       <p className="text-lg">✅ React is working</p>
       <p className="text-lg">✅ CSS is loading</p>
       <p className="text-lg">✅ Basic rendering functional</p>
-      
+
       <div className="mt-8 p-4 bg-purple-600/20 rounded-lg border border-purple-500/30">
         <h2 className="text-xl font-semibold mb-2">Debug Info</h2>
         <p>If you can see this, the basic React setup is working.</p>

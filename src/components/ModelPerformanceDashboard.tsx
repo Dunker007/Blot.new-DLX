@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
-import { Activity, Clock, TrendingUp, Award, Zap, DollarSign } from 'lucide-react';
-import { modelDiscoveryService } from '../services/modelDiscovery';
+import { useEffect, useState } from 'react';
+
+import { Activity, Award, Clock, DollarSign, TrendingUp, Zap } from 'lucide-react';
+
 import { supabase } from '../lib/supabase';
+import { modelDiscoveryService } from '../services/modelDiscovery';
 
 interface ModelInsight {
   modelId: string;
@@ -33,7 +35,7 @@ export default function ModelPerformanceDashboard() {
       }
 
       const insights = await Promise.all(
-        models.map(async (model) => {
+        models.map(async (model: any) => {
           const insight = await modelDiscoveryService.getModelInsights(model.id);
           return {
             modelId: model.id,
@@ -44,8 +46,8 @@ export default function ModelPerformanceDashboard() {
       );
 
       const sortedInsights = insights
-        .filter(i => i.insights.totalUsage > 0)
-        .sort((a, b) => b.insights.totalUsage - a.insights.totalUsage);
+        .filter((i: any) => i.insights.totalUsage > 0)
+        .sort((a: any, b: any) => b.insights.totalUsage - a.insights.totalUsage);
 
       setModelInsights(sortedInsights);
     } catch (error) {
@@ -95,7 +97,7 @@ export default function ModelPerformanceDashboard() {
           </div>
         </div>
         <div className="flex gap-2">
-          {(['7d', '30d', 'all'] as const).map((period) => (
+          {(['7d', '30d', 'all'] as const).map(period => (
             <button
               key={period}
               onClick={() => setSelectedPeriod(period)}
@@ -121,7 +123,7 @@ export default function ModelPerformanceDashboard() {
         </div>
       ) : (
         <div className="grid gap-4">
-          {modelInsights.map((item) => (
+          {modelInsights.map(item => (
             <div
               key={item.modelId}
               className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-all"
@@ -144,10 +146,15 @@ export default function ModelPerformanceDashboard() {
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-slate-800 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <TrendingUp size={14} className={getSuccessRateColor(item.insights.successRate)} />
+                    <TrendingUp
+                      size={14}
+                      className={getSuccessRateColor(item.insights.successRate)}
+                    />
                     <span className="text-xs text-slate-500">Success Rate</span>
                   </div>
-                  <div className={`text-lg font-semibold ${getSuccessRateColor(item.insights.successRate)}`}>
+                  <div
+                    className={`text-lg font-semibold ${getSuccessRateColor(item.insights.successRate)}`}
+                  >
                     {(item.insights.successRate * 100).toFixed(1)}%
                   </div>
                 </div>
@@ -187,7 +194,9 @@ export default function ModelPerformanceDashboard() {
                 <div className="flex items-center justify-between text-xs text-slate-500">
                   <span>Performance Score</span>
                   <span className="font-medium text-cyan-400">
-                    {Math.round(item.insights.successRate * 100 - (item.insights.avgResponseTime / 100))}
+                    {Math.round(
+                      item.insights.successRate * 100 - item.insights.avgResponseTime / 100
+                    )}
                   </span>
                 </div>
                 <div className="w-full bg-slate-800 rounded-full h-1.5 mt-2">
@@ -198,7 +207,7 @@ export default function ModelPerformanceDashboard() {
                         100,
                         Math.max(
                           0,
-                          item.insights.successRate * 100 - (item.insights.avgResponseTime / 100)
+                          item.insights.successRate * 100 - item.insights.avgResponseTime / 100
                         )
                       )}%`,
                     }}

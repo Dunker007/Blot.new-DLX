@@ -1,22 +1,23 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  Zap,
-  Cloud,
-  HardDrive,
   Activity,
-  CheckCircle,
-  XCircle,
   AlertCircle,
-  RefreshCw,
-  Info,
-  Upload,
-  Download,
   ArrowLeftRight,
-  Save,
+  CheckCircle,
   Clock,
+  Cloud,
+  Download,
+  HardDrive,
+  Info,
+  RefreshCw,
+  Upload,
+  XCircle,
+  Zap,
 } from 'lucide-react';
-import { hybridBridge, LocalProviderConfig } from '../services/hybridBridge';
-import { projectSyncService, SyncResult } from '../services/projectSync';
+
+import { LocalProviderConfig, hybridBridge } from '../services/hybridBridge';
+import { SyncResult, projectSyncService } from '../services/projectSync';
 
 export default function HybridModePanel() {
   const [status, setStatus] = useState(hybridBridge.getStatus());
@@ -107,11 +108,13 @@ export default function HybridModePanel() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-lg border ${
-            isHybridActive
-              ? 'bg-gradient-to-br from-cyan-500/20 to-green-500/20 border-cyan-500/30'
-              : 'bg-slate-800 border-slate-700'
-          }`}>
+          <div
+            className={`p-2 rounded-lg border ${
+              isHybridActive
+                ? 'bg-gradient-to-br from-cyan-500/20 to-green-500/20 border-cyan-500/30'
+                : 'bg-slate-800 border-slate-700'
+            }`}
+          >
             <Zap size={20} className={isHybridActive ? 'text-cyan-400' : 'text-slate-400'} />
           </div>
           <div>
@@ -139,8 +142,8 @@ export default function HybridModePanel() {
           </div>
           <div className="text-slate-300 space-y-2">
             <p>
-              Hybrid mode lets you use <strong>bolt.new's cloud interface</strong> while routing
-              AI requests to your <strong>local providers</strong> (LM Studio, Ollama).
+              Hybrid mode lets you use <strong>bolt.new's cloud interface</strong> while routing AI
+              requests to your <strong>local providers</strong> (LM Studio, Ollama).
             </p>
             <div className="pl-4 space-y-1 text-xs text-slate-400">
               <div>• Keep working in bolt.new's UI</div>
@@ -178,7 +181,8 @@ export default function HybridModePanel() {
 
         {connectedCount === 0 && (
           <div className="text-xs text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-3">
-            No local providers detected. Make sure LM Studio or Ollama is running and the proxy server is started.
+            No local providers detected. Make sure LM Studio or Ollama is running and the proxy
+            server is started.
           </div>
         )}
 
@@ -267,11 +271,13 @@ export default function HybridModePanel() {
         </div>
 
         {syncResult && (
-          <div className={`text-xs p-3 rounded-lg border ${
-            syncResult.success
-              ? 'bg-green-500/10 border-green-500/20 text-green-400'
-              : 'bg-red-500/10 border-red-500/20 text-red-400'
-          }`}>
+          <div
+            className={`text-xs p-3 rounded-lg border ${
+              syncResult.success
+                ? 'bg-green-500/10 border-green-500/20 text-green-400'
+                : 'bg-red-500/10 border-red-500/20 text-red-400'
+            }`}
+          >
             <div className="font-semibold mb-1">
               {syncResult.success ? 'Sync Complete!' : 'Sync Issues'}
             </div>

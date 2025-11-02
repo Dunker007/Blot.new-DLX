@@ -3,7 +3,14 @@ export interface Project {
   user_id: string;
   name: string;
   description: string;
-  project_type: 'landing_page' | 'saas' | 'trading_bot' | 'affiliate' | 'chrome_extension' | 'api_service' | 'content_site';
+  project_type:
+    | 'landing_page'
+    | 'saas'
+    | 'trading_bot'
+    | 'affiliate'
+    | 'chrome_extension'
+    | 'api_service'
+    | 'content_site';
   tech_stack: string[];
   status: 'planning' | 'in_progress' | 'deployed' | 'archived';
   repository_url?: string;

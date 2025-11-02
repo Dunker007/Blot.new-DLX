@@ -1,22 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  Zap,
+  Brain,
+  ChevronRight,
+  Code2,
+  Coins,
+  DollarSign,
+  Play,
+  Rocket,
   Sparkles,
   TrendingUp,
-  Rocket,
-  Brain,
-  Coins,
-  ChevronRight,
-  Play,
   Wallet,
-  Code2,
-  DollarSign
+  Zap,
 } from 'lucide-react';
-import CostSavingsDashboard from './CostSavingsDashboard';
-import LuxRigTester from './LuxRigTester';
-import HolographicBrain from './HolographicBrain';
+
 // import TurboHubCore from './TurboHubCore';
-import { components, gradients, utils, spacing } from '../styles/designSystem';
+import { components, gradients, spacing, utils } from '../styles/designSystem';
+import CostSavingsDashboard from './CostSavingsDashboard';
+import HolographicBrain from './HolographicBrain';
+import LuxRigTester from './LuxRigTester';
 
 interface AICommandCenterProps {
   onNavigate: (view: string) => void;
@@ -51,17 +53,17 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
       action: 'Generate Trading Bot',
       confidence: 94,
       potential: '$2,400/month',
-      icon: <Coins className="w-6 h-6 text-yellow-500" />
+      icon: <Coins className="w-6 h-6 text-yellow-500" />,
     },
     {
-      id: '2', 
+      id: '2',
       type: 'crypto',
       title: 'NFT Collection Launch',
       description: 'AI-generated art collections trending +340% this week',
       action: 'Create NFT Project',
       confidence: 87,
       potential: '$12K launch',
-      icon: <Sparkles className="w-6 h-6 text-purple-500" />
+      icon: <Sparkles className="w-6 h-6 text-purple-500" />,
     },
     {
       id: '3',
@@ -71,7 +73,7 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
       action: 'Start Content Factory',
       confidence: 91,
       potential: '$850/day',
-      icon: <TrendingUp className="w-6 h-6 text-green-500" />
+      icon: <TrendingUp className="w-6 h-6 text-green-500" />,
     },
     {
       id: '4',
@@ -81,8 +83,8 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
       action: 'Deploy SaaS',
       confidence: 96,
       potential: '$5K/month',
-      icon: <Brain className="w-6 h-6 text-blue-500" />
-    }
+      icon: <Brain className="w-6 h-6 text-blue-500" />,
+    },
   ];
 
   const quickActions = [
@@ -91,29 +93,29 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
       subtitle: 'Create $10K/month business in 60 seconds',
       icon: <Rocket className="w-8 h-8" />,
       gradient: 'from-purple-500 to-pink-500',
-      action: () => onNavigate('business-generator')
+      action: () => onNavigate('business-generator'),
     },
     {
       title: 'Crypto Trading Bot',
       subtitle: 'Deploy DeFi arbitrage bot instantly',
       icon: <Coins className="w-8 h-8" />,
       gradient: 'from-yellow-400 to-orange-500',
-      action: () => onNavigate('trading')
+      action: () => onNavigate('trading'),
     },
     {
       title: 'Content Factory',
       subtitle: 'AI-powered affiliate content engine',
       icon: <Zap className="w-8 h-8" />,
       gradient: 'from-green-400 to-blue-500',
-      action: () => onNavigate('content-factory')
+      action: () => onNavigate('content-factory'),
     },
     {
       title: 'AI Code Studio',
       subtitle: 'Generate full-stack apps with AI',
       icon: <Code2 className="w-8 h-8" />,
       gradient: 'from-blue-500 to-purple-600',
-      action: () => onNavigate('dev-lab')
-    }
+      action: () => onNavigate('dev-lab'),
+    },
   ];
 
   const realtimeUpdates = [
@@ -165,11 +167,15 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             </div>
             <div>
               <h1 className="text-4xl font-bold text-white">AI Command Center</h1>
-              <p className="text-white/70 text-lg">Revenue-generating AI workspace powered by LuxRig</p>
+              <p className="text-white/70 text-lg">
+                Revenue-generating AI workspace powered by LuxRig
+              </p>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <button className={`${components.buttonPrimary.replace('bg-gradient-to-r from-purple-600 to-pink-600', 'bg-gradient-to-r from-emerald-500 to-cyan-500')} flex items-center space-x-2`}>
+            <button
+              className={`${components.buttonPrimary.replace('bg-gradient-to-r from-purple-600 to-pink-600', 'bg-gradient-to-r from-emerald-500 to-cyan-500')} flex items-center space-x-2`}
+            >
               <Wallet className="w-5 h-5" />
               <span>Connect Wallet</span>
             </button>
@@ -205,7 +211,7 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             textColor: 'text-cyan-300',
             borderColor: 'border-cyan-500/30',
             bgColor: 'bg-cyan-500/20',
-            prefix: ''
+            prefix: '',
           },
           {
             label: 'AI Calls Today',
@@ -215,7 +221,7 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             textColor: 'text-purple-300',
             borderColor: 'border-purple-500/30',
             bgColor: 'bg-purple-500/20',
-            prefix: ''
+            prefix: '',
           },
           {
             label: 'Revenue Today',
@@ -225,7 +231,7 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             textColor: 'text-emerald-300',
             borderColor: 'border-emerald-500/30',
             bgColor: 'bg-emerald-500/20',
-            prefix: '$'
+            prefix: '$',
           },
           {
             label: 'Crypto Value',
@@ -235,18 +241,28 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             textColor: 'text-amber-300',
             borderColor: 'border-amber-500/30',
             bgColor: 'bg-amber-500/20',
-            prefix: '$'
-          }
+            prefix: '$',
+          },
         ].map((metric, index) => (
-          <div key={index} className={`${components.card} ${components.cardInteractive} ${utils.hoverGlow} group backdrop-blur-xl border-white/20`}>
+          <div
+            key={index}
+            className={`${components.card} ${components.cardInteractive} ${utils.hoverGlow} group backdrop-blur-xl border-white/20`}
+          >
             <div className={`${utils.spaceBetween} mb-6`}>
-              <div className={`bg-gradient-to-r ${metric.color} p-3 rounded-lg shadow-lg ${utils.hoverScale}`}>
+              <div
+                className={`bg-gradient-to-r ${metric.color} p-3 rounded-lg shadow-lg ${utils.hoverScale}`}
+              >
                 {metric.icon}
               </div>
-              <span className={`text-xs font-bold px-3 py-1 rounded-full ${metric.bgColor} ${metric.textColor} border ${metric.borderColor}`}>LIVE</span>
+              <span
+                className={`text-xs font-bold px-3 py-1 rounded-full ${metric.bgColor} ${metric.textColor} border ${metric.borderColor}`}
+              >
+                LIVE
+              </span>
             </div>
             <div className="text-4xl font-bold text-white mb-3 group-hover:scale-105 transition-transform">
-              {metric.prefix}{metric.value.toLocaleString()}
+              {metric.prefix}
+              {metric.value.toLocaleString()}
             </div>
             <div className={`${metric.textColor} font-medium`}>{metric.label}</div>
           </div>
@@ -254,22 +270,20 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
       </div>
 
       {/* AI Insights Carousel */}
-      <div className={`${components.card} bg-gradient-to-r ${gradients.primary}/10 border-purple-500/30 mb-12 backdrop-blur-xl`}>
+      <div
+        className={`${components.card} bg-gradient-to-r ${gradients.primary}/10 border-purple-500/30 mb-12 backdrop-blur-xl`}
+      >
         <div className={`${utils.spaceBetween} mb-6`}>
           <h2 className="text-2xl font-bold text-white flex items-center space-x-3">
             <Sparkles className="w-8 h-8 text-yellow-400 animate-pulse" />
             <span>AI Market Insights</span>
           </h2>
-          <div className="text-purple-300 font-medium">
-            Live Analysis • Updated every 30s
-          </div>
+          <div className="text-purple-300 font-medium">Live Analysis • Updated every 30s</div>
         </div>
 
         <div className="bg-black/30 backdrop-blur-sm rounded-xl p-8 border border-white/10">
           <div className="flex items-center space-x-6 mb-6">
-            <div className="text-purple-400 scale-125">
-              {aiInsights[currentInsight].icon}
-            </div>
+            <div className="text-purple-400 scale-125">{aiInsights[currentInsight].icon}</div>
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-3">
                 <h3 className="text-xl font-bold text-white">{aiInsights[currentInsight].title}</h3>
@@ -277,14 +291,18 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
                   {aiInsights[currentInsight].confidence}% confidence
                 </span>
               </div>
-              <p className="text-white/80 text-lg leading-relaxed">{aiInsights[currentInsight].description}</p>
+              <p className="text-white/80 text-lg leading-relaxed">
+                {aiInsights[currentInsight].description}
+              </p>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-emerald-400 mb-1">{aiInsights[currentInsight].potential}</div>
+              <div className="text-3xl font-bold text-emerald-400 mb-1">
+                {aiInsights[currentInsight].potential}
+              </div>
               <div className="text-white/60 font-medium">Potential Revenue</div>
             </div>
           </div>
-          <button 
+          <button
             onClick={() => onNavigate('business-generator')}
             className={`w-full ${components.buttonPrimary} ${utils.hoverGlow} py-4 flex items-center justify-center space-x-3 text-lg font-bold`}
           >
@@ -325,7 +343,9 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             onClick={action.action}
             className={`group ${components.cardInteractive} ${utils.hoverScale} ${utils.hoverGlow} backdrop-blur-xl text-left`}
           >
-            <div className={`bg-gradient-to-r ${action.gradient} p-4 rounded-xl mb-6 w-fit group-hover:shadow-2xl transition-all duration-300`}>
+            <div
+              className={`bg-gradient-to-r ${action.gradient} p-4 rounded-xl mb-6 w-fit group-hover:shadow-2xl transition-all duration-300`}
+            >
               {action.icon}
             </div>
             <h3 className="text-xl font-bold text-white mb-3 group-hover:text-purple-300 transition-colors">

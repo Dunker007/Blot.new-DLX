@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import SafeLayout from './components/SafeLayout';
+
 // Gradually restoring components with error boundaries
 import AICommandCenter from './components/AICommandCenter';
+// import KnowledgeBase from './components/KnowledgeBase';
+import ConnectionDashboard from './components/ConnectionDashboard';
+import EnhancedSettings from './components/EnhancedSettings';
+import Projects from './components/Projects';
+import SafeLayout from './components/SafeLayout';
 // import CryptoIntegration from './components/CryptoIntegration';
 // import CryptoTradingHub from './components/CryptoTradingHub';
 // import AIMagicDevLab from './components/AIMagicDevLab';
 import Workspace from './components/Workspace';
-import Projects from './components/Projects';
-import EnhancedSettings from './components/EnhancedSettings';
-// import KnowledgeBase from './components/KnowledgeBase';
-import ConnectionDashboard from './components/ConnectionDashboard';
+
 // import EnhancedAnalyticsDashboard from './components/EnhancedAnalyticsDashboard';
 // import BusinessModelGenerator from './components/BusinessModelGenerator';
 // import AutoAffiliateContentFactory from './components/AutoAffiliateContentFactory';
@@ -53,19 +55,19 @@ function App() {
               <h1 className="text-3xl font-bold mb-4">AI Command Center</h1>
               <p>Loading in safe mode...</p>
               <div className="mt-4 space-y-2">
-                <button 
+                <button
                   onClick={() => setCurrentView('workspace')}
                   className="block px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
                 >
                   Go to Workspace
                 </button>
-                <button 
+                <button
                   onClick={() => setCurrentView('projects')}
                   className="block px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
                 >
                   Go to Projects
                 </button>
-                <button 
+                <button
                   onClick={() => setCurrentView('connections')}
                   className="block px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
                 >

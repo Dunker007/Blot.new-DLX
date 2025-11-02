@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { Project, Conversation, Message, ProjectExport } from '../types';
+import { Conversation, Message, Project, ProjectExport } from '../types';
 
 export interface ProjectExportData {
   project: Project;
@@ -95,13 +95,15 @@ export class ProjectSyncService {
     const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
 
-    await supabase.from('project_exports').insert([{
-      project_id: projectId,
-      export_type: exportType,
-      file_size_bytes: blob.size,
-      export_format: 'json',
-      created_at: new Date().toISOString(),
-    }]);
+    await supabase.from('project_exports').insert([
+      {
+        project_id: projectId,
+        export_type: exportType,
+        file_size_bytes: blob.size,
+        export_format: 'json',
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
     return blob;
   }
@@ -213,10 +215,7 @@ export class ProjectSyncService {
   async cleanupExpiredExports(): Promise<void> {
     const now = new Date().toISOString();
 
-    await supabase
-      .from('project_exports')
-      .delete()
-      .lt('expires_at', now);
+    await supabase.from('project_exports').delete().lt('expires_at', now);
   }
 
   async syncProjectToCloud(projectId: string): Promise<boolean> {
@@ -317,7 +316,9 @@ export class ProjectSyncService {
     return newConversation;
   }
 
-  async bidirectionalSync(direction: 'upload' | 'download' | 'bidirectional' = 'bidirectional'): Promise<SyncResult> {
+  async bidirectionalSync(
+    direction: 'upload' | 'download' | 'bidirectional' = 'bidirectional'
+  ): Promise<SyncResult> {
     const result: SyncResult = {
       success: false,
       projectsUploaded: 0,
@@ -370,14 +371,16 @@ export class ProjectSyncService {
 
     const { data, error } = await supabase
       .from('project_backups')
-      .insert([{
-        project_id: projectId,
-        backup_name: name,
-        backup_size: exportBlob.size,
-        item_count: (exportData.conversations?.length || 0) + (exportData.messages?.length || 0),
-        backup_data: exportData,
-        created_at: new Date().toISOString(),
-      }])
+      .insert([
+        {
+          project_id: projectId,
+          backup_name: name,
+          backup_size: exportBlob.size,
+          item_count: (exportData.conversations?.length || 0) + (exportData.messages?.length || 0),
+          backup_data: exportData,
+          created_at: new Date().toISOString(),
+        },
+      ])
       .select()
       .single();
 
@@ -428,10 +431,7 @@ export class ProjectSyncService {
 
     const backupData = backup.backup_data as ProjectExportData;
 
-    await supabase
-      .from('conversations')
-      .delete()
-      .eq('project_id', backup.project_id);
+    await supabase.from('conversations').delete().eq('project_id', backup.project_id);
 
     if (backupData.conversations && backupData.conversations.length > 0) {
       const conversationsToInsert = backupData.conversations.map(c => {
@@ -478,7 +478,10 @@ export class ProjectSyncService {
     return restoredProject;
   }
 
-  async resolveConflict(conflict: SyncConflict, resolution: 'local' | 'cloud' | 'merge'): Promise<void> {
+  async resolveConflict(
+    conflict: SyncConflict,
+    resolution: 'local' | 'cloud' | 'merge'
+  ): Promise<void> {
     if (resolution === 'local') {
       // Use local version - update cloud
       await this.updateCloudVersion(conflict.type, conflict.itemId, conflict.localVersion);
@@ -499,15 +502,15 @@ export class ProjectSyncService {
     try {
       const exportData = await this.exportProject(projectId, 'full');
 
-      await supabase
-        .from('deployments')
-        .insert([{
+      await supabase.from('deployments').insert([
+        {
           project_id: projectId,
           environment_type: environment.type,
           environment_name: environment.name,
           deployment_status: 'deploying',
           deployed_at: new Date().toISOString(),
-        }]);
+        },
+      ]);
 
       // Simulate deployment process
       console.log(`Deploying to ${environment.name}...`);
@@ -545,18 +548,16 @@ export class ProjectSyncService {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return hash.toString(36);
   }
 
   private async updateCloudVersion(type: string, itemId: string, version: any): Promise<void> {
-    const table = type === 'project' ? 'projects' : type === 'conversation' ? 'conversations' : 'messages';
-    await supabase
-      .from(table)
-      .update(version)
-      .eq('id', itemId);
+    const table =
+      type === 'project' ? 'projects' : type === 'conversation' ? 'conversations' : 'messages';
+    await supabase.from(table).update(version).eq('id', itemId);
   }
 
   private mergeVersions(local: any, cloud: any): any {

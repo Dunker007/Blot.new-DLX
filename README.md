@@ -1,5 +1,9 @@
 # DLX Studios
 
+[![CI](https://github.com/Dunker007/Blot.new-DLX/actions/workflows/ci.yml/badge.svg)](https://github.com/Dunker007/Blot.new-DLX/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Dunker007/Blot.new-DLX/branch/main/graph/badge.svg)](https://codecov.io/gh/Dunker007/Blot.new-DLX)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > AI-Powered Web Development Platform with Intelligent Token Management
 
 DLX Studios is a comprehensive development environment that combines the power of AI-assisted coding with intelligent token tracking, cost optimization, and hybrid cloud architecture. Build projects faster with local or cloud LLM providers while maintaining full control over your AI spending.
@@ -41,7 +45,10 @@ cd dlx-studios
 # Install dependencies
 npm install
 
-# Set up environment variables
+# Set up environment variables (interactive setup)
+npm run setup
+
+# Or manually copy and edit
 cp .env.example .env
 # Edit .env with your Supabase credentials
 
@@ -199,6 +206,12 @@ YYYYMMDDHHMMSS_description.sql
 - [ ] Self-hosted version with docker-compose
 - [ ] Integration with GitHub/GitLab
 - [ ] Template marketplace
+
+## 📚 Documentation
+
+- **[API Documentation](./docs/API.md)** - Detailed API reference for all services
+- **[Architecture Guide](./docs/ARCHITECTURE.md)** - System architecture and design patterns
+- **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute to the project
 
 ## 📄 License
 

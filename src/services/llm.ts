@@ -1,6 +1,6 @@
 import { LLMProvider, Model } from '../types';
-import { tokenTrackingService } from './tokenTracking';
 import { requestCache } from './requestCache';
+import { tokenTrackingService } from './tokenTracking';
 
 export interface LLMMessage {
   role: 'user' | 'assistant' | 'system';
@@ -68,7 +68,13 @@ export class LLMService {
     }
 
     try {
-      const response = await this.sendToProvider(provider, model, messages, onStream, options?.signal);
+      const response = await this.sendToProvider(
+        provider,
+        model,
+        messages,
+        onStream,
+        options?.signal
+      );
       const responseTime = Date.now() - startTime;
 
       if (options?.useCache !== false && !onStream) {
@@ -123,7 +129,7 @@ export class LLMService {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(provider.api_key && { 'Authorization': `Bearer ${provider.api_key}` }),
+        ...(provider.api_key && { Authorization: `Bearer ${provider.api_key}` }),
       },
       body: JSON.stringify({
         model: model.model_name,
@@ -204,9 +210,11 @@ export class LLMService {
     try {
       const response = await fetch(`${provider.endpoint_url}/v1/models`, {
         method: 'GET',
-        headers: provider.api_key ? {
-          'Authorization': `Bearer ${provider.api_key}`,
-        } : {},
+        headers: provider.api_key
+          ? {
+              Authorization: `Bearer ${provider.api_key}`,
+            }
+          : {},
       });
 
       return response.ok;

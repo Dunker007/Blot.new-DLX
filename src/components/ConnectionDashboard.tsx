@@ -1,8 +1,19 @@
-import { useState, useEffect } from 'react';
-import { Activity, Wifi, WifiOff, Server, Database, Zap, TrendingUp, AlertCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import {
+  Activity,
+  AlertCircle,
+  Database,
+  Server,
+  TrendingUp,
+  Wifi,
+  WifiOff,
+  Zap,
+} from 'lucide-react';
+
 import { hybridBridge } from '../services/hybridBridge';
-import { requestCache } from '../services/requestCache';
 import { providerRouter } from '../services/providerRouter';
+import { requestCache } from '../services/requestCache';
 
 interface ProviderStatus {
   name: string;
@@ -56,21 +67,6 @@ export default function ConnectionDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'connected':
-        return 'text-green-400';
-      case 'disconnected':
-        return 'text-red-400';
-      case 'checking':
-        return 'text-yellow-400';
-      case 'error':
-        return 'text-orange-400';
-      default:
-        return 'text-slate-400';
-    }
-  };
-
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'connected':
@@ -96,9 +92,7 @@ export default function ConnectionDashboard() {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-2">
             <Server size={20} className="text-cyan-400" />
-            <span className="text-2xl font-bold text-slate-100">
-              {providerStats.total}
-            </span>
+            <span className="text-2xl font-bold text-slate-100">{providerStats.total}</span>
           </div>
           <p className="text-sm text-slate-400">Total Providers</p>
           <div className="mt-3 flex items-center gap-3 text-xs">
@@ -110,17 +104,13 @@ export default function ConnectionDashboard() {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-2">
             <Database size={20} className="text-blue-400" />
-            <span className="text-2xl font-bold text-slate-100">
-              {cacheStats.size}
-            </span>
+            <span className="text-2xl font-bold text-slate-100">{cacheStats.size}</span>
           </div>
           <p className="text-sm text-slate-400">Cache Entries</p>
           <div className="mt-3">
             <div className="flex items-center justify-between text-xs">
               <span className="text-slate-500">Hit Rate</span>
-              <span className="text-green-400">
-                {(cacheStats.hitRate * 100).toFixed(1)}%
-              </span>
+              <span className="text-green-400">{(cacheStats.hitRate * 100).toFixed(1)}%</span>
             </div>
           </div>
         </div>
@@ -128,9 +118,7 @@ export default function ConnectionDashboard() {
         <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
           <div className="flex items-center justify-between mb-2">
             <Zap size={20} className="text-yellow-400" />
-            <span className="text-2xl font-bold text-slate-100">
-              {queueStats.activeRequests}
-            </span>
+            <span className="text-2xl font-bold text-slate-100">{queueStats.activeRequests}</span>
           </div>
           <p className="text-sm text-slate-400">Active Requests</p>
           <div className="mt-3">
@@ -192,9 +180,7 @@ export default function ConnectionDashboard() {
                 <div className="flex items-center gap-6">
                   {provider.latency !== undefined && (
                     <div className="text-right">
-                      <p className="text-sm font-medium text-slate-100">
-                        {provider.latency}ms
-                      </p>
+                      <p className="text-sm font-medium text-slate-100">{provider.latency}ms</p>
                       <p className="text-xs text-slate-500">Latency</p>
                     </div>
                   )}
@@ -215,8 +201,8 @@ export default function ConnectionDashboard() {
                         provider.status === 'connected'
                           ? 'bg-green-500/10 text-green-400'
                           : provider.status === 'checking'
-                          ? 'bg-yellow-500/10 text-yellow-400'
-                          : 'bg-red-500/10 text-red-400'
+                            ? 'bg-yellow-500/10 text-yellow-400'
+                            : 'bg-red-500/10 text-red-400'
                       }`}
                     >
                       {provider.status}
@@ -254,9 +240,7 @@ export default function ConnectionDashboard() {
           <div>
             <p className="text-sm text-slate-500 mb-2">Total Hits</p>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-green-400">
-                {cacheStats.hits}
-              </span>
+              <span className="text-3xl font-bold text-green-400">{cacheStats.hits}</span>
               <span className="text-sm text-slate-500 mb-1">requests</span>
             </div>
           </div>
@@ -264,9 +248,7 @@ export default function ConnectionDashboard() {
           <div>
             <p className="text-sm text-slate-500 mb-2">Cache Misses</p>
             <div className="flex items-end gap-2">
-              <span className="text-3xl font-bold text-slate-400">
-                {cacheStats.misses}
-              </span>
+              <span className="text-3xl font-bold text-slate-400">{cacheStats.misses}</span>
               <span className="text-sm text-slate-500 mb-1">requests</span>
             </div>
           </div>
@@ -282,16 +264,12 @@ export default function ConnectionDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="text-center p-6 bg-slate-800/50 rounded-lg">
             <p className="text-sm text-slate-400 mb-2">Active Requests</p>
-            <p className="text-4xl font-bold text-cyan-400">
-              {queueStats.activeRequests}
-            </p>
+            <p className="text-4xl font-bold text-cyan-400">{queueStats.activeRequests}</p>
           </div>
 
           <div className="text-center p-6 bg-slate-800/50 rounded-lg">
             <p className="text-sm text-slate-400 mb-2">Queued Requests</p>
-            <p className="text-4xl font-bold text-yellow-400">
-              {queueStats.queueSize}
-            </p>
+            <p className="text-4xl font-bold text-yellow-400">{queueStats.queueSize}</p>
           </div>
         </div>
       </div>

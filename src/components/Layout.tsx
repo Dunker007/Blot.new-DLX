@@ -1,19 +1,20 @@
 import { ReactNode, useState } from 'react';
+
 import {
-  LayoutDashboard,
-  MessageSquare,
+  Activity,
+  Brain,
   Code,
   FolderKanban,
-  TrendingUp,
-  Brain,
-  Settings,
+  LayoutDashboard,
   Menu,
-  X,
+  MessageSquare,
+  Settings,
   Sparkles,
-  Activity
+  TrendingUp,
+  X,
 } from 'lucide-react';
-// Temporarily commenting out design system import for debugging
-// import { components, gradients, utils } from '../styles/designSystem';
+
+import { components, gradients, utils } from '../styles/designSystem';
 
 interface LayoutProps {
   children: ReactNode;
@@ -46,12 +47,11 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
 
   return (
     <div className={`${components.pageBackground} text-white`}>
-      <nav className={`fixed top-0 left-0 right-0 h-16 ${components.sectionBackground} border-b border-white/10 z-50 ${utils.spaceBetween} px-6`}>
+      <nav
+        className={`fixed top-0 left-0 right-0 h-16 ${components.sectionBackground} border-b border-white/10 z-50 ${utils.spaceBetween} px-6`}
+      >
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className={components.buttonGhost}
-          >
+          <button onClick={() => setSidebarOpen(!sidebarOpen)} className={components.buttonGhost}>
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
@@ -59,18 +59,14 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
             <div className={`bg-gradient-to-r ${gradients.primary} p-2 rounded-lg`}>
               <Sparkles className="text-white" size={24} />
             </div>
-            <span className={`text-2xl font-bold ${utils.textGradient}`}>
-              DLX Studios
-            </span>
+            <span className={`text-2xl font-bold ${utils.textGradient}`}>DLX Studios</span>
           </div>
         </div>
 
         <div className="ml-auto flex items-center gap-4">
           <div className="flex items-center gap-2 px-3 py-2 bg-white/5 rounded-lg">
             <div className={components.statusOnline}></div>
-            <span className="text-sm font-medium text-emerald-400">
-              LuxRig Connected
-            </span>
+            <span className="text-sm font-medium text-emerald-400">LuxRig Connected</span>
           </div>
         </div>
       </nav>
@@ -81,7 +77,7 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         }`}
       >
         <div className="p-4 space-y-1">
-          {navItems.map((item) => {
+          {navItems.map(item => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
 
@@ -110,14 +106,8 @@ export default function Layout({ children, currentView, onViewChange }: LayoutPr
         </div>
       </aside>
 
-      <main
-        className={`pt-16 transition-all duration-300 ${
-          sidebarOpen ? 'ml-64' : 'ml-0'
-        }`}
-      >
-        <div className="p-6">
-          {children}
-        </div>
+      <main className={`pt-16 transition-all duration-300 ${sidebarOpen ? 'ml-64' : 'ml-0'}`}>
+        <div className="p-6">{children}</div>
       </main>
     </div>
   );

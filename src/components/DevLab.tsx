@@ -1,16 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
-import {
-  Send,
-  Plus,
-  Trash2,
-  Download,
-  Sparkles,
-  Code,
-  Loader2
-} from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+
+import { Code, Download, Loader2, Plus, Send, Sparkles, Trash2 } from 'lucide-react';
+
 import { supabase } from '../lib/supabase';
-import { Conversation, Message, Model } from '../types';
 import { llmService } from '../services/llm';
+import { Conversation, Message, Model } from '../types';
 
 export default function DevLab() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -94,7 +88,10 @@ export default function DevLab() {
       const { data: modelsData } = await supabase
         .from('models')
         .select('*')
-        .in('provider_id', providersData.map(p => p.id))
+        .in(
+          'provider_id',
+          providersData.map((p: any) => p.id)
+        )
         .eq('is_available', true);
 
       if (modelsData && modelsData.length > 0) {
@@ -120,7 +117,7 @@ export default function DevLab() {
 
   const deleteConversation = async (id: string) => {
     await supabase.from('conversations').delete().eq('id', id);
-    setConversations(conversations.filter((c) => c.id !== id));
+    setConversations(conversations.filter(c => c.id !== id));
     if (activeConversation === id) {
       setActiveConversation(conversations[0]?.id || null);
     }
@@ -152,7 +149,7 @@ export default function DevLab() {
     setStreamingContent('');
 
     try {
-      const conversationHistory = messages.map((m) => ({
+      const conversationHistory = messages.map(m => ({
         role: m.role,
         content: m.content,
       }));
@@ -165,9 +162,9 @@ export default function DevLab() {
       const response = await llmService.sendMessage(
         conversationHistory,
         selectedModel,
-        (chunk) => {
+        chunk => {
           if (!chunk.done) {
-            setStreamingContent((prev) => prev + chunk.content);
+            setStreamingContent(prev => prev + chunk.content);
           }
         },
         {
@@ -214,7 +211,7 @@ export default function DevLab() {
   const exportConversation = async () => {
     if (!activeConversation) return;
 
-    const conversation = conversations.find((c) => c.id === activeConversation);
+    const conversation = conversations.find(c => c.id === activeConversation);
     const exportData = {
       conversation,
       messages,
@@ -270,7 +267,7 @@ export default function DevLab() {
         </button>
 
         <div className="flex-1 overflow-y-auto space-y-2">
-          {conversations.map((conv) => (
+          {conversations.map(conv => (
             <div
               key={conv.id}
               className={`group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-all ${
@@ -282,7 +279,7 @@ export default function DevLab() {
             >
               <span className="text-sm truncate flex-1">{conv.title}</span>
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   deleteConversation(conv.id);
                 }}
@@ -305,10 +302,10 @@ export default function DevLab() {
             {models.length > 0 && (
               <select
                 value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
+                onChange={e => setSelectedModel(e.target.value)}
                 className="px-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-cyan-500"
               >
-                {models.map((model) => (
+                {models.map(model => (
                   <option key={model.id} value={model.id}>
                     {model.display_name}
                   </option>
@@ -338,7 +335,7 @@ export default function DevLab() {
             </div>
           )}
 
-          {messages.map((message) => (
+          {messages.map(message => (
             <div
               key={message.id}
               className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
@@ -379,8 +376,8 @@ export default function DevLab() {
             <input
               type="text"
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+              onChange={e => setInputValue(e.target.value)}
+              onKeyPress={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
               placeholder="Describe what you want to build..."
               className="flex-1 px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
               disabled={isStreaming || !selectedModel}
