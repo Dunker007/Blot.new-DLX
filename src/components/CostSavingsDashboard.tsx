@@ -1,14 +1,9 @@
-import { useState, useEffect } from 'react';
-import { 
-  DollarSign, 
-  TrendingDown, 
-  Zap, 
-  Server, 
-  Cloud,
-  CheckCircle 
-} from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import { CheckCircle, Cloud, DollarSign, Server, TrendingDown, Zap } from 'lucide-react';
+
 import { lmStudioService } from '../services/lmStudio';
-import { components, gradients, utils, spacing } from '../styles/designSystem';
+import { components, gradients, utils } from '../styles/designSystem';
 
 interface CostSavings {
   totalSavings: number;
@@ -25,7 +20,7 @@ export default function CostSavingsDashboard() {
     localRequests: 0,
     cloudRequests: 0,
     savingsRate: 0,
-    lastSaving: '$0.0000'
+    lastSaving: '$0.0000',
   });
   const [isTestingConnection, setIsTestingConnection] = useState(false);
 
@@ -45,18 +40,17 @@ export default function CostSavingsDashboard() {
     setIsTestingConnection(true);
     try {
       const result = await lmStudioService.chat([
-        { role: 'user', content: 'Hello, this is a test message for cost tracking' }
+        { role: 'user', content: 'Hello, this is a test message for cost tracking' },
       ]);
-      
+
       // Update cost data with mock savings for demo
       setCostData(prev => ({
         totalSavings: prev.totalSavings + 0.0045,
         localRequests: prev.localRequests + 1,
         cloudRequests: prev.cloudRequests,
         savingsRate: 85,
-        lastSaving: result.cost_savings
+        lastSaving: result.cost_savings,
       }));
-      
     } catch (error) {
       console.error('Test failed:', error);
     } finally {
@@ -65,7 +59,9 @@ export default function CostSavingsDashboard() {
   };
 
   return (
-    <div className={`${components.card} bg-gradient-to-br ${gradients.primary}/10 border-purple-500/30 backdrop-blur-xl`}>
+    <div
+      className={`${components.card} bg-gradient-to-br ${gradients.primary}/10 border-purple-500/30 backdrop-blur-xl`}
+    >
       <div className={`${utils.spaceBetween} mb-8`}>
         <div className="flex items-center space-x-4">
           <div className="bg-gradient-to-r from-emerald-500 to-green-500 p-4 rounded-xl shadow-lg">
@@ -74,14 +70,18 @@ export default function CostSavingsDashboard() {
           <div>
             <h3 className="text-2xl font-bold text-white">LuxRig Cost Savings</h3>
             <div className="flex items-center space-x-3 mt-2">
-              <div className={`w-3 h-3 rounded-full ${isLMStudioAvailable ? 'bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50' : 'bg-red-400 shadow-lg shadow-red-400/50'}`}></div>
-              <span className={`font-medium ${isLMStudioAvailable ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div
+                className={`w-3 h-3 rounded-full ${isLMStudioAvailable ? 'bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50' : 'bg-red-400 shadow-lg shadow-red-400/50'}`}
+              ></div>
+              <span
+                className={`font-medium ${isLMStudioAvailable ? 'text-emerald-400' : 'text-red-400'}`}
+              >
                 {isLMStudioAvailable ? 'LM Studio Connected' : 'LM Studio Offline'}
               </span>
             </div>
           </div>
         </div>
-        
+
         <button
           onClick={testConnection}
           disabled={!isLMStudioAvailable || isTestingConnection}
@@ -107,9 +107,7 @@ export default function CostSavingsDashboard() {
             <Server className="w-6 h-6 text-purple-400" />
             <span className="text-white/70 font-medium">Local Requests</span>
           </div>
-          <div className="text-3xl font-bold text-purple-400">
-            {costData.localRequests}
-          </div>
+          <div className="text-3xl font-bold text-purple-400">{costData.localRequests}</div>
         </div>
 
         <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-cyan-500/30">
@@ -117,9 +115,7 @@ export default function CostSavingsDashboard() {
             <Cloud className="w-6 h-6 text-cyan-400" />
             <span className="text-white/70 font-medium">Cloud Requests</span>
           </div>
-          <div className="text-3xl font-bold text-cyan-400">
-            {costData.cloudRequests}
-          </div>
+          <div className="text-3xl font-bold text-cyan-400">{costData.cloudRequests}</div>
         </div>
 
         <div className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-amber-500/30">
@@ -127,9 +123,7 @@ export default function CostSavingsDashboard() {
             <Zap className="w-6 h-6 text-amber-400" />
             <span className="text-white/70 font-medium">Savings Rate</span>
           </div>
-          <div className="text-3xl font-bold text-amber-400">
-            {costData.savingsRate}%
-          </div>
+          <div className="text-3xl font-bold text-amber-400">{costData.savingsRate}%</div>
         </div>
       </div>
 
@@ -140,8 +134,8 @@ export default function CostSavingsDashboard() {
             <div>
               <div className="text-emerald-400 font-bold text-lg">Cost Optimization Active</div>
               <div className="text-white/70 mt-1">
-                Simple tasks are being routed to LuxRig automatically. 
-                Last saving: <span className="text-emerald-400 font-semibold">{costData.lastSaving}</span>
+                Simple tasks are being routed to LuxRig automatically. Last saving:{' '}
+                <span className="text-emerald-400 font-semibold">{costData.lastSaving}</span>
               </div>
             </div>
           </div>

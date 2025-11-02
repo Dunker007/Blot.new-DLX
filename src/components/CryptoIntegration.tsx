@@ -1,17 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  Wallet,
-  TrendingUp,
-  Coins,
-  Zap,
-  BarChart3,
-  Copy,
-  ExternalLink,
-  Sparkles,
-  DollarSign,
-  ArrowUpRight,
   ArrowDownRight,
-  RefreshCw
+  ArrowUpRight,
+  BarChart3,
+  Coins,
+  Copy,
+  DollarSign,
+  ExternalLink,
+  RefreshCw,
+  Sparkles,
+  TrendingUp,
+  Wallet,
+  Zap,
 } from 'lucide-react';
 
 interface CryptoIntegrationProps {
@@ -44,10 +45,31 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
 
   // Mock crypto data - in real app would connect to APIs
   const mockAssets: CryptoAsset[] = [
-    { symbol: 'ETH', name: 'Ethereum', price: 2847.32, change24h: 5.67, balance: 1.2847, value: 3657.89 },
-    { symbol: 'BTC', name: 'Bitcoin', price: 67234.56, change24h: -2.14, balance: 0.0847, value: 5694.87 },
-    { symbol: 'USDC', name: 'USD Coin', price: 1.00, change24h: 0.01, balance: 2500, value: 2500.00 },
-    { symbol: 'UNI', name: 'Uniswap', price: 8.94, change24h: 12.34, balance: 150.5, value: 1345.47 }
+    {
+      symbol: 'ETH',
+      name: 'Ethereum',
+      price: 2847.32,
+      change24h: 5.67,
+      balance: 1.2847,
+      value: 3657.89,
+    },
+    {
+      symbol: 'BTC',
+      name: 'Bitcoin',
+      price: 67234.56,
+      change24h: -2.14,
+      balance: 0.0847,
+      value: 5694.87,
+    },
+    { symbol: 'USDC', name: 'USD Coin', price: 1.0, change24h: 0.01, balance: 2500, value: 2500.0 },
+    {
+      symbol: 'UNI',
+      name: 'Uniswap',
+      price: 8.94,
+      change24h: 12.34,
+      balance: 150.5,
+      value: 1345.47,
+    },
   ];
 
   const defiOpportunities: DeFiOpportunity[] = [
@@ -56,22 +78,22 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
       apy: 18.7,
       tvl: '$2.4B',
       risk: 'medium',
-      description: 'Provide liquidity to earn trading fees'
+      description: 'Provide liquidity to earn trading fees',
     },
     {
       protocol: 'Compound USDC Lending',
       apy: 4.2,
-      tvl: '$1.8B', 
+      tvl: '$1.8B',
       risk: 'low',
-      description: 'Lend USDC to earn interest'
+      description: 'Lend USDC to earn interest',
     },
     {
       protocol: 'Arbitrum Farming',
       apy: 45.6,
       tvl: '$890M',
       risk: 'high',
-      description: 'Farm ARB tokens with high rewards'
-    }
+      description: 'Farm ARB tokens with high rewards',
+    },
   ];
 
   useEffect(() => {
@@ -103,10 +125,14 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
-      case 'low': return 'text-green-400 bg-green-400/10';
-      case 'medium': return 'text-yellow-400 bg-yellow-400/10';
-      case 'high': return 'text-red-400 bg-red-400/10';
-      default: return 'text-gray-400 bg-gray-400/10';
+      case 'low':
+        return 'text-green-400 bg-green-400/10';
+      case 'medium':
+        return 'text-yellow-400 bg-yellow-400/10';
+      case 'high':
+        return 'text-red-400 bg-red-400/10';
+      default:
+        return 'text-gray-400 bg-gray-400/10';
     }
   };
 
@@ -121,9 +147,7 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
                 <Wallet className="w-12 h-12 text-white" />
               </div>
             </div>
-            <h1 className="text-4xl font-bold text-white mb-4">
-              Connect Your Crypto Wallet
-            </h1>
+            <h1 className="text-4xl font-bold text-white mb-4">Connect Your Crypto Wallet</h1>
             <p className="text-xl text-purple-300 mb-8">
               Unlock DeFi opportunities and crypto-powered AI tools
             </p>
@@ -145,22 +169,25 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
                 title: 'DeFi Integration',
                 description: 'Access yield farming, lending, and trading opportunities',
                 icon: <TrendingUp className="w-8 h-8" />,
-                color: 'from-green-500 to-emerald-500'
+                color: 'from-green-500 to-emerald-500',
               },
               {
                 title: 'Crypto Trading Bots',
                 description: 'Deploy AI-powered arbitrage and DCA bots',
                 icon: <Zap className="w-8 h-8" />,
-                color: 'from-yellow-500 to-orange-500'
+                color: 'from-yellow-500 to-orange-500',
               },
               {
                 title: 'Portfolio Analytics',
                 description: 'Real-time portfolio tracking and AI insights',
                 icon: <BarChart3 className="w-8 h-8" />,
-                color: 'from-blue-500 to-cyan-500'
-              }
+                color: 'from-blue-500 to-cyan-500',
+              },
             ].map((feature, index) => (
-              <div key={index} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              <div
+                key={index}
+                className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
+              >
                 <div className={`bg-gradient-to-r ${feature.color} p-3 rounded-lg w-fit mb-4`}>
                   {feature.icon}
                 </div>
@@ -215,9 +242,13 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
               <div className="text-4xl font-bold text-white">
                 ${totalPortfolioValue.toLocaleString()}
               </div>
-              <div className={`flex items-center space-x-1 px-3 py-1 rounded-lg ${
-                portfolioChange >= 0 ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'
-              }`}>
+              <div
+                className={`flex items-center space-x-1 px-3 py-1 rounded-lg ${
+                  portfolioChange >= 0
+                    ? 'bg-green-500/20 text-green-400'
+                    : 'bg-red-500/20 text-red-400'
+                }`}
+              >
                 {portfolioChange >= 0 ? (
                   <ArrowUpRight className="w-4 h-4" />
                 ) : (
@@ -258,20 +289,28 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
             <h2 className="text-xl font-semibold text-white mb-6">Holdings</h2>
             <div className="space-y-4">
               {cryptoAssets.map((asset, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-black/20 rounded-lg">
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 bg-black/20 rounded-lg"
+                >
                   <div className="flex items-center space-x-4">
                     <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                       <span className="text-white font-bold text-sm">{asset.symbol}</span>
                     </div>
                     <div>
                       <div className="text-white font-semibold">{asset.name}</div>
-                      <div className="text-white/60 text-sm">{asset.balance.toFixed(4)} {asset.symbol}</div>
+                      <div className="text-white/60 text-sm">
+                        {asset.balance.toFixed(4)} {asset.symbol}
+                      </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-white font-semibold">${asset.value.toLocaleString()}</div>
-                    <div className={`text-sm ${asset.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                      {asset.change24h >= 0 ? '+' : ''}{asset.change24h.toFixed(2)}%
+                    <div
+                      className={`text-sm ${asset.change24h >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                    >
+                      {asset.change24h >= 0 ? '+' : ''}
+                      {asset.change24h.toFixed(2)}%
                     </div>
                   </div>
                 </div>
@@ -287,11 +326,16 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
             </div>
             <div className="space-y-4">
               {defiOpportunities.map((opportunity, index) => (
-                <div key={index} className="p-4 bg-black/20 rounded-lg border border-white/5 hover:border-purple-500/30 transition-colors cursor-pointer">
+                <div
+                  key={index}
+                  className="p-4 bg-black/20 rounded-lg border border-white/5 hover:border-purple-500/30 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-white font-semibold">{opportunity.protocol}</div>
                     <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${getRiskColor(opportunity.risk)}`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${getRiskColor(opportunity.risk)}`}
+                      >
                         {opportunity.risk} risk
                       </span>
                       <div className="text-green-400 font-bold">{opportunity.apy}% APY</div>
@@ -318,20 +362,20 @@ export default function CryptoIntegration({ onNavigate }: CryptoIntegrationProps
               title: 'Arbitrage Bot',
               description: 'Deploy cross-DEX arbitrage opportunities',
               action: () => onNavigate('trading'),
-              color: 'from-green-500 to-emerald-500'
+              color: 'from-green-500 to-emerald-500',
             },
             {
               title: 'DCA Strategy',
               description: 'Set up dollar-cost averaging for crypto',
-              action: () => onNavigate('trading'), 
-              color: 'from-blue-500 to-cyan-500'
+              action: () => onNavigate('trading'),
+              color: 'from-blue-500 to-cyan-500',
             },
             {
               title: 'Yield Farming',
               description: 'Optimize yields across DeFi protocols',
               action: () => onNavigate('trading'),
-              color: 'from-purple-500 to-pink-500'
-            }
+              color: 'from-purple-500 to-pink-500',
+            },
           ].map((action, index) => (
             <button
               key={index}

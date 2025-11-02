@@ -84,6 +84,32 @@ class TokenTrackingService {
     await storage.insert('tokens', log);
   }
 
+  async getTokenUsage(conversationId: string): Promise<Array<{
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    estimatedCost: number;
+    responseTimeMs: number;
+    status: string;
+  }>> {
+    const { data: logs } = await storage.select('tokens');
+
+    if (!logs || !Array.isArray(logs)) {
+      return [];
+    }
+
+    return (logs as TokenUsageLog[])
+      .filter(log => log.conversation_id === conversationId)
+      .map(log => ({
+        promptTokens: log.prompt_tokens,
+        completionTokens: log.completion_tokens,
+        totalTokens: log.total_tokens,
+        estimatedCost: log.estimated_cost,
+        responseTimeMs: log.response_time_ms,
+        status: log.status,
+      }));
+  }
+
   private calculateCost(modelId: string, promptTokens: number, completionTokens: number): number {
     const costs = this.COST_PER_1K_TOKENS[modelId] || { input: 0.001, output: 0.002 };
     return (promptTokens / 1000) * costs.input + (completionTokens / 1000) * costs.output;
@@ -95,7 +121,7 @@ class TokenTrackingService {
     projectId?: string
   ): Promise<TokenMetrics> {
     const { data: logs } = await storage.select('tokens');
-    
+
     if (!logs) {
       return {
         totalTokens: 0,
@@ -131,6 +157,17 @@ class TokenTrackingService {
       totalCost += log.estimated_cost;
       totalResponseTime += log.response_time_ms;
       if (log.status === 'success') successfulRequests++;
+    // Filter logs based on criteria
+    let filteredLogs = logs as TokenUsageLog[];
+
+    if (startDate) {
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) >= startDate);
+    }
+    if (endDate) {
+      filteredLogs = filteredLogs.filter(log => new Date(log.timestamp) <= endDate);
+    }
+    if (projectId) {
+      filteredLogs = filteredLogs.filter(log => log.project_id === projectId);
     }
 
     if (requestCount === 0) {
@@ -154,12 +191,32 @@ class TokenTrackingService {
     };
   }
 
-  async getProviderUsage(
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<ProviderUsageStats[]> {
+  async getUsageStats(options?: {
+    startDate?: Date;
+    endDate?: Date;
+    projectId?: string;
+  }): Promise<TokenMetrics & { avgResponseTime: number }> {
+    const metrics = await this.getTokenMetrics(
+      options?.startDate,
+      options?.endDate,
+      options?.projectId
+    );
+    return {
+      ...metrics,
+      avgResponseTime: metrics.averageResponseTime,
+    };
+  }
+
+  async getTopProviders(limit: number = 10): Promise<ProviderUsageStats[]> {
+    const providers = await this.getProviderUsage();
+    return providers
+      .sort((a, b) => b.request_count - a.request_count)
+      .slice(0, limit);
+  }
+
+  async getProviderUsage(startDate?: Date, endDate?: Date): Promise<ProviderUsageStats[]> {
     const { data: logs } = await storage.select('tokens');
-    
+
     if (!logs) return [];
 
     // Single-pass filtering and aggregation
@@ -204,7 +261,9 @@ class TokenTrackingService {
     this.budgets.set(projectId, { limit, spent: 0, period });
   }
 
-  async checkBudget(projectId: string): Promise<{ withinBudget: boolean; usage: number; limit: number }> {
+  async checkBudget(
+    projectId: string
+  ): Promise<{ withinBudget: boolean; usage: number; limit: number }> {
     const budget = this.budgets.get(projectId);
     if (!budget) {
       return { withinBudget: true, usage: 0, limit: 0 };
@@ -212,17 +271,32 @@ class TokenTrackingService {
 
     // Get current period spending
     const now = new Date();
-    const startDate = budget.period === 'daily' 
-      ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
-      : new Date(now.getFullYear(), now.getMonth(), 1);
+    const startDate =
+      budget.period === 'daily'
+        ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+        : new Date(now.getFullYear(), now.getMonth(), 1);
 
     const metrics = await this.getTokenMetrics(startDate, now, projectId);
-    
+
     return {
       withinBudget: metrics.totalCost <= budget.limit,
       usage: metrics.totalCost,
       limit: budget.limit,
     };
+  }
+
+  async getBudgetStatus(): Promise<any> {
+    // Return budget status for all projects
+    const budgetStatuses = [];
+    for (const [projectId, budget] of this.budgets.entries()) {
+      const status = await this.checkBudget(projectId);
+      budgetStatuses.push({
+        projectId,
+        ...status,
+        period: budget.period,
+      });
+    }
+    return budgetStatuses;
   }
 }
 

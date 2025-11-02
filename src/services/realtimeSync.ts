@@ -1,5 +1,6 @@
-import { supabase } from '../lib/supabase';
 import { RealtimeChannel } from '@supabase/supabase-js';
+
+import { supabase } from '../lib/supabase';
 
 export interface WorkspaceSession {
   id: string;
@@ -39,7 +40,16 @@ export interface PresenceData {
 export interface CollaborationEvent {
   id: string;
   project_id: string;
-  event_type: 'join' | 'leave' | 'edit' | 'comment' | 'lock' | 'unlock' | 'cursor_move' | 'file_open' | 'file_close';
+  event_type:
+    | 'join'
+    | 'leave'
+    | 'edit'
+    | 'comment'
+    | 'lock'
+    | 'unlock'
+    | 'cursor_move'
+    | 'file_open'
+    | 'file_close';
   actor_id: string;
   actor_name?: string;
   target_file?: string;
@@ -57,13 +67,15 @@ export class RealtimeSyncService {
 
     const { data, error } = await supabase
       .from('workspace_sessions')
-      .insert([{
-        user_id: userId,
-        project_id: projectId,
-        session_token: sessionToken,
-        status: 'active',
-        last_activity: new Date().toISOString(),
-      }])
+      .insert([
+        {
+          user_id: userId,
+          project_id: projectId,
+          session_token: sessionToken,
+          status: 'active',
+          last_activity: new Date().toISOString(),
+        },
+      ])
       .select()
       .single();
 
@@ -126,7 +138,7 @@ export class RealtimeSyncService {
           table: 'live_cursors',
           filter: `session_id=in.(select id from workspace_sessions where project_id=eq.${projectId})`,
         },
-        (payload) => {
+        payload => {
           if (callbacks.onCursorUpdate && payload.new) {
             callbacks.onCursorUpdate(payload.new as LiveCursor);
           }
@@ -140,7 +152,7 @@ export class RealtimeSyncService {
           table: 'collaboration_events',
           filter: `project_id=eq.${projectId}`,
         },
-        (payload) => {
+        payload => {
           if (callbacks.onEvent && payload.new) {
             callbacks.onEvent(payload.new as CollaborationEvent);
           }
@@ -186,9 +198,8 @@ export class RealtimeSyncService {
     column: number,
     selection?: { start: any; end: any }
   ): Promise<void> {
-    const { error } = await supabase
-      .from('live_cursors')
-      .upsert({
+    const { error } = await supabase.from('live_cursors').upsert(
+      {
         session_id: sessionId,
         user_id: userId,
         file_path: filePath,
@@ -197,9 +208,11 @@ export class RealtimeSyncService {
         selection_start: selection?.start,
         selection_end: selection?.end,
         updated_at: new Date().toISOString(),
-      }, {
+      },
+      {
         onConflict: 'session_id,file_path',
-      });
+      }
+    );
 
     if (error) {
       console.error('Failed to update cursor:', error);
@@ -216,9 +229,8 @@ export class RealtimeSyncService {
       eventData?: any;
     }
   ): Promise<void> {
-    await supabase
-      .from('collaboration_events')
-      .insert([{
+    await supabase.from('collaboration_events').insert([
+      {
         project_id: projectId,
         session_id: this.sessionId,
         event_type: eventType,
@@ -226,7 +238,8 @@ export class RealtimeSyncService {
         actor_name: data?.actorName,
         target_file: data?.targetFile,
         event_data: data?.eventData,
-      }]);
+      },
+    ]);
   }
 
   async getActiveUsers(projectId: string): Promise<WorkspaceSession[]> {
@@ -252,16 +265,16 @@ export class RealtimeSyncService {
     lockType: 'read' | 'write' | 'exclusive' = 'write'
   ): Promise<boolean> {
     try {
-      const { error } = await supabase
-        .from('file_locks')
-        .insert([{
+      const { error } = await supabase.from('file_locks').insert([
+        {
           project_id: projectId,
           file_path: filePath,
           locked_by: userId,
           lock_type: lockType,
           acquired_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
-        }]);
+        },
+      ]);
 
       return !error;
     } catch (error) {
@@ -279,7 +292,10 @@ export class RealtimeSyncService {
       .eq('locked_by', userId);
   }
 
-  async checkFileLock(projectId: string, filePath: string): Promise<{
+  async checkFileLock(
+    projectId: string,
+    filePath: string
+  ): Promise<{
     locked: boolean;
     lockedBy?: string;
     expiresAt?: string;
@@ -304,10 +320,7 @@ export class RealtimeSyncService {
   }
 
   async cleanupExpiredLocks(): Promise<void> {
-    await supabase
-      .from('file_locks')
-      .delete()
-      .lt('expires_at', new Date().toISOString());
+    await supabase.from('file_locks').delete().lt('expires_at', new Date().toISOString());
   }
 
   unsubscribeFromProject(projectId: string): void {
@@ -321,7 +334,7 @@ export class RealtimeSyncService {
   }
 
   unsubscribeAll(): void {
-    this.channels.forEach((channel) => {
+    this.channels.forEach(channel => {
       supabase.removeChannel(channel);
     });
     this.channels.clear();

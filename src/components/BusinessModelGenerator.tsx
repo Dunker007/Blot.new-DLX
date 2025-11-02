@@ -1,56 +1,75 @@
 /**
  * Business Model Generator - Premium Component
- * 
+ *
  * High-value feature that generates complete business models
  * Premium tier: $97/month for unlimited business model generation
  */
-
 import React, { useState } from 'react';
-import { 
-  Target, 
-  DollarSign, 
-  Clock, 
-  Rocket,
-  Crown,
-  Zap,
+
+import {
   BarChart3,
+  BookOpen,
   CheckCircle,
+  Clock,
+  Crown,
+  DollarSign,
   Download,
+  Rocket,
   Share2,
-  BookOpen
+  Target,
+  Zap,
 } from 'lucide-react';
-import { businessModelGeneratorService, BusinessModelInput, BusinessModel } from '../services/businessModelGenerator';
+
+import {
+  BusinessModel,
+  BusinessModelInput,
+  businessModelGeneratorService as businessModelGenerator,
+} from '../services/businessModelGenerator';
 
 interface BusinessModelGeneratorProps {
   onUpgrade?: () => void;
   isPremium?: boolean;
 }
 
-const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({ 
-  onUpgrade, 
-  isPremium = false 
+const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
+  onUpgrade,
+  isPremium = false,
 }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedModel, setGeneratedModel] = useState<BusinessModel | null>(null);
   const [input, setInput] = useState<BusinessModelInput>({
     industry: '',
+    targetMarket: '',
+    uniqueValue: '',
+    initialBudget: 0,
+    timeframe: '90-days',
+    experience: 'beginner',
     niche: '',
     targetAudience: '',
     budget: 'bootstrap',
     timeline: '90-days',
-    experience: 'beginner',
-    preferredModels: []
+    preferredModels: [],
   });
 
   const [progress, setProgress] = useState(0);
   const [currentTask, setCurrentTask] = useState('');
 
   const industries = [
-    'SaaS/Software', 'E-commerce', 'Digital Marketing', 'Consulting', 
-    'Education/Training', 'Health & Wellness', 'Finance/FinTech', 
-    'Real Estate', 'Entertainment', 'Food & Beverage', 'Travel',
-    'Cryptocurrency/Blockchain', 'AI/Machine Learning', 'Other'
+    'SaaS/Software',
+    'E-commerce',
+    'Digital Marketing',
+    'Consulting',
+    'Education/Training',
+    'Health & Wellness',
+    'Finance/FinTech',
+    'Real Estate',
+    'Entertainment',
+    'Food & Beverage',
+    'Travel',
+    'Cryptocurrency/Blockchain',
+    'AI/Machine Learning',
+    'Other',
   ];
 
   const businessModels = [
@@ -76,7 +95,7 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
       // Simulate progress updates
       const progressInterval = setInterval(() => {
         setProgress(prev => {
-          const newProgress = prev + (Math.random() * 15);
+          const newProgress = prev + Math.random() * 15;
           return Math.min(newProgress, 90);
         });
       }, 1000);
@@ -87,30 +106,23 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
         'Designing revenue streams...',
         'Creating implementation roadmap...',
         'Calculating financial projections...',
-        'Finalizing business model...'
+        'Finalizing business model...',
       ];
 
       taskUpdates.forEach((task, index) => {
         setTimeout(() => setCurrentTask(task), index * 2000);
       });
 
-      // Generate business model (mock for now - replace with actual service call)
-      const model = await businessModelGenerator.generateBusinessModel(
-        input,
-        'user-id', // Replace with actual user ID
-        {
-          includeCompetitorAnalysis: true,
-          includeFinancialModeling: true,
-          includeTechStackRecommendations: true,
-        }
-      );
+      // Generate business model
+      const model = await businessModelGenerator.generateBusinessModel(input, (step, progress) => {
+        console.log(`${step}: ${progress}%`);
+      });
 
       clearInterval(progressInterval);
       setProgress(100);
       setCurrentTask('Business model generated successfully!');
       setGeneratedModel(model);
       setCurrentStep(3);
-
     } catch (error) {
       console.error('Generation failed:', error);
       setCurrentTask('Generation failed. Please try again.');
@@ -126,13 +138,17 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
           <Crown className="w-8 h-8 text-white" />
         </div>
         <h2 className="text-3xl font-bold text-gray-900 mb-2">AI Business Model Generator</h2>
-        <p className="text-xl text-gray-600">Generate complete business models with AI-powered analysis</p>
-        
+        <p className="text-xl text-gray-600">
+          Generate complete business models with AI-powered analysis
+        </p>
+
         {!isPremium && (
           <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 rounded-lg">
             <div className="flex items-center">
               <Crown className="w-5 h-5 text-yellow-600 mr-2" />
-              <span className="text-yellow-800 font-medium">Premium Feature - Upgrade to unlock unlimited business models</span>
+              <span className="text-yellow-800 font-medium">
+                Premium Feature - Upgrade to unlock unlimited business models
+              </span>
             </div>
           </div>
         )}
@@ -141,25 +157,29 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
       {/* Industry Selection */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">Industry *</label>
-        <select 
+        <select
           value={input.industry}
-          onChange={(e) => setInput(prev => ({ ...prev, industry: e.target.value }))}
+          onChange={e => setInput(prev => ({ ...prev, industry: e.target.value }))}
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         >
           <option value="">Select your industry</option>
           {industries.map(industry => (
-            <option key={industry} value={industry}>{industry}</option>
+            <option key={industry} value={industry}>
+              {industry}
+            </option>
           ))}
         </select>
       </div>
 
       {/* Niche */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">Specific Niche (Optional)</label>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Specific Niche (Optional)
+        </label>
         <input
           type="text"
           value={input.niche}
-          onChange={(e) => setInput(prev => ({ ...prev, niche: e.target.value }))}
+          onChange={e => setInput(prev => ({ ...prev, niche: e.target.value }))}
           placeholder="e.g., B2B productivity tools, sustainable fashion, crypto trading"
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
@@ -171,7 +191,7 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
         <input
           type="text"
           value={input.targetAudience}
-          onChange={(e) => setInput(prev => ({ ...prev, targetAudience: e.target.value }))}
+          onChange={e => setInput(prev => ({ ...prev, targetAudience: e.target.value }))}
           placeholder="e.g., Small business owners, millennials, tech entrepreneurs"
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
@@ -181,9 +201,9 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Budget</label>
-          <select 
+          <select
             value={input.budget}
-            onChange={(e) => setInput(prev => ({ ...prev, budget: e.target.value as any }))}
+            onChange={e => setInput(prev => ({ ...prev, budget: e.target.value as any }))}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="bootstrap">Bootstrap ($0-1K)</option>
@@ -195,9 +215,9 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Timeline</label>
-          <select 
+          <select
             value={input.timeline}
-            onChange={(e) => setInput(prev => ({ ...prev, timeline: e.target.value as any }))}
+            onChange={e => setInput(prev => ({ ...prev, timeline: e.target.value as any }))}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="30-days">30 Days</option>
@@ -209,9 +229,9 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">Experience</label>
-          <select 
+          <select
             value={input.experience}
-            onChange={(e) => setInput(prev => ({ ...prev, experience: e.target.value as any }))}
+            onChange={e => setInput(prev => ({ ...prev, experience: e.target.value as any }))}
             className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           >
             <option value="beginner">Beginner</option>
@@ -223,17 +243,22 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
 
       {/* Business Models */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">Preferred Business Models</label>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          Preferred Business Models
+        </label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {businessModels.map(model => (
-            <label key={model.id} className="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+            <label
+              key={model.id}
+              className="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer"
+            >
               <input
                 type="checkbox"
-                checked={input.preferredModels.includes(model.id as any)}
-                onChange={(e) => {
-                  const newModels = e.target.checked 
-                    ? [...input.preferredModels, model.id as any]
-                    : input.preferredModels.filter(m => m !== model.id);
+                checked={input.preferredModels?.includes(model.id as any) ?? false}
+                onChange={e => {
+                  const newModels = e.target.checked
+                    ? [...(input.preferredModels || []), model.id as any]
+                    : (input.preferredModels || []).filter((m: string) => m !== model.id);
                   setInput(prev => ({ ...prev, preferredModels: newModels }));
                 }}
                 className="mt-1 h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
@@ -266,7 +291,8 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
       <div>
         <h2 className="text-3xl font-bold text-gray-900 mb-4">Generate Your Business Model</h2>
         <p className="text-xl text-gray-600 mb-8">
-          AI will analyze your industry, research competitors, design revenue streams, and create a complete implementation roadmap.
+          AI will analyze your industry, research competitors, design revenue streams, and create a
+          complete implementation roadmap.
         </p>
       </div>
 
@@ -297,7 +323,7 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
       {isGenerating ? (
         <div className="space-y-6">
           <div className="w-full bg-gray-200 rounded-full h-3">
-            <div 
+            <div
               className="bg-gradient-to-r from-indigo-600 to-purple-600 h-3 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
@@ -313,8 +339,8 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
           <button
             onClick={handleGenerate}
             className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-200 ${
-              isPremium 
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700' 
+              isPremium
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white hover:from-indigo-700 hover:to-purple-700'
                 : 'bg-gradient-to-r from-yellow-500 to-orange-500 text-white hover:from-yellow-600 hover:to-orange-600'
             }`}
           >
@@ -361,7 +387,7 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
             <div className="flex items-center space-x-4 text-sm">
               <span className="flex items-center text-green-600">
                 <CheckCircle className="w-4 h-4 mr-1" />
-                Confidence: {Math.round(generatedModel.confidence * 100)}%
+                Confidence: {Math.round((generatedModel.confidence ?? 0) * 100)}%
               </span>
               <span className="flex items-center text-indigo-600">
                 <Clock className="w-4 h-4 mr-1" />
@@ -373,19 +399,27 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
           {/* Revenue Projections */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-              <div className="text-2xl font-bold text-gray-900">${generatedModel.financialProjections.month1.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                ${(generatedModel.financialProjections.month1 ?? 0).toLocaleString()}
+              </div>
               <div className="text-sm text-gray-500">Month 1</div>
             </div>
             <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-              <div className="text-2xl font-bold text-gray-900">${generatedModel.financialProjections.month3.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                ${(generatedModel.financialProjections.month3 ?? 0).toLocaleString()}
+              </div>
               <div className="text-sm text-gray-500">Month 3</div>
             </div>
             <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-              <div className="text-2xl font-bold text-gray-900">${generatedModel.financialProjections.month6.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-gray-900">
+                ${(generatedModel.financialProjections.month6 ?? 0).toLocaleString()}
+              </div>
               <div className="text-sm text-gray-500">Month 6</div>
             </div>
             <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-              <div className="text-2xl font-bold text-green-600">${generatedModel.financialProjections.month12.toLocaleString()}</div>
+              <div className="text-2xl font-bold text-green-600">
+                ${(generatedModel.financialProjections.month12 ?? 0).toLocaleString()}
+              </div>
               <div className="text-sm text-gray-500">Year 1</div>
             </div>
           </div>
@@ -418,12 +452,16 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
                 setGeneratedModel(null);
                 setInput({
                   industry: '',
+                  targetMarket: '',
+                  uniqueValue: '',
+                  initialBudget: 0,
+                  timeframe: '90-days',
+                  experience: 'beginner',
                   niche: '',
                   targetAudience: '',
                   budget: 'bootstrap',
                   timeline: '90-days',
-                  experience: 'beginner',
-                  preferredModels: []
+                  preferredModels: [],
                 });
               }}
               className="text-indigo-600 hover:text-indigo-800 font-medium"
@@ -441,19 +479,21 @@ const BusinessModelGenerator: React.FC<BusinessModelGeneratorProps> = ({
       {/* Progress Steps */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center space-x-4">
-          {[1, 2, 3].map((step) => (
+          {[1, 2, 3].map(step => (
             <div key={step} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep >= step 
-                  ? 'bg-indigo-600 text-white' 
-                  : 'bg-gray-200 text-gray-600'
-              }`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  currentStep >= step ? 'bg-indigo-600 text-white' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
                 {step}
               </div>
               {step < 3 && (
-                <div className={`w-12 h-1 mx-2 ${
-                  currentStep > step ? 'bg-indigo-600' : 'bg-gray-200'
-                }`} />
+                <div
+                  className={`w-12 h-1 mx-2 ${
+                    currentStep > step ? 'bg-indigo-600' : 'bg-gray-200'
+                  }`}
+                />
               )}
             </div>
           ))}

@@ -1,7 +1,6 @@
 import { supabase } from '../lib/supabase';
-import { llmService, LLMMessage } from './llm';
 import { advancedCache } from './advancedCache';
-
+import { LLMMessage, llmService } from './llm';
 
 export interface CodeContext {
   language: string;
@@ -80,7 +79,7 @@ export class AICodeGenerationEngine {
     maxSuggestions: number = 3
   ): Promise<CodeSuggestion[]> {
     const cacheKey = `completion_${this.hashContext(context)}`;
-    
+
     // Check cache first
     const cached = advancedCache.get<CodeSuggestion[]>(cacheKey);
     if (cached) {
@@ -89,10 +88,10 @@ export class AICodeGenerationEngine {
 
     try {
       const startTime = Date.now();
-      
+
       // Build context-aware prompt
       const prompt = this.buildCompletionPrompt(context);
-      
+
       // Get AI suggestions
       const messages: LLMMessage[] = [
         {
@@ -153,7 +152,7 @@ export class AICodeGenerationEngine {
     } = {}
   ): Promise<CodeSuggestion[]> {
     const cacheKey = `generation_${this.hashString(description)}_${this.hashContext(context)}`;
-    
+
     const cached = advancedCache.get<CodeSuggestion[]>(cacheKey);
     if (cached) {
       return cached;
@@ -161,7 +160,7 @@ export class AICodeGenerationEngine {
 
     try {
       const prompt = this.buildGenerationPrompt(description, context, options);
-      
+
       const messages: LLMMessage[] = [
         {
           role: 'system',
@@ -194,12 +193,9 @@ export class AICodeGenerationEngine {
   /**
    * Analyze code for issues and improvements
    */
-  async analyzeCode(
-    code: string,
-    context: CodeContext
-  ): Promise<CodeAnalysis> {
+  async analyzeCode(code: string, context: CodeContext): Promise<CodeAnalysis> {
     const cacheKey = `analysis_${this.hashString(code)}`;
-    
+
     const cached = advancedCache.get<CodeAnalysis>(cacheKey);
     if (cached) {
       return cached;
@@ -208,14 +204,18 @@ export class AICodeGenerationEngine {
     try {
       // Perform static analysis first
       const staticAnalysis = this.performStaticAnalysis(code, context);
-      
+
       // Get AI insights
       const aiAnalysis = await this.getAIAnalysis(code, context);
-      
+
       // Combine results
       const analysis: CodeAnalysis = {
         issues: [...(staticAnalysis.issues || []), ...(aiAnalysis.issues || [])],
-        complexity: staticAnalysis.complexity || { cyclomatic: 0, cognitive: 0, maintainability: 0 },
+        complexity: staticAnalysis.complexity || {
+          cyclomatic: 0,
+          cognitive: 0,
+          maintainability: 0,
+        },
         patterns: [...(staticAnalysis.patterns || []), ...(aiAnalysis.patterns || [])],
         dependencies: staticAnalysis.dependencies || [],
         suggestions: aiAnalysis.suggestions || [],
@@ -249,13 +249,14 @@ export class AICodeGenerationEngine {
     goals: ('performance' | 'readability' | 'maintainability' | 'security')[] = []
   ): Promise<CodeSuggestion[]> {
     const analysis = await this.analyzeCode(code, context);
-    
+
     const prompt = this.buildRefactoringPrompt(code, context, analysis, goals);
-    
+
     const messages: LLMMessage[] = [
       {
         role: 'system',
-        content: 'You are an expert code refactoring assistant. Provide clear, safe refactoring suggestions.',
+        content:
+          'You are an expert code refactoring assistant. Provide clear, safe refactoring suggestions.',
       },
       {
         role: 'user',
@@ -276,9 +277,9 @@ export class AICodeGenerationEngine {
     testFramework?: string
   ): Promise<CodeSuggestion[]> {
     const framework = testFramework || this.detectTestFramework(context);
-    
+
     const prompt = this.buildTestPrompt(code, context, framework);
-    
+
     const messages: LLMMessage[] = [
       {
         role: 'system',
@@ -296,15 +297,15 @@ export class AICodeGenerationEngine {
 
   private buildCompletionPrompt(context: CodeContext): string {
     let prompt = `Complete the following ${context.language} code:\n\n`;
-    
+
     if (context.surroundingCode?.before) {
       prompt += `Before cursor:\n\`\`\`${context.language}\n${context.surroundingCode.before}\n\`\`\`\n\n`;
     }
-    
+
     if (context.selectedText) {
       prompt += `Selected text: "${context.selectedText}"\n\n`;
     }
-    
+
     if (context.surroundingCode?.after) {
       prompt += `After cursor:\n\`\`\`${context.language}\n${context.surroundingCode.after}\n\`\`\`\n\n`;
     }
@@ -315,39 +316,35 @@ export class AICodeGenerationEngine {
     }
 
     prompt += 'Provide 1-3 intelligent completions with explanations.';
-    
+
     return prompt;
   }
 
-  private buildGenerationPrompt(
-    description: string,
-    context: CodeContext,
-    options: any
-  ): string {
+  private buildGenerationPrompt(description: string, context: CodeContext, options: any): string {
     let prompt = `Generate ${context.language} code for: ${description}\n\n`;
-    
+
     prompt += 'Requirements:\n';
     prompt += `- Language: ${context.language}\n`;
-    
+
     if (context.projectContext) {
       prompt += `- Framework: ${context.projectContext.framework}\n`;
       prompt += `- Follow patterns: ${context.projectContext.patterns.join(', ')}\n`;
     }
-    
+
     if (options.includeTests) {
       prompt += '- Include unit tests\n';
     }
-    
+
     if (options.includeDocumentation) {
       prompt += '- Include documentation comments\n';
     }
-    
+
     if (options.style) {
       prompt += `- Style: ${options.style}\n`;
     }
 
     prompt += '\nProvide clean, well-commented, production-ready code.';
-    
+
     return prompt;
   }
 
@@ -359,11 +356,11 @@ export class AICodeGenerationEngine {
   ): string {
     let prompt = `Refactor this ${context.language} code:\n\n`;
     prompt += `\`\`\`${context.language}\n${code}\n\`\`\`\n\n`;
-    
+
     if (goals.length > 0) {
       prompt += `Goals: ${goals.join(', ')}\n\n`;
     }
-    
+
     if (analysis.issues.length > 0) {
       prompt += 'Issues to address:\n';
       analysis.issues.forEach(issue => {
@@ -371,33 +368,39 @@ export class AICodeGenerationEngine {
       });
       prompt += '\n';
     }
-    
+
     prompt += 'Provide refactored code with explanations for changes.';
-    
+
     return prompt;
   }
 
   private buildTestPrompt(code: string, context: CodeContext, framework: string): string {
-    return `Generate comprehensive unit tests for this ${context.language} code using ${framework}:\n\n` +
-           `\`\`\`${context.language}\n${code}\n\`\`\`\n\n` +
-           'Include tests for:\n' +
-           '- Normal operation\n' +
-           '- Edge cases\n' +
-           '- Error conditions\n' +
-           '- Boundary values\n\n' +
-           'Make tests readable and maintainable.';
+    return (
+      `Generate comprehensive unit tests for this ${context.language} code using ${framework}:\n\n` +
+      `\`\`\`${context.language}\n${code}\n\`\`\`\n\n` +
+      'Include tests for:\n' +
+      '- Normal operation\n' +
+      '- Edge cases\n' +
+      '- Error conditions\n' +
+      '- Boundary values\n\n' +
+      'Make tests readable and maintainable.'
+    );
   }
 
   private getSystemPrompt(context: CodeContext): string {
-    return `You are an expert ${context.language} developer. Provide intelligent, context-aware code completions. ` +
-           'Consider best practices, performance, and maintainability. ' +
-           'Format your response as JSON with suggestions array containing code, description, and confidence (0-1).';
+    return (
+      `You are an expert ${context.language} developer. Provide intelligent, context-aware code completions. ` +
+      'Consider best practices, performance, and maintainability. ' +
+      'Format your response as JSON with suggestions array containing code, description, and confidence (0-1).'
+    );
   }
 
   private getGenerationSystemPrompt(context: CodeContext): string {
-    return `You are a senior ${context.language} developer. Generate clean, efficient, production-ready code. ` +
-           'Follow language conventions and best practices. ' +
-           'Include proper error handling and documentation.';
+    return (
+      `You are a senior ${context.language} developer. Generate clean, efficient, production-ready code. ` +
+      'Follow language conventions and best practices. ' +
+      'Include proper error handling and documentation.'
+    );
   }
 
   private parseAISuggestions(content: string, _context: CodeContext): CodeSuggestion[] {
@@ -414,19 +417,25 @@ export class AICodeGenerationEngine {
       }));
     } catch {
       // Fallback parsing for non-JSON responses
-      return [{
-        id: `suggestion_${Date.now()}`,
-        type: 'completion',
-        code: this.extractCodeFromText(content),
-        description: 'AI-generated completion',
-        confidence: 0.7,
-      }];
+      return [
+        {
+          id: `suggestion_${Date.now()}`,
+          type: 'completion',
+          code: this.extractCodeFromText(content),
+          description: 'AI-generated completion',
+          confidence: 0.7,
+        },
+      ];
     }
   }
 
-  private parseGeneratedCode(content: string, context: CodeContext, description: string): CodeSuggestion[] {
+  private parseGeneratedCode(
+    content: string,
+    context: CodeContext,
+    description: string
+  ): CodeSuggestion[] {
     const codeBlocks = this.extractCodeBlocks(content, context.language);
-    
+
     return codeBlocks.map((code, index) => ({
       id: `generated_${Date.now()}_${index}`,
       type: 'generation',
@@ -439,7 +448,7 @@ export class AICodeGenerationEngine {
   private parseRefactoringSuggestions(content: string, context: CodeContext): CodeSuggestion[] {
     const suggestions: CodeSuggestion[] = [];
     const codeBlocks = this.extractCodeBlocks(content, context.language);
-    
+
     codeBlocks.forEach((code, index) => {
       suggestions.push({
         id: `refactor_${Date.now()}_${index}`,
@@ -453,9 +462,13 @@ export class AICodeGenerationEngine {
     return suggestions;
   }
 
-  private parseTestSuggestions(content: string, context: CodeContext, framework: string): CodeSuggestion[] {
+  private parseTestSuggestions(
+    content: string,
+    context: CodeContext,
+    framework: string
+  ): CodeSuggestion[] {
     const codeBlocks = this.extractCodeBlocks(content, context.language);
-    
+
     return codeBlocks.map((code, index) => ({
       id: `test_${Date.now()}_${index}`,
       type: 'function',
@@ -469,11 +482,11 @@ export class AICodeGenerationEngine {
     const regex = new RegExp(`\`\`\`(?:${language})?\n?(.*?)\n?\`\`\``, 'gs');
     const blocks: string[] = [];
     let match;
-    
+
     while ((match = regex.exec(text)) !== null) {
       blocks.push(match[1].trim());
     }
-    
+
     return blocks;
   }
 
@@ -483,7 +496,7 @@ export class AICodeGenerationEngine {
     if (codeMatch) {
       return codeMatch[0].replace(/```\w*\n?/g, '').replace(/\n```/g, '');
     }
-    
+
     return text.trim();
   }
 
@@ -492,7 +505,7 @@ export class AICodeGenerationEngine {
     const lines = code.split('\n');
     const issues: any[] = [];
     const dependencies: string[] = [];
-    
+
     // Simple pattern detection
     lines.forEach((line, index) => {
       // Check for common issues
@@ -504,14 +517,14 @@ export class AICodeGenerationEngine {
           severity: 1,
         });
       }
-      
+
       // Extract imports/dependencies
       if (line.includes('import') || line.includes('require(')) {
         const dep = line.match(/['"]([^'"]+)['"]/)?.[1];
         if (dep) dependencies.push(dep);
       }
     });
-    
+
     return {
       issues,
       complexity: this.calculateComplexity(code),
@@ -521,15 +534,17 @@ export class AICodeGenerationEngine {
   }
 
   private async getAIAnalysis(code: string, context: CodeContext): Promise<Partial<CodeAnalysis>> {
-    const prompt = `Analyze this ${context.language} code for issues and improvements:\n\n` +
-                  `\`\`\`${context.language}\n${code}\n\`\`\`\n\n` +
-                  'Respond with JSON containing issues array and suggestions array.';
-    
+    const prompt =
+      `Analyze this ${context.language} code for issues and improvements:\n\n` +
+      `\`\`\`${context.language}\n${code}\n\`\`\`\n\n` +
+      'Respond with JSON containing issues array and suggestions array.';
+
     try {
       const messages: LLMMessage[] = [
         {
           role: 'system',
-          content: 'You are a code analysis expert. Identify issues, patterns, and improvement opportunities.',
+          content:
+            'You are a code analysis expert. Identify issues, patterns, and improvement opportunities.',
         },
         {
           role: 'user',
@@ -539,7 +554,7 @@ export class AICodeGenerationEngine {
 
       const response = await llmService.sendMessage(messages, 'default');
       const analysis = JSON.parse(response.content);
-      
+
       return {
         issues: analysis.issues || [],
         patterns: analysis.patterns || [],
@@ -551,12 +566,16 @@ export class AICodeGenerationEngine {
     }
   }
 
-  private calculateComplexity(code: string): { cyclomatic: number; cognitive: number; maintainability: number } {
+  private calculateComplexity(code: string): {
+    cyclomatic: number;
+    cognitive: number;
+    maintainability: number;
+  } {
     // Simplified complexity calculation
     const cyclomaticComplexity = (code.match(/if|while|for|switch|catch/g) || []).length + 1;
     const cognitiveComplexity = cyclomaticComplexity * 1.2; // Simplified
     const maintainability = Math.max(0, 100 - cyclomaticComplexity * 2);
-    
+
     return {
       cyclomatic: cyclomaticComplexity,
       cognitive: Math.round(cognitiveComplexity),
@@ -566,7 +585,7 @@ export class AICodeGenerationEngine {
 
   private detectTestFramework(context: CodeContext): string {
     const language = context.language.toLowerCase();
-    
+
     switch (language) {
       case 'javascript':
       case 'typescript':
@@ -582,7 +601,10 @@ export class AICodeGenerationEngine {
     }
   }
 
-  private async storeSuggestions(suggestions: CodeSuggestion[], context: CodeContext): Promise<void> {
+  private async storeSuggestions(
+    suggestions: CodeSuggestion[],
+    context: CodeContext
+  ): Promise<void> {
     try {
       const records = suggestions.map(suggestion => ({
         suggestion_type: suggestion.type,
@@ -598,9 +620,7 @@ export class AICodeGenerationEngine {
         },
       }));
 
-      await supabase
-        .from('ai_suggestions')
-        .insert(records);
+      await supabase.from('ai_suggestions').insert(records);
     } catch (error) {
       console.error('Failed to store suggestions:', error);
     }
@@ -614,14 +634,14 @@ export class AICodeGenerationEngine {
       'module pattern',
       'class pattern',
     ]);
-    
+
     this.codePatterns.set('typescript', [
       'interface pattern',
       'generic pattern',
       'decorator pattern',
       'type guard pattern',
     ]);
-    
+
     this.codePatterns.set('python', [
       'class pattern',
       'decorator pattern',
@@ -638,7 +658,7 @@ export class AICodeGenerationEngine {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
     return hash.toString(36);

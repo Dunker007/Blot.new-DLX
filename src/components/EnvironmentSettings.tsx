@@ -1,22 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
+  AlertCircle,
+  CheckCircle,
   Cloud,
+  Download,
   HardDrive,
   Layers,
-  CheckCircle,
-  AlertCircle,
   RefreshCw,
-  Download,
   Upload,
 } from 'lucide-react';
-import { environmentDetector, EnvironmentMode } from '../services/environmentDetector';
+
+import { EnvironmentMode, environmentDetector } from '../services/environmentDetector';
 import { providerRouter } from '../services/providerRouter';
 import HybridModePanel from './HybridModePanel';
 
 export default function EnvironmentSettings() {
   const [currentMode, setCurrentMode] = useState<EnvironmentMode>('local');
   const [syncEnabled, setSyncEnabled] = useState(false);
-  const [recommendation, setRecommendation] = useState({ recommended: 'local' as EnvironmentMode, reason: '' });
+  const [recommendation, setRecommendation] = useState({
+    recommended: 'local' as EnvironmentMode,
+    reason: '',
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -100,7 +105,12 @@ export default function EnvironmentSettings() {
       name: 'Local (DIY)',
       icon: HardDrive,
       description: 'Run everything locally using LM Studio, Ollama, or other local providers',
-      features: ['Complete offline capability', 'No API costs', 'Full privacy control', 'Local model management'],
+      features: [
+        'Complete offline capability',
+        'No API costs',
+        'Full privacy control',
+        'Local model management',
+      ],
       color: 'green',
     },
     {
@@ -108,7 +118,12 @@ export default function EnvironmentSettings() {
       name: 'Cloud (.new)',
       icon: Cloud,
       description: 'Use dlxstudios.ai cloud platform with managed infrastructure',
-      features: ['Access to all cloud models', 'Team collaboration', 'Automatic backups', 'Usage-based billing'],
+      features: [
+        'Access to all cloud models',
+        'Team collaboration',
+        'Automatic backups',
+        'Usage-based billing',
+      ],
       color: 'cyan',
     },
     {
@@ -116,7 +131,12 @@ export default function EnvironmentSettings() {
       name: 'Hybrid',
       icon: Layers,
       description: 'Best of both worlds - local and cloud providers working together',
-      features: ['Intelligent routing', 'Cost optimization', 'Fallback redundancy', 'Flexible deployment'],
+      features: [
+        'Intelligent routing',
+        'Cost optimization',
+        'Fallback redundancy',
+        'Flexible deployment',
+      ],
       color: 'blue',
     },
   ];
@@ -154,7 +174,7 @@ export default function EnvironmentSettings() {
       <div>
         <h2 className="text-2xl font-bold mb-4">Environment Mode</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {modeOptions.map((option) => {
+          {modeOptions.map(option => {
             const Icon = option.icon;
             const isActive = currentMode === option.id;
             const colorClasses: Record<string, string> = {
@@ -231,9 +251,7 @@ export default function EnvironmentSettings() {
                 <CheckCircle size={16} className="text-green-400" />
                 <span>Sync is active and running</span>
               </div>
-              <div className="text-xs text-slate-500">
-                Last sync: Just now
-              </div>
+              <div className="text-xs text-slate-500">Last sync: Just now</div>
             </div>
           )}
         </div>

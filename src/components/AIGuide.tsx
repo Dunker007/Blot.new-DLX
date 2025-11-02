@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  MessageCircle,
-  X,
-  Send,
   Brain,
-  Minimize2,
-  Maximize2,
-  TrendingUp,
+  Code,
   Coins,
-  Code
+  Maximize2,
+  MessageCircle,
+  Minimize2,
+  Send,
+  TrendingUp,
+  X,
 } from 'lucide-react';
+
 import { multiModelOrchestratorService } from '../services/multiModelOrchestrator';
 
 interface Message {
@@ -42,17 +44,17 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
   ];
 
   const contextualSuggestions: Record<string, string[]> = {
-    'dashboard': [
+    dashboard: [
       'Show me the best revenue opportunities',
       'What crypto trends should I know about?',
       'Generate a new business idea',
     ],
-    'crypto': [
+    crypto: [
       'How do I start DeFi yield farming?',
       'Deploy an arbitrage bot',
       'What are the best crypto opportunities?',
     ],
-    'trading': [
+    trading: [
       'Set up a DCA bot for Bitcoin',
       'Find arbitrage opportunities',
       'Create a momentum trading strategy',
@@ -72,9 +74,10 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
   const initialMessage: Message = {
     id: '1',
     role: 'assistant',
-    content: "👋 Hey! I'm your AI guide. I can help you generate businesses, deploy trading bots, create apps, and make money with AI and crypto. What would you like to build today?",
+    content:
+      "👋 Hey! I'm your AI guide. I can help you generate businesses, deploy trading bots, create apps, and make money with AI and crypto. What would you like to build today?",
     timestamp: new Date(),
-    suggestions: quickSuggestions.map(s => s.text)
+    suggestions: quickSuggestions.map(s => s.text),
   };
 
   useEffect(() => {
@@ -89,9 +92,9 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
         role: 'assistant',
         content: `I see you're in the ${currentView.replace('-', ' ')} section. Here are some things I can help you with:`,
         timestamp: new Date(),
-        suggestions: contextualSuggestions[currentView]
+        suggestions: contextualSuggestions[currentView],
       };
-      
+
       setMessages(prev => {
         // Only add if it's a different context
         if (prev[prev.length - 1]?.suggestions?.join() !== contextualMessage.suggestions?.join()) {
@@ -109,7 +112,7 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
       id: Date.now().toString(),
       role: 'user',
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     setMessages(prev => [...prev, userMessage]);
@@ -119,8 +122,12 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
     try {
       // Use our AI orchestrator for responses
       const response = await multiModelOrchestratorService.orchestrate([
-        { role: 'system', content: 'You are an AI assistant for a platform that helps users create AI-powered businesses, crypto trading bots, and applications. Be helpful, concise, and action-oriented. Always suggest specific actions the user can take.' },
-        { role: 'user', content }
+        {
+          role: 'system',
+          content:
+            'You are an AI assistant for a platform that helps users create AI-powered businesses, crypto trading bots, and applications. Be helpful, concise, and action-oriented. Always suggest specific actions the user can take.',
+        },
+        { role: 'user', content },
       ]);
 
       // Generate contextual suggestions based on the response
@@ -131,7 +138,7 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
         role: 'assistant',
         content: response.content,
         timestamp: new Date(),
-        suggestions
+        suggestions,
       };
 
       setMessages(prev => [...prev, assistantMessage]);
@@ -139,9 +146,10 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "I'm having trouble connecting right now, but I can still help you navigate! Try one of the quick actions above.",
+        content:
+          "I'm having trouble connecting right now, but I can still help you navigate! Try one of the quick actions above.",
         timestamp: new Date(),
-        suggestions: quickSuggestions.map(s => s.text)
+        suggestions: quickSuggestions.map(s => s.text),
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
@@ -151,7 +159,7 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
 
   const generateSuggestions = (userInput: string, aiResponse: string): string[] => {
     const lower = (userInput + ' ' + aiResponse).toLowerCase();
-    
+
     if (lower.includes('crypto') || lower.includes('trading') || lower.includes('defi')) {
       return ['Deploy a trading bot', 'Connect wallet', 'Check DeFi opportunities'];
     }
@@ -161,7 +169,7 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
     if (lower.includes('app') || lower.includes('code') || lower.includes('develop')) {
       return ['Generate an app', 'Deploy to production', 'Add AI features'];
     }
-    
+
     return quickSuggestions.slice(0, 3).map(s => s.text);
   };
 
@@ -191,9 +199,11 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
   }
 
   return (
-    <div className={`fixed bottom-6 right-6 bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-sm rounded-xl shadow-2xl border border-purple-500/20 z-50 transition-all duration-300 ${
-      isMinimized ? 'w-80 h-16' : 'w-96 h-[32rem]'
-    }`}>
+    <div
+      className={`fixed bottom-6 right-6 bg-gradient-to-br from-slate-900/95 to-purple-900/95 backdrop-blur-sm rounded-xl shadow-2xl border border-purple-500/20 z-50 transition-all duration-300 ${
+        isMinimized ? 'w-80 h-16' : 'w-96 h-[32rem]'
+      }`}
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-purple-500/20">
         <div className="flex items-center space-x-3">
@@ -232,13 +242,18 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
         <>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-80">
-            {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-lg p-3 ${
-                  message.role === 'user' 
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white' 
-                    : 'bg-black/30 text-white'
-                }`}>
+            {messages.map(message => (
+              <div
+                key={message.id}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg p-3 ${
+                    message.role === 'user'
+                      ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white'
+                      : 'bg-black/30 text-white'
+                  }`}
+                >
                   <div className="text-sm whitespace-pre-wrap">{message.content}</div>
                   {message.suggestions && (
                     <div className="mt-3 space-y-1">
@@ -256,14 +271,20 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
                 </div>
               </div>
             ))}
-            
+
             {isTyping && (
               <div className="flex justify-start">
                 <div className="bg-black/30 text-white rounded-lg p-3">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    <div
+                      className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.1s' }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -276,7 +297,7 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
               {[
                 { icon: <TrendingUp className="w-4 h-4" />, action: () => onNavigate('trading') },
                 { icon: <Coins className="w-4 h-4" />, action: () => onNavigate('crypto') },
-                { icon: <Code className="w-4 h-4" />, action: () => onNavigate('dev-lab') }
+                { icon: <Code className="w-4 h-4" />, action: () => onNavigate('dev-lab') },
               ].map((item, index) => (
                 <button
                   key={index}
@@ -295,8 +316,8 @@ export default function AIGuide({ currentView, onNavigate }: AIGuideProps) {
               <input
                 type="text"
                 value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && sendMessage(inputMessage)}
+                onChange={e => setInputMessage(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && sendMessage(inputMessage)}
                 placeholder="Ask me anything..."
                 className="flex-1 bg-black/30 border border-purple-500/30 rounded-lg px-3 py-2 text-white text-sm placeholder-white/40 focus:border-purple-500 focus:outline-none"
               />

@@ -42,7 +42,8 @@ export const LOCAL_ENDPOINTS = [
 export const RLS_POLICIES = {
   COLLABORATION: {
     TEAM_MEMBER_CHECK: 'team_members.user_id = auth.uid()',
-    PROJECT_ACCESS: 'EXISTS (SELECT 1 FROM team_members WHERE project_id = ? AND user_id = auth.uid())',
+    PROJECT_ACCESS:
+      'EXISTS (SELECT 1 FROM team_members WHERE project_id = ? AND user_id = auth.uid())',
   },
 } as const;
 

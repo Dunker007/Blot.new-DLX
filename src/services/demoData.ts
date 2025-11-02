@@ -1,4 +1,4 @@
-import { Project, LLMProvider, Model, Conversation, Message } from '../types';
+import { Conversation, LLMProvider, Message, Model, Project } from '../types';
 
 // Demo data for when Supabase is not configured
 export const demoProjects: Project[] = [
@@ -129,7 +129,8 @@ export const demoMessages: Message[] = [
     id: 'demo-msg-2',
     conversation_id: 'demo-conv-1',
     role: 'assistant',
-    content: 'I\'ll help you design a robust database schema. Here are the key tables you\'ll need:\n\n1. **Users** - Customer accounts\n2. **Products** - Product catalog\n3. **Orders** - Order management\n4. **OrderItems** - Order line items\n5. **Cart** - Shopping cart\n6. **Payments** - Payment transactions\n\nWould you like me to detail the schema for each table?',
+    content:
+      "I'll help you design a robust database schema. Here are the key tables you'll need:\n\n1. **Users** - Customer accounts\n2. **Products** - Product catalog\n3. **Orders** - Order management\n4. **OrderItems** - Order line items\n5. **Cart** - Shopping cart\n6. **Payments** - Payment transactions\n\nWould you like me to detail the schema for each table?",
     metadata: {
       model: 'codellama-7b',
       tokens: 156,
@@ -152,4 +153,3 @@ export const demoStats = {
 
 // Helper to check if we should use demo data
 export const shouldUseDemoData = (isDemoMode: boolean) => isDemoMode;
-

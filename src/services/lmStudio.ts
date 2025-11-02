@@ -1,6 +1,6 @@
 /**
  * Direct LM Studio Service
- * 
+ *
  * Direct integration with LM Studio for immediate cost reduction
  * Bypasses bridge server complexity for faster implementation
  */
@@ -43,7 +43,7 @@ class LMStudioService {
     try {
       const response = await fetch(`${this.baseUrl}/v1/models`);
       if (!response.ok) throw new Error('Failed to fetch models');
-      
+
       const data = await response.json();
       return data.data || [];
     } catch (error) {
@@ -53,11 +53,14 @@ class LMStudioService {
   }
 
   // Send chat completion request
-  async chat(messages: Array<{role: string, content: string}>, options: {
-    model?: string;
-    max_tokens?: number;
-    temperature?: number;
-  } = {}): Promise<{
+  async chat(
+    messages: Array<{ role: string; content: string }>,
+    options: {
+      model?: string;
+      max_tokens?: number;
+      temperature?: number;
+    } = {}
+  ): Promise<{
     content: string;
     tokens: number;
     model: string;
@@ -70,7 +73,7 @@ class LMStudioService {
       }
 
       const selectedModel = options.model || models[0].id;
-      
+
       const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
         method: 'POST',
         headers: {
@@ -81,8 +84,8 @@ class LMStudioService {
           messages,
           max_tokens: options.max_tokens || 300,
           temperature: options.temperature || 0.7,
-          stream: false
-        })
+          stream: false,
+        }),
       });
 
       if (!response.ok) {
@@ -101,9 +104,8 @@ class LMStudioService {
         content,
         tokens,
         model: `luxrig-${selectedModel}`,
-        cost_savings: costSavings
+        cost_savings: costSavings,
       };
-
     } catch (error) {
       console.error('❌ LM Studio chat failed:', error);
       throw error;
@@ -114,11 +116,11 @@ class LMStudioService {
   analyzeComplexity(prompt: string): 'simple' | 'medium' | 'complex' {
     const complexKeywords = ['analyze', 'research', 'detailed', 'comprehensive', 'strategy'];
     const simpleKeywords = ['hello', 'test', 'quick', 'simple', 'list'];
-    
+
     const lower = prompt.toLowerCase();
     const complexCount = complexKeywords.filter(word => lower.includes(word)).length;
     const simpleCount = simpleKeywords.filter(word => lower.includes(word)).length;
-    
+
     if (simpleCount > complexCount) return 'simple';
     if (complexCount > 2 || prompt.length > 500) return 'complex';
     return 'medium';

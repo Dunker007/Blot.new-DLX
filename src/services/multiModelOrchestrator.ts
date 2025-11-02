@@ -1,7 +1,7 @@
 import { storage } from '../lib/storage';
+import type { Message, Model } from '../types';
 import { llmService } from './llm';
 import { lmStudioService } from './lmStudio';
-import type { Message, LLMProvider, Model } from '../types';
 
 interface SimpleMessage {
   role: 'user' | 'assistant' | 'system';
@@ -44,15 +44,11 @@ class MultiModelOrchestratorService {
   analyzeTaskComplexity(messages: SimpleMessage[]): TaskComplexity {
     const lastMessage = messages[messages.length - 1];
     const content = lastMessage.content.toLowerCase();
-    
+
     // Simple keyword-based analysis
-    const complexKeywords = [
-      'analyze', 'compare', 'research', 'detailed', 'comprehensive'
-    ];
-    
-    const expertKeywords = [
-      'algorithm', 'optimization', 'machine learning', 'advanced'
-    ];
+    const complexKeywords = ['analyze', 'compare', 'research', 'detailed', 'comprehensive'];
+
+    const expertKeywords = ['algorithm', 'optimization', 'machine learning', 'advanced'];
 
     const estimatedTokens = content.length * 0.75;
 
@@ -61,7 +57,11 @@ class MultiModelOrchestratorService {
     }
 
     if (complexKeywords.some(keyword => content.includes(keyword))) {
-      return { level: 'complex', estimatedTokens: Math.max(estimatedTokens, 1000), confidence: 0.7 };
+      return {
+        level: 'complex',
+        estimatedTokens: Math.max(estimatedTokens, 1000),
+        confidence: 0.7,
+      };
     }
 
     if (estimatedTokens > 800) {
@@ -73,24 +73,24 @@ class MultiModelOrchestratorService {
 
   // Fast model selection
   async selectOptimalStrategy(
-    messages: SimpleMessage[],
+    _messages: SimpleMessage[],
     complexity: TaskComplexity
   ): Promise<ModelStrategy | null> {
     // Try to get models from storage
     const { data: models } = await storage.select('models');
-    
+
     if (!models || models.length === 0) {
       // Return default strategy
       return {
         modelId: 'gpt-3.5-turbo',
         providerId: 'openai',
         reason: 'Default configuration',
-        estimatedCost: 0.01
+        estimatedCost: 0.01,
       };
     }
 
     const availableModels = (models as Model[]).filter(m => m.is_available);
-    
+
     if (availableModels.length === 0) {
       return null;
     }
@@ -103,20 +103,19 @@ class MultiModelOrchestratorService {
         // Use first available model (simplest approach)
         selectedModel = availableModels[0];
         break;
-        
+
       case 'moderate':
         // Use model with good context window
-        selectedModel = availableModels
-          .filter(m => m.context_window >= 8000)[0] || availableModels[0];
+        selectedModel =
+          availableModels.filter(m => m.context_window >= 8000)[0] || availableModels[0];
         break;
-        
+
       case 'complex':
       case 'expert':
         // Use model with largest context window
-        selectedModel = availableModels
-          .sort((a, b) => b.context_window - a.context_window)[0];
+        selectedModel = availableModels.sort((a, b) => b.context_window - a.context_window)[0];
         break;
-        
+
       default:
         selectedModel = availableModels[0];
     }
@@ -125,7 +124,7 @@ class MultiModelOrchestratorService {
       modelId: selectedModel.model_name,
       providerId: selectedModel.provider_id,
       reason: `Selected for ${complexity.level} task`,
-      estimatedCost: this.estimateCost(complexity.estimatedTokens)
+      estimatedCost: this.estimateCost(complexity.estimatedTokens),
     };
   }
 
@@ -137,7 +136,7 @@ class MultiModelOrchestratorService {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ messages })
+        body: JSON.stringify({ messages }),
       });
 
       if (!response.ok) {
@@ -146,11 +145,11 @@ class MultiModelOrchestratorService {
 
       const result = await response.json();
       const message = result.choices?.[0]?.message?.content || 'No response';
-      
+
       return {
         content: message,
         model: result.luxrig_metadata?.routed_to === 'local' ? 'luxrig-local' : 'luxrig-fallback',
-        tokens: result.usage?.total_tokens || 0
+        tokens: result.usage?.total_tokens || 0,
       };
     } catch (error) {
       console.warn('❌ LuxRig routing failed:', error);
@@ -174,19 +173,19 @@ class MultiModelOrchestratorService {
       if (lmStudioAvailable) {
         const lastMessage = messages[messages.length - 1];
         const complexity = lmStudioService.analyzeComplexity(lastMessage.content);
-        
+
         // Route simple and medium tasks to LM Studio
         if (complexity === 'simple' || complexity === 'medium') {
           try {
             console.log(`🏠 Routing ${complexity} task to LuxRig LM Studio...`);
             const result = await lmStudioService.chat(messages);
-            
+
             console.log(`💰 Cost savings: ${result.cost_savings}`);
-            
+
             return {
               content: result.content,
               model: result.model,
-              tokens: result.tokens
+              tokens: result.tokens,
             };
           } catch (error) {
             console.warn('⚠️ LM Studio failed, falling back to cloud...', error);
@@ -209,7 +208,7 @@ class MultiModelOrchestratorService {
       // 3. Fallback to original logic
       const complexity = this.analyzeTaskComplexity(messages);
       const strategy = await this.selectOptimalStrategy(messages, complexity);
-      
+
       if (!strategy) {
         throw new Error('No suitable model strategy found');
       }
@@ -225,8 +224,8 @@ class MultiModelOrchestratorService {
         content: response.content,
         model: strategy.modelId,
         tokens: response.tokens || 0
+        tokens: 0, // TODO: Extract token count from response
       };
-      
     } catch (error) {
       console.error('Orchestration failed:', error);
       throw error;
@@ -243,7 +242,7 @@ class MultiModelOrchestratorService {
   convertMessages(messages: Message[]): SimpleMessage[] {
     return messages.map(msg => ({
       role: msg.role,
-      content: msg.content
+      content: msg.content,
     }));
   }
 

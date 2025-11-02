@@ -1,12 +1,7 @@
 import { useState } from 'react';
-import { 
-  Play, 
-  CheckCircle, 
-  XCircle, 
-  DollarSign, 
-  Zap,
-  Server 
-} from 'lucide-react';
+
+import { CheckCircle, DollarSign, Play, Server, XCircle, Zap } from 'lucide-react';
+
 import { lmStudioService } from '../services/lmStudio';
 import { multiModelOrchestratorService } from '../services/multiModelOrchestrator';
 import { components, gradients, utils } from '../styles/designSystem';
@@ -21,11 +16,11 @@ export default function LuxRigTester() {
     setIsRunning(true);
     setTestResults([]);
     setTotalSavings(0);
-    
+
     // Test 1: Connection
     const connected = await lmStudioService.isAvailable();
     setIsConnected(connected);
-    
+
     if (!connected) {
       setIsRunning(false);
       return;
@@ -34,13 +29,19 @@ export default function LuxRigTester() {
     // Test 2: Simple task routing
     const simpleTest = {
       messages: [{ role: 'user' as const, content: 'Hello! Generate a simple greeting.' }],
-      expectedRouting: 'local'
+      expectedRouting: 'local',
     };
 
-    // Test 3: Complex task routing  
+    // Test 3: Complex task routing
     const complexTest = {
-      messages: [{ role: 'user' as const, content: 'Conduct a comprehensive analysis of quantum computing applications in modern distributed systems architecture, including detailed performance benchmarks and security implications.' }],
-      expectedRouting: 'cloud'
+      messages: [
+        {
+          role: 'user' as const,
+          content:
+            'Conduct a comprehensive analysis of quantum computing applications in modern distributed systems architecture, including detailed performance benchmarks and security implications.',
+        },
+      ],
+      expectedRouting: 'cloud',
     };
 
     const tests = [simpleTest, complexTest];
@@ -51,16 +52,16 @@ export default function LuxRigTester() {
       const test = tests[i];
       try {
         const result = await multiModelOrchestratorService.orchestrate(test.messages);
-        
+
         const isLocal = result.model?.includes('luxrig');
         const actualRouting = isLocal ? 'local' : 'cloud';
         const complexity = lmStudioService.analyzeComplexity(test.messages[0].content);
-        
+
         // Estimate savings for local requests
         const estimatedTokens = test.messages[0].content.length * 0.75;
         const estimatedSaving = isLocal ? (estimatedTokens / 1000) * 0.002 : 0;
         savings += estimatedSaving;
-        
+
         results.push({
           id: i + 1,
           content: test.messages[0].content.substring(0, 50) + '...',
@@ -71,14 +72,14 @@ export default function LuxRigTester() {
           tokens: result.tokens,
           savings: estimatedSaving,
           success: true,
-          response: result.content.substring(0, 100) + '...'
+          response: result.content.substring(0, 100) + '...',
         });
       } catch (error) {
         results.push({
           id: i + 1,
           content: test.messages[0].content.substring(0, 50) + '...',
           success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
     }
@@ -89,7 +90,9 @@ export default function LuxRigTester() {
   };
 
   return (
-    <div className={`${components.card} bg-gradient-to-br ${gradients.primary}/10 border-purple-500/30 backdrop-blur-xl`}>
+    <div
+      className={`${components.card} bg-gradient-to-br ${gradients.primary}/10 border-purple-500/30 backdrop-blur-xl`}
+    >
       <div className={`${utils.spaceBetween} mb-8`}>
         <div className="flex items-center space-x-4">
           <div className="bg-gradient-to-r from-cyan-500 to-blue-500 p-4 rounded-xl shadow-lg">
@@ -100,7 +103,7 @@ export default function LuxRigTester() {
             <p className="text-white/70 text-lg">Validate cost optimization and routing</p>
           </div>
         </div>
-        
+
         <button
           onClick={runTests}
           disabled={isRunning}
@@ -113,11 +116,13 @@ export default function LuxRigTester() {
 
       {/* Connection Status */}
       {isConnected !== null && (
-        <div className={`p-6 rounded-xl border mb-8 backdrop-blur-sm ${
-          isConnected 
-            ? 'bg-emerald-500/10 border-emerald-500/30' 
-            : 'bg-red-500/10 border-red-500/30'
-        }`}>
+        <div
+          className={`p-6 rounded-xl border mb-8 backdrop-blur-sm ${
+            isConnected
+              ? 'bg-emerald-500/10 border-emerald-500/30'
+              : 'bg-red-500/10 border-red-500/30'
+          }`}
+        >
           <div className="flex items-center space-x-4">
             {isConnected ? (
               <CheckCircle className="w-7 h-7 text-emerald-400" />
@@ -125,14 +130,15 @@ export default function LuxRigTester() {
               <XCircle className="w-7 h-7 text-red-400" />
             )}
             <div>
-              <div className={`font-bold text-lg ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}>
+              <div
+                className={`font-bold text-lg ${isConnected ? 'text-emerald-400' : 'text-red-400'}`}
+              >
                 {isConnected ? 'LM Studio Connected' : 'LM Studio Offline'}
               </div>
               <div className="text-white/70 mt-1">
-                {isConnected 
-                  ? 'Ready for cost-optimized processing' 
-                  : 'All requests will use cloud APIs'
-                }
+                {isConnected
+                  ? 'Ready for cost-optimized processing'
+                  : 'All requests will use cloud APIs'}
               </div>
             </div>
           </div>
@@ -154,7 +160,7 @@ export default function LuxRigTester() {
             )}
           </div>
 
-          {testResults.map((result) => (
+          {testResults.map(result => (
             <div
               key={result.id}
               className="bg-black/30 backdrop-blur-sm p-6 rounded-xl border border-white/20"
@@ -171,7 +177,12 @@ export default function LuxRigTester() {
                           Complexity: <span className="text-purple-400">{result.complexity}</span>
                         </span>
                         <span className="text-gray-400">
-                          Routed to: <span className={result.actualRouting === 'local' ? 'text-green-400' : 'text-blue-400'}>
+                          Routed to:{' '}
+                          <span
+                            className={
+                              result.actualRouting === 'local' ? 'text-green-400' : 'text-blue-400'
+                            }
+                          >
                             {result.actualRouting}
                           </span>
                         </span>
@@ -187,14 +198,10 @@ export default function LuxRigTester() {
                           </span>
                         </div>
                       )}
-                      <div className="text-sm text-gray-300 mt-2">
-                        Response: {result.response}
-                      </div>
+                      <div className="text-sm text-gray-300 mt-2">Response: {result.response}</div>
                     </div>
                   ) : (
-                    <div className="text-red-400 text-sm">
-                      Error: {result.error}
-                    </div>
+                    <div className="text-red-400 text-sm">Error: {result.error}</div>
                   )}
                 </div>
                 {result.success ? (

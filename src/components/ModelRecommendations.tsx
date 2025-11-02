@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
-import { Star, TrendingUp, Zap, DollarSign, Brain, Clock } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+import { Brain, Clock, Star, TrendingUp, Zap } from 'lucide-react';
+
 import { modelDiscoveryService } from '../services/modelDiscovery';
 import { Model } from '../types';
 
@@ -88,7 +90,7 @@ export default function ModelRecommendations({
           <span className="text-sm text-slate-400">Use Case:</span>
           <select
             value={selectedUseCase}
-            onChange={(e) => setSelectedUseCase(e.target.value)}
+            onChange={e => setSelectedUseCase(e.target.value)}
             className="px-3 py-1.5 bg-slate-800 border border-slate-700 rounded-lg text-sm focus:outline-none focus:border-cyan-500"
           >
             <option value="general">General</option>
@@ -130,9 +132,7 @@ export default function ModelRecommendations({
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    {index === 0 && (
-                      <Star size={16} className="text-yellow-400 fill-yellow-400" />
-                    )}
+                    {index === 0 && <Star size={16} className="text-yellow-400 fill-yellow-400" />}
                     <h4 className="font-semibold">{rec.model.display_name}</h4>
                     <span className={`text-xs font-medium ${getScoreColor(rec.score)}`}>
                       {rec.score}% match

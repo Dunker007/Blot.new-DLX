@@ -37,11 +37,7 @@ export class StreamOptimizer {
     };
   }
 
-  optimize(
-    chunk: string,
-    onOptimized: (optimized: string) => void,
-    force: boolean = false
-  ): void {
+  optimize(chunk: string, onOptimized: (optimized: string) => void, force: boolean = false): void {
     this.metrics.chunksReceived++;
     this.metrics.bytesReceived += chunk.length;
 
@@ -52,9 +48,7 @@ export class StreamOptimizer {
     }
 
     const shouldFlush =
-      force ||
-      this.buffer.length >= this.bufferConfig.maxSize ||
-      this.shouldFlushOnBoundary();
+      force || this.buffer.length >= this.bufferConfig.maxSize || this.shouldFlushOnBoundary();
 
     if (shouldFlush) {
       this.flush(onOptimized);
@@ -77,8 +71,7 @@ export class StreamOptimizer {
     this.metrics.averageLatency =
       (this.metrics.averageLatency * (this.metrics.chunksSent - 1) + latency) /
       this.metrics.chunksSent;
-    this.metrics.bufferUtilization =
-      this.buffer.length / this.bufferConfig.maxSize;
+    this.metrics.bufferUtilization = this.buffer.length / this.bufferConfig.maxSize;
 
     onOptimized(this.buffer);
     this.buffer = '';
@@ -144,11 +137,7 @@ export class StreamBatcher {
   private batchSize: number = 5;
   private batchDelay: number = 50;
 
-  addToBatch(
-    batchId: string,
-    chunk: string,
-    onBatchReady: (chunks: string[]) => void
-  ): void {
+  addToBatch(batchId: string, chunk: string, onBatchReady: (chunks: string[]) => void): void {
     if (!this.batches.has(batchId)) {
       this.batches.set(batchId, []);
     }

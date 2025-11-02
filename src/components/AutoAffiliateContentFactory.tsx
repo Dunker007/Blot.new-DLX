@@ -1,9 +1,9 @@
 /**
  * Auto-Affiliate Content Factory
- * 
+ *
  * Premium feature for automated SEO content generation with affiliate links
  * Revenue: $197/month for "Content Autopilot" tier
- * 
+ *
  * Features:
  * - AI-powered article generation
  * - Automatic affiliate link injection
@@ -11,21 +11,21 @@
  * - Content scheduling
  * - Performance tracking
  */
-
 import React, { useState } from 'react';
-import { 
-  Zap, 
-  Crown, 
-  FileText, 
-  Link, 
-  Target,
-  Settings,
-  Play,
-  Pause,
+
+import {
   BarChart3,
+  Crown,
   DollarSign,
   Eye,
-  Share2
+  FileText,
+  Link,
+  Pause,
+  Play,
+  Settings,
+  Share2,
+  Target,
+  Zap,
 } from 'lucide-react';
 
 interface ContentStrategy {
@@ -72,11 +72,13 @@ interface StrategyPerformance {
   topArticle: string;
 }
 
-const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: () => void }> = ({ 
-  isPremium = false, 
-  onUpgrade 
+const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: () => void }> = ({
+  isPremium = false,
+  onUpgrade,
 }) => {
-  const [activeTab, setActiveTab] = useState<'strategies' | 'content' | 'analytics' | 'settings'>('strategies');
+  const [activeTab, setActiveTab] = useState<'strategies' | 'content' | 'analytics' | 'settings'>(
+    'strategies'
+  );
   const [_selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
 
   // Mock data for demonstration
@@ -93,7 +95,7 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           commission: 4.5,
           products: [],
           trackingCode: 'tag=yourstore-20',
-        }
+        },
       ],
       contentSchedule: {
         frequency: 'weekly',
@@ -105,7 +107,7 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
         articlesGenerated: 47,
         totalViews: 125430,
         totalClicks: 3247,
-        totalCommissions: 1834.50,
+        totalCommissions: 1834.5,
         averageCTR: 2.6,
         topArticle: 'Best Wireless Headphones Under $100',
       },
@@ -115,7 +117,11 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
       id: '2',
       name: 'Home Fitness Authority',
       niche: 'Health & Fitness',
-      targetKeywords: ['home workout equipment', 'fitness tracker reviews', 'protein powder comparison'],
+      targetKeywords: [
+        'home workout equipment',
+        'fitness tracker reviews',
+        'protein powder comparison',
+      ],
       affiliatePrograms: [
         {
           id: 'fitness-affiliate',
@@ -123,7 +129,7 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           commission: 8.0,
           products: [],
           trackingCode: 'ref=fit123',
-        }
+        },
       ],
       contentSchedule: {
         frequency: 'weekly',
@@ -151,10 +157,10 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           <h2 className="text-2xl font-bold text-gray-900">Content Strategies</h2>
           <p className="text-gray-600">Automated affiliate content generation</p>
         </div>
-        <button 
+        <button
           onClick={isPremium ? () => {} : onUpgrade}
           className={`px-6 py-3 rounded-lg font-medium transition-all ${
-            isPremium 
+            isPremium
               ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
               : 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white'
           }`}
@@ -176,39 +182,48 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
 
       {/* Strategy Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {mockStrategies.map((strategy) => (
-          <div key={strategy.id} className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+        {mockStrategies.map(strategy => (
+          <div
+            key={strategy.id}
+            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+          >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
                   <h3 className="text-xl font-semibold text-gray-900">{strategy.name}</h3>
-                  <span className={`px-2 py-1 text-xs rounded-full ${
-                    strategy.isActive 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 text-xs rounded-full ${
+                      strategy.isActive
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
+                  >
                     {strategy.isActive ? 'Active' : 'Paused'}
                   </span>
                 </div>
                 <p className="text-gray-600 mb-3">{strategy.niche}</p>
-                
+
                 {/* Performance Metrics */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-900">{strategy.performance.articlesGenerated}</div>
+                    <div className="text-2xl font-bold text-gray-900">
+                      {strategy.performance.articlesGenerated}
+                    </div>
                     <div className="text-sm text-gray-500">Articles</div>
                   </div>
                   <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">${strategy.performance.totalCommissions.toFixed(0)}</div>
+                    <div className="text-2xl font-bold text-green-600">
+                      ${strategy.performance.totalCommissions.toFixed(0)}
+                    </div>
                     <div className="text-sm text-gray-500">Commissions</div>
                   </div>
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 className={`p-2 rounded-lg ${
-                  strategy.isActive 
-                    ? 'bg-green-100 text-green-600 hover:bg-green-200' 
+                  strategy.isActive
+                    ? 'bg-green-100 text-green-600 hover:bg-green-200'
                     : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
                 }`}
               >
@@ -221,7 +236,10 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
               <div className="text-sm font-medium text-gray-700 mb-2">Target Keywords:</div>
               <div className="flex flex-wrap gap-1">
                 {strategy.targetKeywords.slice(0, 3).map((keyword, index) => (
-                  <span key={index} className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded">
+                  <span
+                    key={index}
+                    className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded"
+                  >
                     {keyword}
                   </span>
                 ))}
@@ -235,7 +253,7 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
 
             {/* Action Buttons */}
             <div className="flex space-x-2">
-              <button 
+              <button
                 onClick={() => setSelectedStrategy(strategy.id)}
                 className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 font-medium text-sm"
               >
@@ -296,8 +314,8 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
               published: '2 hours ago',
               views: 1247,
               clicks: 34,
-              commissions: 67.50,
-              status: 'live'
+              commissions: 67.5,
+              status: 'live',
             },
             {
               title: 'Budget Laptop Buying Guide Under $500',
@@ -305,7 +323,7 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
               views: 3891,
               clicks: 89,
               commissions: 156.25,
-              status: 'live'
+              status: 'live',
             },
             {
               title: 'Top 10 Bluetooth Headphones Comparison',
@@ -313,8 +331,8 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
               views: 7234,
               clicks: 178,
               commissions: 289.75,
-              status: 'live'
-            }
+              status: 'live',
+            },
           ].map((article, index) => (
             <div key={index} className="px-6 py-4 hover:bg-gray-50">
               <div className="flex items-center justify-between">
@@ -367,14 +385,16 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Keywords</h3>
           <div className="space-y-3">
             {[
-              { keyword: 'best gaming mouse', ranking: 3, clicks: 892, revenue: 234.50 },
+              { keyword: 'best gaming mouse', ranking: 3, clicks: 892, revenue: 234.5 },
               { keyword: 'wireless headphones review', ranking: 5, clicks: 634, revenue: 178.25 },
-              { keyword: 'laptop buying guide', ranking: 7, clicks: 445, revenue: 123.75 }
+              { keyword: 'laptop buying guide', ranking: 7, clicks: 445, revenue: 123.75 },
             ].map((item, index) => (
               <div key={index} className="flex items-center justify-between py-2">
                 <div>
                   <div className="font-medium text-gray-900">{item.keyword}</div>
-                  <div className="text-sm text-gray-500">Rank #{item.ranking} • {item.clicks} clicks</div>
+                  <div className="text-sm text-gray-500">
+                    Rank #{item.ranking} • {item.clicks} clicks
+                  </div>
                 </div>
                 <div className="text-right">
                   <div className="font-semibold text-green-600">${item.revenue}</div>
@@ -389,8 +409,8 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           <div className="space-y-3">
             {[
               { title: 'Best Budget Gaming Setup 2024', ctr: 3.2, revenue: 345.75 },
-              { title: 'Wireless Headphones Comparison', ctr: 2.8, revenue: 289.50 },
-              { title: 'Home Office Equipment Guide', ctr: 2.4, revenue: 198.25 }
+              { title: 'Wireless Headphones Comparison', ctr: 2.8, revenue: 289.5 },
+              { title: 'Home Office Equipment Guide', ctr: 2.4, revenue: 198.25 },
             ].map((item, index) => (
               <div key={index} className="py-2">
                 <div className="font-medium text-gray-900 mb-1">{item.title}</div>
@@ -420,7 +440,7 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           </div>
           {!isPremium && (
             <div className="ml-auto">
-              <button 
+              <button
                 onClick={onUpgrade}
                 className="flex items-center px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg font-medium hover:from-yellow-600 hover:to-orange-600"
               >
@@ -440,7 +460,7 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
             { id: 'content', label: 'Generated Content', icon: FileText },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             { id: 'settings', label: 'Settings', icon: Settings },
-          ].map((tab) => {
+          ].map(tab => {
             const Icon = tab.icon;
             return (
               <button
@@ -469,7 +489,9 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           <div className="text-center py-12">
             <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Settings</h3>
-            <p className="text-gray-600">Configure affiliate programs, content templates, and automation settings</p>
+            <p className="text-gray-600">
+              Configure affiliate programs, content templates, and automation settings
+            </p>
           </div>
         )}
       </div>

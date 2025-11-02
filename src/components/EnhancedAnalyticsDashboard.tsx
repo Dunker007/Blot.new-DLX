@@ -1,21 +1,23 @@
 import { useEffect, useState } from 'react';
+
 import {
-  TrendingUp,
-  DollarSign,
-  Clock,
-  Zap,
-  Target,
-  AlertTriangle,
-  PieChart,
   Activity,
-  Brain,
-  Lightbulb,
-  ArrowUp,
+  AlertTriangle,
   ArrowDown,
+  ArrowUp,
+  Brain,
+  Clock,
+  DollarSign,
+  Lightbulb,
+  PieChart,
+  Target,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
-import { tokenTrackingService } from '../services/tokenTracking';
-import { providerRouter } from '../services/providerRouter';
+
 import { advancedCache } from '../services/advancedCache';
+import { providerRouter } from '../services/providerRouter';
+import { tokenTrackingService } from '../services/tokenTracking';
 
 interface AnalyticsData {
   usage: {
@@ -71,7 +73,7 @@ export default function EnhancedAnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
   useEffect(() => {
     loadAnalyticsData();
-    
+
     // Set up auto-refresh
     const interval = setInterval(loadAnalyticsData, 30000); // 30 seconds
 
@@ -137,7 +139,7 @@ export default function EnhancedAnalyticsDashboard() {
           errorRate: calculateErrorRate(),
           uptime: calculateUptime(providerStats),
         },
-        providers: topProviders.map(p => ({
+        providers: topProviders.map((p: any) => ({
           id: p.provider_id,
           name: p.provider_name,
           requestCount: p.request_count,
@@ -165,7 +167,10 @@ export default function EnhancedAnalyticsDashboard() {
     }
   };
 
-  const generatePredictions = async (usageStats: any, _providers: any[]): Promise<AnalyticsData['predictions']> => {
+  const generatePredictions = async (
+    usageStats: any,
+    _providers: any[]
+  ): Promise<AnalyticsData['predictions']> => {
     // Simple prediction algorithms - could be enhanced with ML
     const dailyCost = usageStats.totalCost;
     const monthlyCost = dailyCost * 30;
@@ -281,13 +286,13 @@ export default function EnhancedAnalyticsDashboard() {
     return total > 0 ? healthy / total : 1;
   };
 
-  const StatCard = ({ 
-    title, 
-    value, 
-    change, 
-    trend, 
-    icon: Icon, 
-    format = 'number' 
+  const StatCard = ({
+    title,
+    value,
+    change,
+    trend,
+    icon: Icon,
+    format = 'number',
   }: {
     title: string;
     value: number;
@@ -311,17 +316,23 @@ export default function EnhancedAnalyticsDashboard() {
 
     const getTrendColor = (trend?: string) => {
       switch (trend) {
-        case 'up': return 'text-green-400';
-        case 'down': return 'text-red-400';
-        default: return 'text-slate-400';
+        case 'up':
+          return 'text-green-400';
+        case 'down':
+          return 'text-red-400';
+        default:
+          return 'text-slate-400';
       }
     };
 
     const getTrendIcon = (trend?: string) => {
       switch (trend) {
-        case 'up': return ArrowUp;
-        case 'down': return ArrowDown;
-        default: return Activity;
+        case 'up':
+          return ArrowUp;
+        case 'down':
+          return ArrowDown;
+        default:
+          return Activity;
       }
     };
 
@@ -388,11 +399,11 @@ export default function EnhancedAnalyticsDashboard() {
             <h1 className="text-3xl font-bold">Analytics Dashboard</h1>
             <p className="text-slate-400 mt-1">AI usage insights and cost optimization</p>
           </div>
-          
+
           <div className="flex items-center gap-4">
             <select
               value={timeRange}
-              onChange={(e) => setTimeRange(e.target.value as any)}
+              onChange={e => setTimeRange(e.target.value as any)}
               className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white"
             >
               <option value="1h">Last Hour</option>
@@ -400,7 +411,7 @@ export default function EnhancedAnalyticsDashboard() {
               <option value="7d">Last 7 Days</option>
               <option value="30d">Last 30 Days</option>
             </select>
-            
+
             <button
               onClick={loadAnalyticsData}
               className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white rounded-lg transition-colors"
@@ -478,17 +489,21 @@ export default function EnhancedAnalyticsDashboard() {
               <Brain size={24} className="text-purple-400" />
               <h2 className="text-xl font-semibold">AI Insights</h2>
             </div>
-            
+
             <div className="space-y-4">
               {data.insights.map((insight, index) => (
                 <div key={index} className="p-4 bg-slate-800 rounded-lg">
                   <div className="flex items-start justify-between mb-2">
                     <h3 className="font-medium text-white">{insight.title}</h3>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      insight.impact === 'high' ? 'bg-red-500/20 text-red-400' :
-                      insight.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                      'bg-green-500/20 text-green-400'
-                    }`}>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-medium ${
+                        insight.impact === 'high'
+                          ? 'bg-red-500/20 text-red-400'
+                          : insight.impact === 'medium'
+                            ? 'bg-yellow-500/20 text-yellow-400'
+                            : 'bg-green-500/20 text-green-400'
+                      }`}
+                    >
                       {insight.impact}
                     </span>
                   </div>
@@ -507,14 +522,16 @@ export default function EnhancedAnalyticsDashboard() {
               <Lightbulb size={24} className="text-yellow-400" />
               <h2 className="text-xl font-semibold">Cost Optimization</h2>
             </div>
-            
+
             <div className="space-y-4">
               <div className="p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20 rounded-lg">
                 <h3 className="text-green-400 font-medium mb-2">Monthly Projection</h3>
-                <p className="text-2xl font-bold text-white">${data.predictions.monthlyCost.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-white">
+                  ${data.predictions.monthlyCost.toFixed(2)}
+                </p>
                 <p className="text-slate-400 text-sm">Based on current usage patterns</p>
               </div>
-              
+
               {data.predictions.costOptimization.map((opt, index) => (
                 <div key={index} className="p-4 bg-slate-800 rounded-lg">
                   <div className="flex items-start justify-between mb-2">
@@ -523,11 +540,15 @@ export default function EnhancedAnalyticsDashboard() {
                       -${opt.potentialSaving.toFixed(2)}
                     </span>
                   </div>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${
-                    opt.impact === 'high' ? 'bg-red-500/20 text-red-400' :
-                    opt.impact === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                    'bg-green-500/20 text-green-400'
-                  }`}>
+                  <span
+                    className={`px-2 py-1 rounded text-xs font-medium ${
+                      opt.impact === 'high'
+                        ? 'bg-red-500/20 text-red-400'
+                        : opt.impact === 'medium'
+                          ? 'bg-yellow-500/20 text-yellow-400'
+                          : 'bg-green-500/20 text-green-400'
+                    }`}
+                  >
                     {opt.impact} impact
                   </span>
                 </div>
@@ -542,7 +563,7 @@ export default function EnhancedAnalyticsDashboard() {
             <PieChart size={24} className="text-blue-400" />
             <h2 className="text-xl font-semibold">Provider Performance</h2>
           </div>
-          
+
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -555,18 +576,28 @@ export default function EnhancedAnalyticsDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {data.providers.map((provider) => (
+                {data.providers.map(provider => (
                   <tr key={provider.id} className="border-b border-slate-800/50">
                     <td className="py-3 text-white font-medium">{provider.name}</td>
-                    <td className="text-right py-3 text-slate-300">{provider.requestCount.toLocaleString()}</td>
-                    <td className="text-right py-3 text-slate-300">{provider.totalTokens.toLocaleString()}</td>
-                    <td className="text-right py-3 text-slate-300">${provider.totalCost.toFixed(2)}</td>
+                    <td className="text-right py-3 text-slate-300">
+                      {provider.requestCount.toLocaleString()}
+                    </td>
+                    <td className="text-right py-3 text-slate-300">
+                      {provider.totalTokens.toLocaleString()}
+                    </td>
+                    <td className="text-right py-3 text-slate-300">
+                      ${provider.totalCost.toFixed(2)}
+                    </td>
                     <td className="text-right py-3">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        provider.healthStatus === 'healthy' ? 'bg-green-500/20 text-green-400' :
-                        provider.healthStatus === 'degraded' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          provider.healthStatus === 'healthy'
+                            ? 'bg-green-500/20 text-green-400'
+                            : provider.healthStatus === 'degraded'
+                              ? 'bg-yellow-500/20 text-yellow-400'
+                              : 'bg-red-500/20 text-red-400'
+                        }`}
+                      >
                         {provider.healthStatus}
                       </span>
                     </td>

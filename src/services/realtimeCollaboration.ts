@@ -19,7 +19,13 @@ export interface CollaborationUser {
 }
 
 export interface CollaborationEvent {
-  type: 'cursor_move' | 'text_change' | 'selection_change' | 'user_join' | 'user_leave' | 'ai_response';
+  type:
+    | 'cursor_move'
+    | 'text_change'
+    | 'selection_change'
+    | 'user_join'
+    | 'user_leave'
+    | 'ai_response';
   userId: string;
   data: any;
   timestamp: Date;
@@ -42,7 +48,10 @@ export class RealtimeCollaborationService {
   private eventListeners = new Map<string, ((event: CollaborationEvent) => void)[]>();
   private presenceTimer: NodeJS.Timeout | null = null;
 
-  async joinSession(projectId: string, user: Omit<CollaborationUser, 'presence' | 'lastActive'>): Promise<void> {
+  async joinSession(
+    projectId: string,
+    user: Omit<CollaborationUser, 'presence' | 'lastActive'>
+  ): Promise<void> {
     this.currentUser = {
       ...user,
       presence: 'online',
@@ -69,25 +78,33 @@ export class RealtimeCollaborationService {
         const state = this.channel?.presenceState();
         this.updatePresenceState(state || {});
       })
-      .on('presence', { event: 'join' }, ({ key, newPresences }: { key: string; newPresences: any[] }) => {
-        console.log('User joined:', key, newPresences);
-        this.emitEvent({
-          type: 'user_join',
-          userId: key,
-          data: newPresences[0],
-          timestamp: new Date(),
-        });
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }: { key: string; leftPresences: any[] }) => {
-        console.log('User left:', key, leftPresences);
-        this.activeUsers.delete(key);
-        this.emitEvent({
-          type: 'user_leave',
-          userId: key,
-          data: leftPresences[0],
-          timestamp: new Date(),
-        });
-      });
+      .on(
+        'presence',
+        { event: 'join' },
+        ({ key, newPresences }: { key: string; newPresences: any[] }) => {
+          console.log('User joined:', key, newPresences);
+          this.emitEvent({
+            type: 'user_join',
+            userId: key,
+            data: newPresences[0],
+            timestamp: new Date(),
+          });
+        }
+      )
+      .on(
+        'presence',
+        { event: 'leave' },
+        ({ key, leftPresences }: { key: string; leftPresences: any[] }) => {
+          console.log('User left:', key, leftPresences);
+          this.activeUsers.delete(key);
+          this.emitEvent({
+            type: 'user_leave',
+            userId: key,
+            data: leftPresences[0],
+            timestamp: new Date(),
+          });
+        }
+      );
 
     // Subscribe to broadcast events
     this.channel
@@ -143,12 +160,15 @@ export class RealtimeCollaborationService {
     });
   }
 
-  broadcastTextChange(elementId: string, change: {
-    operation: 'insert' | 'delete' | 'replace';
-    position: number;
-    content: string;
-    length?: number;
-  }): void {
+  broadcastTextChange(
+    elementId: string,
+    change: {
+      operation: 'insert' | 'delete' | 'replace';
+      position: number;
+      content: string;
+      length?: number;
+    }
+  ): void {
     if (!this.channel || !this.currentUser) return;
 
     this.channel.send({
@@ -179,11 +199,14 @@ export class RealtimeCollaborationService {
     });
   }
 
-  broadcastAIResponse(conversationId: string, response: {
-    content: string;
-    model: string;
-    tokens?: number;
-  }): void {
+  broadcastAIResponse(
+    conversationId: string,
+    response: {
+      content: string;
+      model: string;
+      tokens?: number;
+    }
+  ): void {
     if (!this.channel || !this.currentUser) return;
 
     this.channel.send({
@@ -287,7 +310,7 @@ export class RealtimeCollaborationService {
 
   private updatePresenceState(state: Record<string, any[]>): void {
     this.activeUsers.clear();
-    
+
     Object.entries(state).forEach(([userId, presences]) => {
       if (presences.length > 0) {
         const presence = presences[0];
@@ -322,15 +345,13 @@ export class RealtimeCollaborationService {
 
   // Document synchronization methods
   async saveDocument(document: Omit<SharedDocument, 'activeUsers'>): Promise<void> {
-    const { error } = await supabase
-      .from('shared_documents')
-      .upsert({
-        id: document.id,
-        project_id: document.projectId,
-        content: document.content,
-        version: document.version,
-        last_modified: document.lastModified.toISOString(),
-      });
+    const { error } = await supabase.from('shared_documents').upsert({
+      id: document.id,
+      project_id: document.projectId,
+      content: document.content,
+      version: document.version,
+      last_modified: document.lastModified.toISOString(),
+    });
 
     if (error) {
       console.error('Failed to save document:', error);
@@ -368,7 +389,7 @@ export class RealtimeCollaborationService {
   ): { resolved: string; conflicts: any[] } {
     // Implement operational transformation or CRDT-based conflict resolution
     // This is a simplified version - in production, use a library like Y.js or ShareJS
-    
+
     const conflicts: any[] = [];
     let resolved = baseContent;
 
@@ -393,9 +414,15 @@ export class RealtimeCollaborationService {
       case 'insert':
         return content.slice(0, change.position) + change.content + content.slice(change.position);
       case 'delete':
-        return content.slice(0, change.position) + content.slice(change.position + (change.length || 0));
+        return (
+          content.slice(0, change.position) + content.slice(change.position + (change.length || 0))
+        );
       case 'replace':
-        return content.slice(0, change.position) + change.content + content.slice(change.position + (change.length || 0));
+        return (
+          content.slice(0, change.position) +
+          change.content +
+          content.slice(change.position + (change.length || 0))
+        );
       default:
         return content;
     }

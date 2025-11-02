@@ -1,16 +1,14 @@
 import { ReactNode, useState } from 'react';
+
 import {
-  LayoutDashboard,
-  MessageSquare,
-  Code,
-  FolderKanban,
-  TrendingUp,
+  Activity,
   Brain,
-  Settings,
+  FolderKanban,
+  LayoutDashboard,
   Menu,
+  MessageSquare,
+  Settings,
   X,
-  Sparkles,
-  Activity
 } from 'lucide-react';
 
 interface LayoutProps {
@@ -70,10 +68,10 @@ const SimpleLayout = ({ children, currentView, onViewChange }: LayoutProps) => {
         }`}
       >
         <nav className="p-4 space-y-2">
-          {navItems.map((item) => {
+          {navItems.map(item => {
             const IconComponent = item.icon;
             const isActive = currentView === item.id;
-            
+
             return (
               <button
                 key={item.id}
@@ -96,9 +94,7 @@ const SimpleLayout = ({ children, currentView, onViewChange }: LayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className="lg:ml-64 pt-16 min-h-screen">
-        {children}
-      </main>
+      <main className="lg:ml-64 pt-16 min-h-screen">{children}</main>
 
       {/* Overlay for mobile */}
       {sidebarOpen && (

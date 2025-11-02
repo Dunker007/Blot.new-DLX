@@ -1,21 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  Zap,
-  TrendingUp,
-  Brain,
-  Coins,
-  Play,
-  Pause,
-  Settings,
-  BarChart3,
-  DollarSign,
-  Sparkles,
-  ArrowUpRight,
-  ArrowDownRight,
-  RefreshCw,
   AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
+  BarChart3,
+  Brain,
   CheckCircle,
-  Clock
+  Clock,
+  Coins,
+  DollarSign,
+  Pause,
+  Play,
+  RefreshCw,
+  Settings,
+  Sparkles,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
 
 interface TradingBot {
@@ -57,7 +58,7 @@ export default function CryptoTradingHub() {
       winRate: 94.7,
       trades24h: 23,
       pair: 'ETH/USDC',
-      apy: 47.2
+      apy: 47.2,
     },
     {
       id: '2',
@@ -69,7 +70,7 @@ export default function CryptoTradingHub() {
       winRate: 87.3,
       trades24h: 4,
       pair: 'BTC/USDT',
-      apy: 23.8
+      apy: 23.8,
     },
     {
       id: '3',
@@ -81,7 +82,7 @@ export default function CryptoTradingHub() {
       winRate: 78.9,
       trades24h: 12,
       pair: 'MULTI',
-      apy: 89.3
+      apy: 89.3,
     },
     {
       id: '4',
@@ -93,8 +94,8 @@ export default function CryptoTradingHub() {
       winRate: 96.1,
       trades24h: 8,
       pair: 'VARIOUS',
-      apy: 156.7
-    }
+      apy: 156.7,
+    },
   ];
 
   const marketOpportunities: MarketOpportunity[] = [
@@ -104,7 +105,7 @@ export default function CryptoTradingHub() {
       confidence: 96,
       potential: '$340',
       timeframe: '15 min',
-      risk: 'low'
+      risk: 'low',
     },
     {
       type: 'DeFi Yield Farm',
@@ -112,7 +113,7 @@ export default function CryptoTradingHub() {
       confidence: 84,
       potential: '$1,200/week',
       timeframe: '1 week',
-      risk: 'medium'
+      risk: 'medium',
     },
     {
       type: 'AI Momentum Signal',
@@ -120,8 +121,8 @@ export default function CryptoTradingHub() {
       confidence: 78,
       potential: '$800',
       timeframe: '24 hours',
-      risk: 'high'
-    }
+      risk: 'high',
+    },
   ];
 
   useEffect(() => {
@@ -139,29 +140,42 @@ export default function CryptoTradingHub() {
 
   const getBotIcon = (type: TradingBot['type']) => {
     switch (type) {
-      case 'arbitrage': return <Zap className="w-5 h-5" />;
-      case 'dca': return <TrendingUp className="w-5 h-5" />;
-      case 'ai_momentum': return <Brain className="w-5 h-5" />;
-      case 'defi_yield': return <Coins className="w-5 h-5" />;
-      default: return <BarChart3 className="w-5 h-5" />;
+      case 'arbitrage':
+        return <Zap className="w-5 h-5" />;
+      case 'dca':
+        return <TrendingUp className="w-5 h-5" />;
+      case 'ai_momentum':
+        return <Brain className="w-5 h-5" />;
+      case 'defi_yield':
+        return <Coins className="w-5 h-5" />;
+      default:
+        return <BarChart3 className="w-5 h-5" />;
     }
   };
 
   const getBotTypeColor = (type: TradingBot['type']) => {
     switch (type) {
-      case 'arbitrage': return 'from-yellow-500 to-orange-500';
-      case 'dca': return 'from-blue-500 to-cyan-500';
-      case 'ai_momentum': return 'from-purple-500 to-pink-500';
-      case 'defi_yield': return 'from-green-500 to-emerald-500';
-      default: return 'from-gray-500 to-slate-500';
+      case 'arbitrage':
+        return 'from-yellow-500 to-orange-500';
+      case 'dca':
+        return 'from-blue-500 to-cyan-500';
+      case 'ai_momentum':
+        return 'from-purple-500 to-pink-500';
+      case 'defi_yield':
+        return 'from-green-500 to-emerald-500';
+      default:
+        return 'from-gray-500 to-slate-500';
     }
   };
 
   const getStatusIcon = (status: TradingBot['status']) => {
     switch (status) {
-      case 'active': return <CheckCircle className="w-4 h-4 text-green-400" />;
-      case 'paused': return <Clock className="w-4 h-4 text-yellow-400" />;
-      case 'stopped': return <AlertTriangle className="w-4 h-4 text-red-400" />;
+      case 'active':
+        return <CheckCircle className="w-4 h-4 text-green-400" />;
+      case 'paused':
+        return <Clock className="w-4 h-4 text-yellow-400" />;
+      case 'stopped':
+        return <AlertTriangle className="w-4 h-4 text-red-400" />;
     }
   };
 
@@ -176,7 +190,7 @@ export default function CryptoTradingHub() {
       winRate: 0,
       trades24h: 0,
       pair: 'ETH/USDC',
-      apy: 0
+      apy: 0,
     };
     setBots(prev => [newBot, ...prev]);
     setActiveBots(prev => prev + 1);
@@ -218,12 +232,20 @@ export default function CryptoTradingHub() {
 
           <div className="bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
             <div className="flex items-center justify-between mb-4">
-              <div className={`flex items-center space-x-1 ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                {totalPnL >= 0 ? <ArrowUpRight className="w-6 h-6" /> : <ArrowDownRight className="w-6 h-6" />}
+              <div
+                className={`flex items-center space-x-1 ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}
+              >
+                {totalPnL >= 0 ? (
+                  <ArrowUpRight className="w-6 h-6" />
+                ) : (
+                  <ArrowDownRight className="w-6 h-6" />
+                )}
                 <TrendingUp className="w-6 h-6" />
               </div>
             </div>
-            <div className={`text-2xl font-bold mb-1 ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+            <div
+              className={`text-2xl font-bold mb-1 ${totalPnL >= 0 ? 'text-green-400' : 'text-red-400'}`}
+            >
               {totalPnL >= 0 ? '+' : ''}${totalPnL.toFixed(2)}
             </div>
             <div className="text-white/60 text-sm">24h P&L</div>
@@ -252,20 +274,32 @@ export default function CryptoTradingHub() {
           <h2 className="text-xl font-bold text-white mb-4">Quick Deploy</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {[
-              { type: 'arbitrage' as const, name: 'Arbitrage Bot', desc: 'Cross-DEX price differences' },
+              {
+                type: 'arbitrage' as const,
+                name: 'Arbitrage Bot',
+                desc: 'Cross-DEX price differences',
+              },
               { type: 'dca' as const, name: 'DCA Bot', desc: 'Dollar-cost averaging strategy' },
-              { type: 'ai_momentum' as const, name: 'AI Momentum', desc: 'ML-powered trend detection' },
-              { type: 'defi_yield' as const, name: 'DeFi Yield', desc: 'Yield farming optimizer' }
-            ].map((botType) => (
+              {
+                type: 'ai_momentum' as const,
+                name: 'AI Momentum',
+                desc: 'ML-powered trend detection',
+              },
+              { type: 'defi_yield' as const, name: 'DeFi Yield', desc: 'Yield farming optimizer' },
+            ].map(botType => (
               <button
                 key={botType.type}
                 onClick={() => deployNewBot(botType.type)}
                 className="bg-gradient-to-br from-white/5 to-white/2 backdrop-blur-sm rounded-lg p-4 border border-white/10 hover:border-white/20 hover:scale-105 transition-all duration-300 text-left group"
               >
-                <div className={`bg-gradient-to-r ${getBotTypeColor(botType.type)} p-3 rounded-lg w-fit mb-3`}>
+                <div
+                  className={`bg-gradient-to-r ${getBotTypeColor(botType.type)} p-3 rounded-lg w-fit mb-3`}
+                >
                   {getBotIcon(botType.type)}
                 </div>
-                <h3 className="text-white font-semibold mb-1 group-hover:text-purple-300 transition-colors">{botType.name}</h3>
+                <h3 className="text-white font-semibold mb-1 group-hover:text-purple-300 transition-colors">
+                  {botType.name}
+                </h3>
                 <p className="text-white/60 text-sm">{botType.desc}</p>
               </button>
             ))}
@@ -277,11 +311,16 @@ export default function CryptoTradingHub() {
           <div>
             <h2 className="text-xl font-bold text-white mb-4">Active Bots</h2>
             <div className="space-y-4">
-              {bots.map((bot) => (
-                <div key={bot.id} className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10">
+              {bots.map(bot => (
+                <div
+                  key={bot.id}
+                  className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10"
+                >
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <div className={`bg-gradient-to-r ${getBotTypeColor(bot.type)} p-2 rounded-lg`}>
+                      <div
+                        className={`bg-gradient-to-r ${getBotTypeColor(bot.type)} p-2 rounded-lg`}
+                      >
                         {getBotIcon(bot.type)}
                       </div>
                       <div>
@@ -296,7 +335,11 @@ export default function CryptoTradingHub() {
                     </div>
                     <div className="flex items-center space-x-2">
                       <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                        {bot.status === 'active' ? <Pause className="w-4 h-4 text-white/60" /> : <Play className="w-4 h-4 text-white/60" />}
+                        {bot.status === 'active' ? (
+                          <Pause className="w-4 h-4 text-white/60" />
+                        ) : (
+                          <Play className="w-4 h-4 text-white/60" />
+                        )}
                       </button>
                       <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
                         <Settings className="w-4 h-4 text-white/60" />
@@ -306,7 +349,9 @@ export default function CryptoTradingHub() {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div>
-                      <div className={`text-lg font-bold ${bot.profit24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      <div
+                        className={`text-lg font-bold ${bot.profit24h >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                      >
                         {bot.profit24h >= 0 ? '+' : ''}${bot.profit24h.toFixed(2)}
                       </div>
                       <div className="text-white/60 text-xs">24h Profit</div>
@@ -334,15 +379,22 @@ export default function CryptoTradingHub() {
             <h2 className="text-xl font-bold text-white mb-4">AI Market Opportunities</h2>
             <div className="space-y-4">
               {marketOpportunities.map((opportunity, index) => (
-                <div key={index} className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20">
+                <div
+                  key={index}
+                  className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-xl p-6 border border-purple-500/20"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-white font-semibold">{opportunity.type}</h3>
                     <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        opportunity.risk === 'low' ? 'bg-green-500/20 text-green-400' :
-                        opportunity.risk === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-red-500/20 text-red-400'
-                      }`}>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${
+                          opportunity.risk === 'low'
+                            ? 'bg-green-500/20 text-green-400'
+                            : opportunity.risk === 'medium'
+                              ? 'bg-yellow-500/20 text-yellow-400'
+                              : 'bg-red-500/20 text-red-400'
+                        }`}
+                      >
                         {opportunity.risk} risk
                       </span>
                       <span className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs font-medium">

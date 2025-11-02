@@ -1,10 +1,9 @@
 /**
  * Streamlined Business Model Generator
- * 
+ *
  * Simplified premium feature that generates business models using direct AI calls.
  * No complex multi-agent workflows - fast and efficient.
  */
-
 import { storage } from '../lib/storage';
 import { llmService } from './llm';
 
@@ -15,10 +14,18 @@ export interface BusinessModelInput {
   initialBudget: number;
   timeframe: string;
   experience: 'beginner' | 'intermediate' | 'expert';
+  niche?: string;
+  targetAudience?: string;
+  budget?: string;
+  timeline?: string;
+  preferredModels?: string[];
 }
 
 export interface BusinessModel {
   id: string;
+  title?: string;
+  description?: string;
+  confidence?: number;
   executiveSummary: string;
   valueProposition: string;
   targetCustomers: string[];
@@ -67,12 +74,16 @@ interface Phase {
   budget: number;
 }
 
-interface FinancialProjections {
+export interface FinancialProjections {
   yearOne: number;
   yearTwo: number;
   yearThree: number;
   breakEvenPoint: string;
   roi: number;
+  month1?: number;
+  month3?: number;
+  month6?: number;
+  month12?: number;
 }
 
 interface RiskAssessment {
@@ -92,41 +103,47 @@ class BusinessModelGeneratorService {
     onProgress?: (step: string, progress: number) => void
   ): Promise<BusinessModel> {
     const startTime = Date.now();
-    
+
     try {
       if (onProgress) onProgress('Analyzing market opportunity...', 10);
 
       // Generate comprehensive business model in one efficient call
       const businessModelPrompt = this.createBusinessModelPrompt(input);
-      
+
       if (onProgress) onProgress('Generating business model...', 30);
 
-      const response = await llmService.sendMessage([{
-        role: 'system',
-        content: 'You are a world-class business consultant specializing in creating comprehensive, actionable business models. Provide detailed, practical, and realistic business plans with specific numbers and actionable steps.'
-      }, {
-        role: 'user',
-        content: businessModelPrompt
-      }], 'gpt-4');
+      const response = await llmService.sendMessage(
+        [
+          {
+            role: 'system',
+            content:
+              'You are a world-class business consultant specializing in creating comprehensive, actionable business models. Provide detailed, practical, and realistic business plans with specific numbers and actionable steps.',
+          },
+          {
+            role: 'user',
+            content: businessModelPrompt,
+          },
+        ],
+        'gpt-4'
+      );
 
       if (onProgress) onProgress('Processing analysis...', 70);
 
       // Parse and structure the response
       const businessModel = this.parseBusinessModelResponse(response.content, input);
-      
+
       if (onProgress) onProgress('Finalizing business model...', 90);
 
       // Save to storage
       await storage.insert('business_models', {
         ...businessModel,
         input_data: input,
-        generation_time_ms: Date.now() - startTime
+        generation_time_ms: Date.now() - startTime,
       });
 
       if (onProgress) onProgress('Complete!', 100);
 
       return businessModel;
-
     } catch (error) {
       console.error('Business model generation failed:', error);
       throw new Error(`Failed to generate business model: ${error}`);
@@ -216,7 +233,7 @@ Make all numbers realistic and specific to the industry and budget provided.
       }
 
       const parsed = JSON.parse(jsonMatch[0]);
-      
+
       return {
         id: `bm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         executiveSummary: parsed.executiveSummary || 'Executive summary not provided',
@@ -227,36 +244,36 @@ Make all numbers realistic and specific to the industry and budget provided.
           marketSize: 'Market size analysis pending',
           growthRate: 'Growth rate analysis pending',
           trends: [],
-          opportunities: []
+          opportunities: [],
         },
         competitiveAnalysis: parsed.competitiveAnalysis || {
           competitors: [],
           advantages: [],
           threats: [],
-          differentiation: 'Differentiation analysis pending'
+          differentiation: 'Differentiation analysis pending',
         },
         implementationPlan: parsed.implementationPlan || {
           phases: [],
           timeline: input.timeframe,
           resources: [],
-          milestones: []
+          milestones: [],
         },
         financialProjections: parsed.financialProjections || {
           yearOne: 0,
           yearTwo: 0,
           yearThree: 0,
           breakEvenPoint: 'TBD',
-          roi: 0
+          roi: 0,
         },
         riskAssessment: parsed.riskAssessment || {
           risks: [],
-          mitigation: []
+          mitigation: [],
         },
-        generatedAt: new Date()
+        generatedAt: new Date(),
       };
     } catch (error) {
       console.error('Failed to parse business model response:', error);
-      
+
       // Fallback: Create basic model from input
       return {
         id: `bm_${Date.now()}_fallback`,
@@ -268,32 +285,32 @@ Make all numbers realistic and specific to the industry and budget provided.
           marketSize: 'Analysis required',
           growthRate: 'Analysis required',
           trends: [],
-          opportunities: []
+          opportunities: [],
         },
         competitiveAnalysis: {
           competitors: [],
           advantages: [],
           threats: [],
-          differentiation: input.uniqueValue
+          differentiation: input.uniqueValue,
         },
         implementationPlan: {
           phases: [],
           timeline: input.timeframe,
           resources: [],
-          milestones: []
+          milestones: [],
         },
         financialProjections: {
           yearOne: 0,
           yearTwo: 0,
           yearThree: 0,
           breakEvenPoint: 'TBD',
-          roi: 0
+          roi: 0,
         },
         riskAssessment: {
           risks: [],
-          mitigation: []
+          mitigation: [],
         },
-        generatedAt: new Date()
+        generatedAt: new Date(),
       };
     }
   }
@@ -302,14 +319,14 @@ Make all numbers realistic and specific to the industry and budget provided.
   async getBusinessModels(limit = 10): Promise<BusinessModel[]> {
     const { data } = await storage.select('business_models');
     if (!data) return [];
-    
+
     return (data as any[])
       .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime())
       .slice(0, limit);
   }
 
   // Simple premium check (in-memory for now)
-  checkPremiumAccess(userId: string): boolean {
+  checkPremiumAccess(_userId: string): boolean {
     // For now, always allow access in streamlined version
     return true;
   }

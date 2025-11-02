@@ -1,5 +1,7 @@
-import { Component, ReactNode, ErrorInfo } from 'react';
-import { AlertTriangle, RefreshCw, Home, Bug, Send } from 'lucide-react';
+import { Component, ErrorInfo, ReactNode } from 'react';
+
+import { AlertTriangle, Bug, Home, RefreshCw, Send } from 'lucide-react';
+
 import { supabase } from '../lib/supabase';
 
 interface ErrorBoundaryState {
@@ -23,7 +25,7 @@ interface ErrorBoundaryProps {
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private retryCount = 0;
   private readonly maxRetries = 3;
-  
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = {
@@ -40,7 +42,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     const errorId = this.generateErrorId();
-    
+
     this.setState({
       error,
       errorInfo,
@@ -86,10 +88,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         },
       };
 
-      await supabase
-        .from('error_logs')
-        .insert([errorData]);
-
+      void supabase.from('error_logs').insert([errorData]);
     } catch (reportError) {
       console.error('Failed to report error:', reportError);
     }
@@ -97,9 +96,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
   private async trackErrorEvent(error: Error, errorInfo: ErrorInfo, errorId: string) {
     try {
-      await supabase
-        .from('analytics_events')
-        .insert([{
+      void supabase.from('analytics_events').insert([
+        {
           event_type: 'error_boundary',
           event_data: {
             errorId,
@@ -112,7 +110,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             componentStack: errorInfo.componentStack?.split('\n').slice(0, 5) || [], // Limit stack trace
             retryAttempt: this.retryCount,
           },
-        }]);
+        },
+      ]);
     } catch (analyticsError) {
       console.error('Failed to track error event:', analyticsError);
     }
@@ -188,7 +187,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
           <div>
             <strong className="text-red-400">Component Stack:</strong>
             <pre className="mt-1 text-slate-300 whitespace-pre-wrap text-xs overflow-x-auto">
-              {errorInfo.componentStack?.split('\n').slice(0, 8).join('\n') || 'No component stack available'}
+              {errorInfo.componentStack?.split('\n').slice(0, 8).join('\n') ||
+                'No component stack available'}
             </pre>
           </div>
         </div>
@@ -216,7 +216,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         </label>
         <textarea
           value={userFeedback}
-          onChange={(e) => this.setState({ userFeedback: e.target.value })}
+          onChange={e => this.setState({ userFeedback: e.target.value })}
           placeholder="I was trying to... when this error occurred."
           className="w-full p-3 bg-slate-800 border border-slate-700 rounded-lg text-slate-100 text-sm resize-none"
           rows={3}
@@ -282,16 +282,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
               <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Bug size={32} className="text-red-400" />
               </div>
-              
+
               <h1 className="text-2xl font-bold text-white mb-2">
                 {this.props.level === 'critical' ? 'Critical Error' : 'Something Went Wrong'}
               </h1>
-              
+
               <p className="text-slate-400 mb-6">
-                {this.props.level === 'critical' 
+                {this.props.level === 'critical'
                   ? 'A critical error occurred that requires immediate attention.'
-                  : 'An unexpected error occurred. We\'ve been notified and will investigate.'
-                }
+                  : "An unexpected error occurred. We've been notified and will investigate."}
               </p>
 
               <div className="flex gap-3 justify-center mb-6">
@@ -304,7 +303,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                     Try Again ({this.maxRetries - this.retryCount} left)
                   </button>
                 )}
-                
+
                 <button
                   onClick={this.handleRefresh}
                   className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -312,7 +311,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                   <RefreshCw size={18} />
                   Reload Page
                 </button>
-                
+
                 <button
                   onClick={this.handleGoHome}
                   className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors flex items-center gap-2"
@@ -344,9 +343,9 @@ export function withErrorBoundary<P extends object>(
       <Component {...props} />
     </ErrorBoundary>
   );
-  
+
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 }
 
@@ -376,19 +375,20 @@ export function useErrorReporting() {
       };
 
       await supabase.from('error_logs').insert([errorData]);
-      
+
       // Also track as analytics event
-      await supabase.from('analytics_events').insert([{
-        event_type: 'error_boundary',
-        event_data: {
-          errorType: 'manual',
-          message: typeof error === 'string' ? error : error.message,
-          context: context?.component || 'unknown',
+      await supabase.from('analytics_events').insert([
+        {
+          event_type: 'error_boundary',
+          event_data: {
+            errorType: 'manual',
+            message: typeof error === 'string' ? error : error.message,
+            context: context?.component || 'unknown',
+          },
+          success: false,
+          metadata: context,
         },
-        success: false,
-        metadata: context,
-      }]);
-      
+      ]);
     } catch (reportingError) {
       console.error('Failed to report error:', reportingError);
     }

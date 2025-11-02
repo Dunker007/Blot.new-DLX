@@ -1,16 +1,12 @@
 /**
  * Premium Pricing Component
- * 
+ *
  * Showcases high-value premium tiers that justify top-dollar pricing
  * Focus on ROI and income-generating potential
  */
-
 import React, { useState } from 'react';
-import { 
-  Crown, 
-  Check, 
-  Shield
-} from 'lucide-react';
+
+import { Check, Crown, Shield } from 'lucide-react';
 
 interface PricingTier {
   id: string;
@@ -32,7 +28,9 @@ interface PricingFeature {
   premium?: boolean;
 }
 
-const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({ onSelectPlan }) => {
+const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
+  onSelectPlan,
+}) => {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');
 
   const tiers: PricingTier[] = [
@@ -141,7 +139,8 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
         bg: 'bg-yellow-50',
         text: 'text-yellow-600',
         border: 'border-yellow-200',
-        button: 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600',
+        button:
+          'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600',
       },
     };
     return colors[color as keyof typeof colors]?.[type] || colors.blue[type];
@@ -154,12 +153,10 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full mb-6">
           <Crown className="w-8 h-8 text-white" />
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Premium AI Income Generator
-        </h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Premium AI Income Generator</h1>
         <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-          Transform DLX Studios into your personal income-generating factory. 
-          Each tier is designed to pay for itself within weeks through automated revenue streams.
+          Transform DLX Studios into your personal income-generating factory. Each tier is designed
+          to pay for itself within weeks through automated revenue streams.
         </p>
 
         {/* ROI Highlight Banner */}
@@ -182,7 +179,9 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
 
         {/* Billing Toggle */}
         <div className="flex items-center justify-center space-x-4 mb-8">
-          <span className={`text-sm font-medium ${billingPeriod === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}>
+          <span
+            className={`text-sm font-medium ${billingPeriod === 'monthly' ? 'text-gray-900' : 'text-gray-500'}`}
+          >
             Monthly
           </span>
           <button
@@ -195,7 +194,9 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
               }`}
             />
           </button>
-          <span className={`text-sm font-medium ${billingPeriod === 'yearly' ? 'text-gray-900' : 'text-gray-500'}`}>
+          <span
+            className={`text-sm font-medium ${billingPeriod === 'yearly' ? 'text-gray-900' : 'text-gray-500'}`}
+          >
             Yearly
           </span>
           {billingPeriod === 'yearly' && (
@@ -208,22 +209,24 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
 
       {/* Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-        {tiers.map((tier) => (
+        {tiers.map(tier => (
           <div
             key={tier.id}
             className={`relative rounded-2xl border-2 p-8 shadow-lg ${
-              tier.popular 
-                ? 'border-purple-500 shadow-purple-200' 
+              tier.popular
+                ? 'border-purple-500 shadow-purple-200'
                 : getColorClasses(tier.color, 'border')
             } ${tier.popular ? 'scale-105' : ''} transition-all hover:shadow-xl`}
           >
             {/* Badge */}
             {tier.badge && (
-              <div className={`absolute -top-3 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-full text-sm font-medium ${
-                tier.popular 
-                  ? 'bg-purple-500 text-white'
-                  : `${getColorClasses(tier.color, 'bg')} ${getColorClasses(tier.color, 'text')}`
-              }`}>
+              <div
+                className={`absolute -top-3 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-full text-sm font-medium ${
+                  tier.popular
+                    ? 'bg-purple-500 text-white'
+                    : `${getColorClasses(tier.color, 'bg')} ${getColorClasses(tier.color, 'text')}`
+                }`}
+              >
                 {tier.badge}
               </div>
             )}
@@ -246,21 +249,21 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
                 <li key={index} className="flex items-start">
                   <div className="flex-shrink-0 mt-0.5">
                     {feature.included ? (
-                      <Check className={`h-4 w-4 ${feature.premium ? 'text-purple-500' : 'text-green-500'}`} />
+                      <Check
+                        className={`h-4 w-4 ${feature.premium ? 'text-purple-500' : 'text-green-500'}`}
+                      />
                     ) : (
                       <div className="h-4 w-4 border border-gray-300 rounded" />
                     )}
                   </div>
                   <div className="ml-3">
-                    <span className={`text-sm ${feature.included ? 'text-gray-900' : 'text-gray-400'} ${feature.premium ? 'font-semibold' : ''}`}>
+                    <span
+                      className={`text-sm ${feature.included ? 'text-gray-900' : 'text-gray-400'} ${feature.premium ? 'font-semibold' : ''}`}
+                    >
                       {feature.name}
-                      {feature.premium && (
-                        <Crown className="inline h-3 w-3 ml-1 text-purple-500" />
-                      )}
+                      {feature.premium && <Crown className="inline h-3 w-3 ml-1 text-purple-500" />}
                     </span>
-                    {feature.limit && (
-                      <div className="text-xs text-gray-500">{feature.limit}</div>
-                    )}
+                    {feature.limit && <div className="text-xs text-gray-500">{feature.limit}</div>}
                   </div>
                 </li>
               ))}
@@ -269,9 +272,10 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
             {/* CTA Button */}
             <button
               onClick={() => onSelectPlan?.(tier.id)}
-              className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-colors ${
-                getColorClasses(tier.color, 'button')
-              }`}
+              className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-colors ${getColorClasses(
+                tier.color,
+                'button'
+              )}`}
             >
               {tier.ctaText}
             </button>
@@ -291,10 +295,18 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Feature</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Starter</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Business Pro</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Income Factory</th>
-                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">Enterprise</th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
+                  Starter
+                </th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
+                  Business Pro
+                </th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
+                  Income Factory
+                </th>
+                <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
+                  Enterprise
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
@@ -367,28 +379,44 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
                   </td>
                   <td className="px-6 py-4 text-center text-sm text-gray-600">
                     {typeof row.starter === 'boolean' ? (
-                      row.starter ? <Check className="h-4 w-4 text-green-500 mx-auto" /> : '–'
+                      row.starter ? (
+                        <Check className="h-4 w-4 text-green-500 mx-auto" />
+                      ) : (
+                        '–'
+                      )
                     ) : (
                       row.starter
                     )}
                   </td>
                   <td className="px-6 py-4 text-center text-sm text-gray-600">
                     {typeof row.business === 'boolean' ? (
-                      row.business ? <Check className="h-4 w-4 text-green-500 mx-auto" /> : '–'
+                      row.business ? (
+                        <Check className="h-4 w-4 text-green-500 mx-auto" />
+                      ) : (
+                        '–'
+                      )
                     ) : (
                       row.business
                     )}
                   </td>
                   <td className="px-6 py-4 text-center text-sm text-gray-600">
                     {typeof row.income === 'boolean' ? (
-                      row.income ? <Check className="h-4 w-4 text-green-500 mx-auto" /> : '–'
+                      row.income ? (
+                        <Check className="h-4 w-4 text-green-500 mx-auto" />
+                      ) : (
+                        '–'
+                      )
                     ) : (
                       row.income
                     )}
                   </td>
                   <td className="px-6 py-4 text-center text-sm text-gray-600">
                     {typeof row.enterprise === 'boolean' ? (
-                      row.enterprise ? <Check className="h-4 w-4 text-green-500 mx-auto" /> : '–'
+                      row.enterprise ? (
+                        <Check className="h-4 w-4 text-green-500 mx-auto" />
+                      ) : (
+                        '–'
+                      )
                     ) : (
                       row.enterprise
                     )}
@@ -441,7 +469,8 @@ const PremiumPricing: React.FC<{ onSelectPlan?: (planId: string) => void }> = ({
         <Shield className="w-12 h-12 text-green-600 mx-auto mb-4" />
         <h3 className="text-2xl font-bold text-gray-900 mb-4">Revenue Guarantee</h3>
         <p className="text-lg text-gray-600 mb-4">
-          Generate at least 2x your subscription cost in revenue within 90 days, or get a full refund.
+          Generate at least 2x your subscription cost in revenue within 90 days, or get a full
+          refund.
         </p>
         <div className="flex items-center justify-center space-x-8 text-sm text-gray-600">
           <span>✓ 90-day money back guarantee</span>

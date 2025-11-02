@@ -1,6 +1,6 @@
 import { LLMProvider, Model } from '../types';
-import { tokenTrackingService } from './tokenTracking';
 import { requestCache } from './requestCache';
+import { tokenTrackingService } from './tokenTracking';
 
 export interface LLMMessage {
   role: 'user' | 'assistant' | 'system';
@@ -69,7 +69,13 @@ export class LLMService {
     }
 
     try {
-      const response = await this.sendToProvider(provider, model, messages, onStream, options?.signal);
+      const response = await this.sendToProvider(
+        provider,
+        model,
+        messages,
+        onStream,
+        options?.signal
+      );
       const responseTime = Date.now() - startTime;
 
       if (options?.useCache !== false && !onStream) {
@@ -120,21 +126,23 @@ export class LLMService {
   ): Promise<LLMResponse> {
     const endpoint = `${provider.endpoint_url}/v1/chat/completions`;
 
-    // Create timeout controller
-    const timeoutController = new AbortController();
-    const timeoutId = setTimeout(() => timeoutController.abort(), this.DEFAULT_TIMEOUT);
-    
-    // Combine signals: listen to both user signal and timeout
-    let combinedSignal = timeoutController.signal;
-    if (signal) {
-      // Create a combined abort controller that responds to either signal
-      const combinedController = new AbortController();
-      
-      const abortHandler = () => combinedController.abort();
-      signal.addEventListener('abort', abortHandler, { once: true });
-      timeoutController.signal.addEventListener('abort', abortHandler, { once: true });
-      
-      combinedSignal = combinedController.signal;
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(provider.api_key && { Authorization: `Bearer ${provider.api_key}` }),
+      },
+      body: JSON.stringify({
+        model: model.model_name,
+        messages,
+        stream: !!onStream,
+        temperature: 0.7,
+      }),
+      signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.statusText}`);
     }
     
     try {
@@ -232,9 +240,11 @@ export class LLMService {
     try {
       const response = await fetch(`${provider.endpoint_url}/v1/models`, {
         method: 'GET',
-        headers: provider.api_key ? {
-          'Authorization': `Bearer ${provider.api_key}`,
-        } : {},
+        headers: provider.api_key
+          ? {
+              Authorization: `Bearer ${provider.api_key}`,
+            }
+          : {},
       });
 
       return response.ok;

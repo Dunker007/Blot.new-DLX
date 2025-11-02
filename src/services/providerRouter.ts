@@ -173,9 +173,11 @@ export class ProviderRouterService {
 
       const response = await fetch(`${provider.endpoint_url}/v1/models`, {
         method: 'GET',
-        headers: provider.api_key ? {
-          'Authorization': `Bearer ${provider.api_key}`,
-        } : {},
+        headers: provider.api_key
+          ? {
+              Authorization: `Bearer ${provider.api_key}`,
+            }
+          : {},
         signal: AbortSignal.timeout(5000),
       });
 
@@ -208,9 +210,7 @@ export class ProviderRouterService {
   async performHealthChecks(): Promise<void> {
     const providers = await this.getAvailableProviders();
 
-    await Promise.all(
-      providers.map(provider => this.checkProviderHealth(provider.id))
-    );
+    await Promise.all(providers.map(provider => this.checkProviderHealth(provider.id)));
   }
 
   private estimateRequestCost(config: ProviderConfig, avgTokens: number = 1000): number {
@@ -262,26 +262,27 @@ export class ProviderRouterService {
     local: number;
     cloud: number;
   }> {
-    const { data } = await supabase
-      .from('llm_providers')
-      .select('health_status, provider_type');
+    const { data } = await supabase.from('llm_providers').select('health_status, provider_type');
 
     if (!data) {
       return { total: 0, healthy: 0, degraded: 0, down: 0, local: 0, cloud: 0 };
     }
 
-    return data.reduce((acc, provider) => {
-      acc.total++;
+    return data.reduce(
+      (acc, provider) => {
+        acc.total++;
 
-      if (provider.health_status === 'healthy') acc.healthy++;
-      if (provider.health_status === 'degraded') acc.degraded++;
-      if (provider.health_status === 'down') acc.down++;
+        if (provider.health_status === 'healthy') acc.healthy++;
+        if (provider.health_status === 'degraded') acc.degraded++;
+        if (provider.health_status === 'down') acc.down++;
 
-      if (provider.provider_type === 'local') acc.local++;
-      if (provider.provider_type === 'cloud') acc.cloud++;
+        if (provider.provider_type === 'local') acc.local++;
+        if (provider.provider_type === 'cloud') acc.cloud++;
 
-      return acc;
-    }, { total: 0, healthy: 0, degraded: 0, down: 0, local: 0, cloud: 0 });
+        return acc;
+      },
+      { total: 0, healthy: 0, degraded: 0, down: 0, local: 0, cloud: 0 }
+    );
   }
 }
 

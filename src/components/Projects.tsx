@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  FolderKanban,
-  Plus,
-  Trash2,
+  Clock,
   Edit2,
   ExternalLink,
+  FolderKanban,
   GitBranch,
-  Clock,
+  Plus,
   Search,
+  Trash2,
 } from 'lucide-react';
-import { supabase, isDemoMode } from '../lib/supabase';
-import { Project, ProjectTemplate } from '../types';
+
+import { isDemoMode, supabase } from '../lib/supabase';
 import { demoProjects } from '../services/demoData';
+import { Project, ProjectTemplate } from '../types';
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -136,9 +138,7 @@ export default function Projects() {
 
       if (error) throw error;
 
-      setProjects(
-        projects.map((p) => (p.id === selectedProject.id ? selectedProject : p))
-      );
+      setProjects(projects.map(p => (p.id === selectedProject.id ? selectedProject : p)));
       setShowEditModal(false);
       setSelectedProject(null);
     } catch (error) {
@@ -148,14 +148,15 @@ export default function Projects() {
   };
 
   const deleteProject = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) return;
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.'))
+      return;
 
     try {
       const { error } = await supabase.from('projects').delete().eq('id', id);
 
       if (error) throw error;
 
-      setProjects(projects.filter((p) => p.id !== id));
+      setProjects(projects.filter(p => p.id !== id));
     } catch (error) {
       console.error('Failed to delete project:', error);
       alert('Failed to delete project. Please try again.');
@@ -187,8 +188,9 @@ export default function Projects() {
     });
   };
 
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredProjects = projects.filter(project => {
+    const matchesSearch =
+      project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterStatus === 'all' || project.status === filterStatus;
     return matchesSearch && matchesFilter;
@@ -225,7 +227,7 @@ export default function Projects() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search projects..."
             className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-500"
           />
@@ -233,7 +235,7 @@ export default function Projects() {
         <div className="flex gap-2">
           <select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
+            onChange={e => setFilterStatus(e.target.value)}
             className="px-4 py-3 bg-slate-900 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-500"
           >
             <option value="all">All Status</option>
@@ -256,7 +258,7 @@ export default function Projects() {
         <div>
           <h2 className="text-xl font-bold mb-4">Quick Start Templates</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {templates.slice(0, 3).map((template) => (
+            {templates.slice(0, 3).map(template => (
               <div
                 key={template.id}
                 className="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition-all cursor-pointer"
@@ -265,8 +267,11 @@ export default function Projects() {
                 <h3 className="font-semibold mb-2">{template.name}</h3>
                 <p className="text-slate-400 text-sm mb-3 line-clamp-2">{template.description}</p>
                 <div className="flex flex-wrap gap-2 mb-3">
-                  {template.tech_stack.slice(0, 3).map((tech) => (
-                    <span key={tech} className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded">
+                  {template.tech_stack.slice(0, 3).map(tech => (
+                    <span
+                      key={tech}
+                      className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded"
+                    >
                       {tech}
                     </span>
                   ))}
@@ -279,12 +284,10 @@ export default function Projects() {
       )}
 
       <div>
-        <h2 className="text-xl font-bold mb-4">
-          Your Projects ({filteredProjects.length})
-        </h2>
+        <h2 className="text-xl font-bold mb-4">Your Projects ({filteredProjects.length})</h2>
         {filteredProjects.length > 0 ? (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {filteredProjects.map((project) => (
+            {filteredProjects.map(project => (
               <div
                 key={project.id}
                 className="bg-slate-900 border border-slate-800 rounded-xl p-6 hover:border-slate-700 transition-all"
@@ -316,15 +319,20 @@ export default function Projects() {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tech_stack.map((tech) => (
-                    <span key={tech} className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded">
+                  {project.tech_stack.map(tech => (
+                    <span
+                      key={tech}
+                      className="px-2 py-1 bg-slate-800 text-slate-300 text-xs rounded"
+                    >
                       {tech}
                     </span>
                   ))}
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className={`px-3 py-1 border rounded-full text-xs font-medium ${statusColors[project.status]}`}>
+                  <span
+                    className={`px-3 py-1 border rounded-full text-xs font-medium ${statusColors[project.status]}`}
+                  >
                     {project.status.replace('_', ' ')}
                   </span>
                   <div className="flex items-center gap-3">
@@ -392,7 +400,7 @@ export default function Projects() {
                 <input
                   type="text"
                   value={newProject.name}
-                  onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                  onChange={e => setNewProject({ ...newProject, name: e.target.value })}
                   placeholder="My Awesome Project"
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -401,7 +409,7 @@ export default function Projects() {
                 <label className="block text-sm text-slate-400 mb-2">Description</label>
                 <textarea
                   value={newProject.description}
-                  onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                  onChange={e => setNewProject({ ...newProject, description: e.target.value })}
                   placeholder="Describe your project..."
                   rows={3}
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
@@ -412,7 +420,9 @@ export default function Projects() {
                   <label className="block text-sm text-slate-400 mb-2">Project Type</label>
                   <select
                     value={newProject.project_type}
-                    onChange={(e) => setNewProject({ ...newProject, project_type: e.target.value as any })}
+                    onChange={e =>
+                      setNewProject({ ...newProject, project_type: e.target.value as any })
+                    }
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                   >
                     <option value="landing_page">Landing Page</option>
@@ -428,7 +438,7 @@ export default function Projects() {
                   <label className="block text-sm text-slate-400 mb-2">Status</label>
                   <select
                     value={newProject.status}
-                    onChange={(e) => setNewProject({ ...newProject, status: e.target.value as any })}
+                    onChange={e => setNewProject({ ...newProject, status: e.target.value as any })}
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                   >
                     <option value="planning">Planning</option>
@@ -439,34 +449,45 @@ export default function Projects() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Tech Stack (comma-separated)</label>
+                <label className="block text-sm text-slate-400 mb-2">
+                  Tech Stack (comma-separated)
+                </label>
                 <input
                   type="text"
                   value={newProject.tech_stack.join(', ')}
-                  onChange={(e) => setNewProject({
-                    ...newProject,
-                    tech_stack: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                  })}
+                  onChange={e =>
+                    setNewProject({
+                      ...newProject,
+                      tech_stack: e.target.value
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(Boolean),
+                    })
+                  }
                   placeholder="react, typescript, tailwind"
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Repository URL (optional)</label>
+                <label className="block text-sm text-slate-400 mb-2">
+                  Repository URL (optional)
+                </label>
                 <input
                   type="url"
                   value={newProject.repository_url}
-                  onChange={(e) => setNewProject({ ...newProject, repository_url: e.target.value })}
+                  onChange={e => setNewProject({ ...newProject, repository_url: e.target.value })}
                   placeholder="https://github.com/username/repo"
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Deployment URL (optional)</label>
+                <label className="block text-sm text-slate-400 mb-2">
+                  Deployment URL (optional)
+                </label>
                 <input
                   type="url"
                   value={newProject.deployment_url}
-                  onChange={(e) => setNewProject({ ...newProject, deployment_url: e.target.value })}
+                  onChange={e => setNewProject({ ...newProject, deployment_url: e.target.value })}
                   placeholder="https://myproject.com"
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -504,7 +525,7 @@ export default function Projects() {
                 <input
                   type="text"
                   value={selectedProject.name}
-                  onChange={(e) => setSelectedProject({ ...selectedProject, name: e.target.value })}
+                  onChange={e => setSelectedProject({ ...selectedProject, name: e.target.value })}
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -512,7 +533,9 @@ export default function Projects() {
                 <label className="block text-sm text-slate-400 mb-2">Description</label>
                 <textarea
                   value={selectedProject.description}
-                  onChange={(e) => setSelectedProject({ ...selectedProject, description: e.target.value })}
+                  onChange={e =>
+                    setSelectedProject({ ...selectedProject, description: e.target.value })
+                  }
                   rows={3}
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
@@ -522,7 +545,12 @@ export default function Projects() {
                   <label className="block text-sm text-slate-400 mb-2">Project Type</label>
                   <select
                     value={selectedProject.project_type}
-                    onChange={(e) => setSelectedProject({ ...selectedProject, project_type: e.target.value as any })}
+                    onChange={e =>
+                      setSelectedProject({
+                        ...selectedProject,
+                        project_type: e.target.value as any,
+                      })
+                    }
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                   >
                     <option value="landing_page">Landing Page</option>
@@ -538,7 +566,9 @@ export default function Projects() {
                   <label className="block text-sm text-slate-400 mb-2">Status</label>
                   <select
                     value={selectedProject.status}
-                    onChange={(e) => setSelectedProject({ ...selectedProject, status: e.target.value as any })}
+                    onChange={e =>
+                      setSelectedProject({ ...selectedProject, status: e.target.value as any })
+                    }
                     className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                   >
                     <option value="planning">Planning</option>
@@ -549,14 +579,21 @@ export default function Projects() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm text-slate-400 mb-2">Tech Stack (comma-separated)</label>
+                <label className="block text-sm text-slate-400 mb-2">
+                  Tech Stack (comma-separated)
+                </label>
                 <input
                   type="text"
                   value={selectedProject.tech_stack.join(', ')}
-                  onChange={(e) => setSelectedProject({
-                    ...selectedProject,
-                    tech_stack: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                  })}
+                  onChange={e =>
+                    setSelectedProject({
+                      ...selectedProject,
+                      tech_stack: e.target.value
+                        .split(',')
+                        .map(s => s.trim())
+                        .filter(Boolean),
+                    })
+                  }
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -565,7 +602,9 @@ export default function Projects() {
                 <input
                   type="url"
                   value={selectedProject.repository_url || ''}
-                  onChange={(e) => setSelectedProject({ ...selectedProject, repository_url: e.target.value })}
+                  onChange={e =>
+                    setSelectedProject({ ...selectedProject, repository_url: e.target.value })
+                  }
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>
@@ -574,7 +613,9 @@ export default function Projects() {
                 <input
                   type="url"
                   value={selectedProject.deployment_url || ''}
-                  onChange={(e) => setSelectedProject({ ...selectedProject, deployment_url: e.target.value })}
+                  onChange={e =>
+                    setSelectedProject({ ...selectedProject, deployment_url: e.target.value })
+                  }
                   className="w-full px-4 py-3 bg-slate-800 border border-slate-700 rounded-lg focus:outline-none focus:border-cyan-500"
                 />
               </div>

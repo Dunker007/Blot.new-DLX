@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+
 import {
-  TrendingUp,
-  DollarSign,
-  Zap,
-  Clock,
-  Server,
   AlertTriangle,
   ChevronDown,
   ChevronUp,
+  Clock,
+  DollarSign,
+  Server,
+  TrendingUp,
+  Zap,
 } from 'lucide-react';
-import { tokenTrackingService } from '../services/tokenTracking';
+
 import { providerRouter } from '../services/providerRouter';
+import { tokenTrackingService } from '../services/tokenTracking';
 import { TokenBudget } from '../types';
 
 export default function TokenAnalytics() {
@@ -91,7 +93,9 @@ export default function TokenAnalytics() {
     return num.toString();
   };
 
-  const getBudgetStatus = (budget: TokenBudget): {
+  const getBudgetStatus = (
+    budget: TokenBudget
+  ): {
     percentage: number;
     color: string;
     isWarning: boolean;
@@ -204,19 +208,19 @@ export default function TokenAnalytics() {
                           <h3 className="text-lg font-semibold capitalize">
                             {budget.budget_type} Budget
                           </h3>
-                          {isWarning && (
-                            <AlertTriangle size={18} className="text-yellow-400" />
-                          )}
+                          {isWarning && <AlertTriangle size={18} className="text-yellow-400" />}
                         </div>
                         <p className="text-sm text-slate-400">
                           Resets: {new Date(budget.reset_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        budget.is_active
-                          ? 'bg-green-500/10 text-green-400'
-                          : 'bg-slate-700 text-slate-400'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          budget.is_active
+                            ? 'bg-green-500/10 text-green-400'
+                            : 'bg-slate-700 text-slate-400'
+                        }`}
+                      >
                         {budget.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </div>
@@ -282,7 +286,9 @@ export default function TokenAnalytics() {
                 <div className="text-sm text-slate-400">Total Providers</div>
               </div>
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-                <div className="text-2xl font-bold text-green-400 mb-1">{providerStats.healthy}</div>
+                <div className="text-2xl font-bold text-green-400 mb-1">
+                  {providerStats.healthy}
+                </div>
                 <div className="text-sm text-slate-400">Healthy</div>
               </div>
               <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
@@ -320,8 +326,12 @@ export default function TokenAnalytics() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">{formatNumber(provider.total_tokens)} tokens</div>
-                        <div className="text-sm text-slate-400">{formatCost(provider.total_cost)}</div>
+                        <div className="font-medium">
+                          {formatNumber(provider.total_tokens)} tokens
+                        </div>
+                        <div className="text-sm text-slate-400">
+                          {formatCost(provider.total_cost)}
+                        </div>
                       </div>
                     </div>
                   ))}

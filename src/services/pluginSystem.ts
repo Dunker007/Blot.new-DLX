@@ -6,7 +6,15 @@ export interface PluginManifest {
   version: string;
   author: string;
   description: string;
-  type: 'provider' | 'tool' | 'integration' | 'ui_component' | 'workflow' | 'analytics' | 'security' | 'optimization';
+  type:
+    | 'provider'
+    | 'tool'
+    | 'integration'
+    | 'ui_component'
+    | 'workflow'
+    | 'analytics'
+    | 'security'
+    | 'optimization';
   permissions: string[];
   dependencies?: string[];
   configSchema: Record<string, any>;
@@ -27,19 +35,19 @@ export interface PluginContext {
 export interface PluginAPI {
   // LLM Provider API
   registerProvider(provider: LLMProviderPlugin): void;
-  
+
   // Tool API
   registerTool(tool: ToolPlugin): void;
-  
+
   // UI Extensions
   registerComponent(component: UIComponentPlugin): void;
-  
+
   // Menu/Command Extensions
   registerCommand(command: CommandPlugin): void;
-  
+
   // Workflow Extensions
   registerWorkflow(workflow: WorkflowPlugin): void;
-  
+
   // Hook into existing functionality
   onMessage(handler: (message: any) => void): void;
   onTokenUsage(handler: (usage: any) => void): void;
@@ -57,7 +65,7 @@ export abstract class BasePlugin {
 
   abstract initialize(context: PluginContext): Promise<void>;
   abstract destroy(): Promise<void>;
-  
+
   getManifest(): PluginManifest {
     return this.manifest;
   }
@@ -142,7 +150,7 @@ class PluginStorage {
         .select('value')
         .eq('key', `${this.prefix}${key}`)
         .single();
-      
+
       return data ? JSON.parse(data.value) : null;
     } catch {
       return null;
@@ -150,26 +158,18 @@ class PluginStorage {
   }
 
   async set<T>(key: string, value: T): Promise<void> {
-    await supabase
-      .from('plugin_storage')
-      .upsert({
-        key: `${this.prefix}${key}`,
-        value: JSON.stringify(value),
-      });
+    await supabase.from('plugin_storage').upsert({
+      key: `${this.prefix}${key}`,
+      value: JSON.stringify(value),
+    });
   }
 
   async delete(key: string): Promise<void> {
-    await supabase
-      .from('plugin_storage')
-      .delete()
-      .eq('key', `${this.prefix}${key}`);
+    await supabase.from('plugin_storage').delete().eq('key', `${this.prefix}${key}`);
   }
 
   async clear(): Promise<void> {
-    await supabase
-      .from('plugin_storage')
-      .delete()
-      .like('key', `${this.prefix}%`);
+    await supabase.from('plugin_storage').delete().like('key', `${this.prefix}%`);
   }
 }
 
@@ -207,7 +207,7 @@ class PluginUIManager {
 
   registerComponent(name: string, component: any, mountPoint: string): void {
     this.components.set(name, component);
-    
+
     if (!this.mountPoints.has(mountPoint)) {
       this.mountPoints.set(mountPoint, []);
     }
@@ -216,7 +216,7 @@ class PluginUIManager {
 
   unregisterComponent(name: string, mountPoint: string): void {
     this.components.delete(name);
-    
+
     const components = this.mountPoints.get(mountPoint);
     if (components) {
       const index = components.findIndex(c => c.name === name);
@@ -246,15 +246,15 @@ export class PluginManager {
     try {
       // Validate manifest
       this.validateManifest(manifest);
-      
+
       // Check permissions and dependencies
       await this.checkPermissions(manifest.permissions);
       await this.checkDependencies(manifest.dependencies || []);
-      
+
       // Create plugin sandbox
       const PluginClass = await this.loadPluginSource(source, manifest.entryPoint);
       const plugin = new PluginClass(manifest);
-      
+
       // Create plugin context
       const context: PluginContext = {
         api: this.createPluginAPI(manifest.name),
@@ -266,14 +266,14 @@ export class PluginManager {
 
       // Initialize plugin
       await plugin.initialize(context);
-      
+
       // Register plugin
       this.plugins.set(manifest.name, plugin);
       this.registry.set(manifest.name, manifest);
-      
+
       // Store in database
       await this.storePlugin(manifest);
-      
+
       return plugin;
     } catch (error) {
       console.error(`Failed to load plugin ${manifest.name}:`, error);
@@ -287,15 +287,12 @@ export class PluginManager {
       await plugin.destroy();
       this.plugins.delete(name);
       this.registry.delete(name);
-      
+
       // Clean up UI components
       // TODO: Implement UI cleanup
-      
+
       // Remove from database
-      await supabase
-        .from('plugin_registry')
-        .update({ is_active: false })
-        .eq('name', name);
+      await supabase.from('plugin_registry').update({ is_active: false }).eq('name', name);
     }
   }
 
@@ -303,11 +300,8 @@ export class PluginManager {
     const plugin = this.plugins.get(name);
     if (plugin) {
       await plugin.enable();
-      
-      await supabase
-        .from('plugin_registry')
-        .update({ is_active: true })
-        .eq('name', name);
+
+      await supabase.from('plugin_registry').update({ is_active: true }).eq('name', name);
     }
   }
 
@@ -315,11 +309,8 @@ export class PluginManager {
     const plugin = this.plugins.get(name);
     if (plugin) {
       await plugin.disable();
-      
-      await supabase
-        .from('plugin_registry')
-        .update({ is_active: false })
-        .eq('name', name);
+
+      await supabase.from('plugin_registry').update({ is_active: false }).eq('name', name);
     }
   }
 
@@ -336,7 +327,7 @@ export class PluginManager {
       .from('plugin_registry')
       .select('*')
       .order('download_count', { ascending: false });
-    
+
     return (data || []).map(item => ({
       name: item.name,
       version: item.version,
@@ -365,13 +356,13 @@ export class PluginManager {
 
   private validateManifest(manifest: PluginManifest): void {
     const required = ['name', 'version', 'author', 'description', 'type', 'entryPoint'];
-    
+
     for (const field of required) {
       if (!(field in manifest)) {
         throw new Error(`Plugin manifest missing required field: ${field}`);
       }
     }
-    
+
     if (!manifest.permissions || !Array.isArray(manifest.permissions)) {
       throw new Error('Plugin manifest must include permissions array');
     }
@@ -387,7 +378,7 @@ export class PluginManager {
       'network_access',
       'local_storage',
     ];
-    
+
     for (const permission of permissions) {
       if (!allowedPermissions.includes(permission)) {
         throw new Error(`Permission not allowed: ${permission}`);
@@ -411,7 +402,7 @@ export class PluginManager {
         this.context = context;
         console.log(`Initialized plugin: ${this.manifest.name}`);
       }
-      
+
       async destroy(): Promise<void> {
         console.log(`Destroyed plugin: ${this.manifest.name}`);
       }
@@ -424,35 +415,35 @@ export class PluginManager {
         // Implementation for registering LLM providers
         console.log(`Registered provider from plugin: ${pluginName}`);
       },
-      
+
       registerTool: (_tool: ToolPlugin) => {
         // Implementation for registering tools
         console.log(`Registered tool from plugin: ${pluginName}`);
       },
-      
+
       registerComponent: (component: UIComponentPlugin) => {
         const comp = component.getComponent();
         this.uiManager.registerComponent(comp.name, comp.component, comp.mountPoint);
       },
-      
+
       registerCommand: (_command: CommandPlugin) => {
         // Implementation for registering commands
         console.log(`Registered command from plugin: ${pluginName}`);
       },
-      
+
       registerWorkflow: (_workflow: WorkflowPlugin) => {
         // Implementation for registering workflows
         console.log(`Registered workflow from plugin: ${pluginName}`);
       },
-      
+
       onMessage: (handler: (message: any) => void) => {
         this.eventEmitter.on('message', handler);
       },
-      
+
       onTokenUsage: (handler: (usage: any) => void) => {
         this.eventEmitter.on('token_usage', handler);
       },
-      
+
       onError: (handler: (error: any) => void) => {
         this.eventEmitter.on('error', handler);
       },
@@ -462,21 +453,21 @@ export class PluginManager {
   private async getPluginConfig(pluginName: string): Promise<Record<string, any>> {
     const cached = advancedCache.get<Record<string, any>>(`plugin_config_${pluginName}`);
     if (cached) return cached;
-    
+
     try {
       const { data } = await supabase
         .from('plugin_storage')
         .select('value')
         .eq('key', `config_${pluginName}`)
         .single();
-      
+
       const config = data ? JSON.parse(data.value) : {};
-      
+
       advancedCache.set(`plugin_config_${pluginName}`, config, {
         ttl: 10 * 60 * 1000, // 10 minutes
         tags: ['plugin_config'],
       });
-      
+
       return config;
     } catch {
       return {};
@@ -484,10 +475,8 @@ export class PluginManager {
   }
 
   private async loadInstalledPlugins(): Promise<void> {
-    const { data } = await supabase
-      .from('plugin_registry')
-      .select('*');
-    
+    const { data } = await supabase.from('plugin_registry').select('*');
+
     if (data) {
       for (const item of data) {
         const manifest: PluginManifest = {
@@ -500,18 +489,15 @@ export class PluginManager {
           configSchema: item.config_schema,
           entryPoint: 'index.js',
         };
-        
+
         this.registry.set(item.name, manifest);
       }
     }
   }
 
   private async initializeActivePlugins(): Promise<void> {
-    const { data } = await supabase
-      .from('plugin_registry')
-      .select('*')
-      .eq('is_active', true);
-    
+    const { data } = await supabase.from('plugin_registry').select('*').eq('is_active', true);
+
     if (data) {
       for (const item of data) {
         try {
@@ -527,17 +513,15 @@ export class PluginManager {
   }
 
   private async storePlugin(manifest: PluginManifest): Promise<void> {
-    await supabase
-      .from('plugin_registry')
-      .upsert({
-        name: manifest.name,
-        version: manifest.version,
-        author: manifest.author,
-        description: manifest.description,
-        plugin_type: manifest.type,
-        config_schema: manifest.configSchema,
-        is_active: true,
-      });
+    await supabase.from('plugin_registry').upsert({
+      name: manifest.name,
+      version: manifest.version,
+      author: manifest.author,
+      description: manifest.description,
+      plugin_type: manifest.type,
+      config_schema: manifest.configSchema,
+      is_active: true,
+    });
   }
 
   // Plugin event broadcasting
@@ -552,7 +536,7 @@ export const pluginManager = new PluginManager();
 export class GitHubIntegrationPlugin extends BasePlugin {
   async initialize(context: PluginContext): Promise<void> {
     this.context = context;
-    
+
     // Register GitHub-specific tools
     const githubTool = {
       getToolDefinition: () => ({
@@ -579,7 +563,7 @@ export class GitHubIntegrationPlugin extends BasePlugin {
 export class CostOptimizerPlugin extends BasePlugin {
   async initialize(context: PluginContext): Promise<void> {
     this.context = context;
-    
+
     // Monitor token usage and suggest optimizations
     context.api.onTokenUsage((usage: any) => {
       this.analyzeUsage(usage);
