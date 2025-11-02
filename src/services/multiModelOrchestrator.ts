@@ -111,6 +111,38 @@ class MultiModelOrchestratorService {
         break;
 
       case 'complex':
+        primaryModel = availableModels.find(m =>
+          m.context_window >= 16000 && (m.use_case === 'coding' || m.use_case === 'analysis')
+        ) || availableModels.sort((a, b) => b.context_window - a.context_window)[0];
+        fallbackModel = availableModels.find(m =>
+          m.id !== primaryModel?.id && m.context_window >= 8000
+        );
+        alternativeModel = availableModels.find(m =>
+          m.id !== primaryModel?.id && m.id !== fallbackModel?.id
+        );
+        break;
+
+      case 'expert': {
+        const expertModels = availableModels
+          .filter(m => m.context_window >= 32000)
+          .sort((a, b) => b.context_window - a.context_window);
+
+        primaryModel = expertModels[0] || availableModels.sort((a, b) =>
+          b.context_window - a.context_window
+        )[0];
+
+        fallbackModel = expertModels[1] || availableModels.find(m =>
+          m.id !== primaryModel?.id && m.context_window >= 16000
+        );
+
+        alternativeModel = availableModels.find(m =>
+          m.id !== primaryModel?.id && m.id !== fallbackModel?.id && m.context_window >= 8000
+        );
+        break;
+      }
+    }
+
+    if (!primaryModel) return null;
       case 'expert':
         // Use model with largest context window
         selectedModel = availableModels.sort((a, b) => b.context_window - a.context_window)[0];

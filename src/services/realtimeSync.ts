@@ -160,7 +160,18 @@ export class RealtimeSyncService {
       )
       .on('presence', { event: 'sync' }, () => {
         const state = channel.presenceState();
-        const presenceList = Object.values(state).flat() as PresenceData[];
+        // Extract presence data from Supabase's presence state structure
+        const presenceList: PresenceData[] = [];
+        
+        for (const presenceArray of Object.values(state)) {
+          for (const presenceItem of presenceArray) {
+            // Filter out the presence_ref and extract actual PresenceData
+            const { presence_ref, ...data } = presenceItem as any;
+            if (data.user_id && data.status) {
+              presenceList.push(data as PresenceData);
+            }
+          }
+        }
 
         if (callbacks.onPresenceChange) {
           callbacks.onPresenceChange(presenceList);

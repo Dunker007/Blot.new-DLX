@@ -500,7 +500,8 @@ export class ProjectSyncService {
     environment: DeploymentEnvironment
   ): Promise<{ success: boolean; url?: string; error?: string }> {
     try {
-      const exportData = await this.exportProject(projectId, 'full');
+      // Export project for deployment
+      await this.exportProject(projectId, 'full');
 
       await supabase.from('deployments').insert([
         {

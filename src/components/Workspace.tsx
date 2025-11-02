@@ -54,6 +54,7 @@ export default function App() {
         setIsConnected(true);
 
         realtimeSyncService.subscribeToProject(projectId, {
+          onPresenceChange: (presence) => {
           onCursorUpdate: cursor => {
             setCursors(prev => {
               const filtered = prev.filter(c => c.session_id !== cursor.session_id);

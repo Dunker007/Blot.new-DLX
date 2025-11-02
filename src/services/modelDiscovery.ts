@@ -62,7 +62,7 @@ export class ModelDiscoveryService {
       }
 
       const data = await response.json();
-      const models = this.parseModelsResponse(data, provider);
+      const models = this.parseModelsResponse(data);
 
       this.modelCache.set(provider.id, {
         models,
@@ -85,7 +85,7 @@ export class ModelDiscoveryService {
     }
   }
 
-  private parseModelsResponse(data: any, provider: LLMProvider): DiscoveredModel[] {
+  private parseModelsResponse(data: any): DiscoveredModel[] {
     if (!data || !data.data) return [];
 
     return data.data.map((model: any) => {
@@ -119,7 +119,7 @@ export class ModelDiscoveryService {
       .replace(/-/g, ' ')
       .replace(/_/g, ' ')
       .split(' ')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
 
