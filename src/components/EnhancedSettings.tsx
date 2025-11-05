@@ -1,20 +1,24 @@
 import { useState } from 'react';
 
-import { Activity, BarChart3, Brain, Globe, Key, Server, Settings as SettingsIcon } from 'lucide-react';
+import { Activity, BarChart3, Brain, Globe, Key, Network, Server, Settings as SettingsIcon } from 'lucide-react';
 
 import EnvironmentSettings from './EnvironmentSettings';
 import GeminiSettings from './GeminiSettings';
+import LuxRigSettings from './LuxRigSettings';
 import ModelPerformanceDashboard from './ModelPerformanceDashboard';
 import ModelRecommendations from './ModelRecommendations';
 import Settings from './Settings';
+import SpaceshipDNSManager from './SpaceshipDNSManager';
 import TokenAnalytics from './TokenAnalytics';
 
-type TabType = 'providers' | 'recommendations' | 'performance' | 'analytics' | 'environment' | 'gemini';
+type TabType = 'luxrig' | 'dns' | 'providers' | 'recommendations' | 'performance' | 'analytics' | 'environment' | 'gemini';
 
 export default function EnhancedSettings() {
-  const [activeTab, setActiveTab] = useState<TabType>('gemini');
+  const [activeTab, setActiveTab] = useState<TabType>('luxrig');
 
   const tabs = [
+    { id: 'luxrig' as TabType, label: 'LuxRig', icon: Server },
+    { id: 'dns' as TabType, label: 'DNS Manager', icon: Network },
     { id: 'gemini' as TabType, label: 'Gemini API', icon: Key },
     { id: 'providers' as TabType, label: 'Providers & Models', icon: Server },
     { id: 'recommendations' as TabType, label: 'AI Recommendations', icon: Brain },
@@ -33,28 +37,30 @@ export default function EnhancedSettings() {
         </div>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
-        <div className="flex border-b border-slate-800">
+      <div className="bg-[#0f0f1a] border border-[rgba(0,255,255,0.3)] rounded-lg overflow-hidden">
+        <div className="flex border-b border-[rgba(0,255,255,0.2)] overflow-x-auto">
           {tabs.map(tab => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 font-medium transition-colors ${
+                className={`flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'bg-slate-800 text-cyan-400 border-b-2 border-cyan-400'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    ? 'bg-[rgba(0,255,255,0.15)] text-cyan-400 border-b-2 border-cyan-400'
+                    : 'text-gray-400 hover:text-cyan-300 hover:bg-[rgba(0,255,255,0.05)]'
                 }`}
               >
-                <Icon size={20} />
-                <span className="hidden sm:inline">{tab.label}</span>
+                <Icon size={14} />
+                <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div className="p-6">
+        <div className="p-3">
+          {activeTab === 'luxrig' && <LuxRigSettings />}
+          {activeTab === 'dns' && <SpaceshipDNSManager />}
           {activeTab === 'gemini' && <GeminiSettings />}
           {activeTab === 'providers' && <Settings />}
           {activeTab === 'recommendations' && <ModelRecommendations />}

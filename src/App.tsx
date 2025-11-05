@@ -1,6 +1,6 @@
 import { Suspense, lazy, useState } from 'react';
 
-import SafeLayout from './components/SafeLayout';
+import CompactLayout from './components/CompactLayout';
 
 // Lazy load components for code splitting
 const AICommandCenter = lazy(() => import('./components/AICommandCenter'));
@@ -30,12 +30,11 @@ const LoadingFallback = () => (
 );
 
 // import EnhancedAnalyticsDashboard from './components/EnhancedAnalyticsDashboard';
-// import BusinessModelGenerator from './components/BusinessModelGenerator';
-// import AutoAffiliateContentFactory from './components/AutoAffiliateContentFactory';
+import BusinessModelGenerator from './components/BusinessModelGenerator';
+import AutoAffiliateContentFactory from './components/AutoAffiliateContentFactory';
 // import PremiumPricing from './components/PremiumPricing';
-// import AIGuide from './components/AIGuide';
-// Error boundary available for wrapping components
-// import { ErrorBoundary } from './components/ErrorBoundary';
+import AIGuide from './components/AIGuide';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
@@ -44,82 +43,127 @@ function App() {
   const renderView = () => {
     switch (currentView) {
       case 'dashboard':
-        try {
-          return <AICommandCenter onNavigate={setCurrentView} />;
-        } catch (error) {
-          console.error('AICommandCenter error:', error);
-          return (
+        return (
+          <ErrorBoundary level="component" fallback={(error, errorInfo, retry) => (
             <div className="p-8 text-white">
               <h1 className="text-3xl font-bold mb-4 text-red-400">Dashboard Error</h1>
-              <p>AICommandCenter failed to load. Using safe fallback.</p>
+              <p className="mb-4">AICommandCenter failed to load.</p>
+              <button onClick={retry} className="px-4 py-2 bg-cyan-600 rounded hover:bg-cyan-700">
+                Retry
+              </button>
             </div>
-          );
-        }
+          )}>
+            <AICommandCenter onNavigate={setCurrentView} />
+          </ErrorBoundary>
+        );
       case 'workspace':
-        return <Workspace />;
+        return (
+          <ErrorBoundary level="component">
+            <Workspace />
+          </ErrorBoundary>
+        );
       case 'projects':
-        return <Projects />;
+        return (
+          <ErrorBoundary level="component">
+            <Projects />
+          </ErrorBoundary>
+        );
       case 'connections':
-        return <ConnectionDashboard />;
+        return (
+          <ErrorBoundary level="component">
+            <ConnectionDashboard />
+          </ErrorBoundary>
+        );
       case 'settings':
-        return <EnhancedSettings />;
+        return (
+          <ErrorBoundary level="component">
+            <EnhancedSettings />
+          </ErrorBoundary>
+        );
       case 'feature-flags':
-        return <FeatureFlags />;
+        return (
+          <ErrorBoundary level="component">
+            <FeatureFlags />
+          </ErrorBoundary>
+        );
       case 'idea-lab':
-        return <IdeaLab />;
+        return (
+          <ErrorBoundary level="component">
+            <IdeaLab />
+          </ErrorBoundary>
+        );
       case 'labs':
-        return <LabsRouter activeLabId={activeLabId as any} onSelectLab={setActiveLabId} />;
+        return (
+          <ErrorBoundary level="component">
+            <LabsRouter activeLabId={activeLabId as any} onSelectLab={setActiveLabId} />
+          </ErrorBoundary>
+        );
       case 'tasks':
-        return <TaskManagement />;
-      // New DLX-Studios-Ultimate modules
+        return (
+          <ErrorBoundary level="component">
+            <TaskManagement />
+          </ErrorBoundary>
+        );
       case 'monaco-editor':
-        return <MonacoEditorPage />;
+        return (
+          <ErrorBoundary level="component">
+            <MonacoEditorPage />
+          </ErrorBoundary>
+        );
       case 'audio-transcriber':
-        return <AudioTranscriber />;
+        return (
+          <ErrorBoundary level="component">
+            <AudioTranscriber />
+          </ErrorBoundary>
+        );
       case 'image-analysis':
-        return <ImageAnalysis />;
+        return (
+          <ErrorBoundary level="component">
+            <ImageAnalysis />
+          </ErrorBoundary>
+        );
       case 'mind-map':
-        return <MindMapPage />;
+        return (
+          <ErrorBoundary level="component">
+            <MindMapPage />
+          </ErrorBoundary>
+        );
+      case 'business-generator':
+        return (
+          <ErrorBoundary level="component">
+            <BusinessModelGenerator />
+          </ErrorBoundary>
+        );
+      case 'affiliate-factory':
+        return (
+          <ErrorBoundary level="component">
+            <AutoAffiliateContentFactory />
+          </ErrorBoundary>
+        );
+      case 'crypto':
+        return (
+          <ErrorBoundary level="component">
+            <LabsRouter activeLabId="crypto" onSelectLab={() => {}} />
+          </ErrorBoundary>
+        );
       default:
-        try {
-          return <AICommandCenter onNavigate={setCurrentView} />;
-        } catch (error) {
-          console.error('Default AICommandCenter error:', error);
-          return (
-            <div className="p-8 text-white">
-              <h1 className="text-3xl font-bold mb-4">AI Command Center</h1>
-              <p>Loading in safe mode...</p>
-              <div className="mt-4 space-y-2">
-                <button
-                  onClick={() => setCurrentView('workspace')}
-                  className="block px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
-                >
-                  Go to Workspace
-                </button>
-                <button
-                  onClick={() => setCurrentView('projects')}
-                  className="block px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
-                >
-                  Go to Projects
-                </button>
-                <button
-                  onClick={() => setCurrentView('connections')}
-                  className="block px-4 py-2 bg-purple-600 rounded hover:bg-purple-700"
-                >
-                  Go to Connections
-                </button>
-              </div>
-            </div>
-          );
-        }
+        return (
+          <ErrorBoundary level="component">
+            <AICommandCenter onNavigate={setCurrentView} />
+          </ErrorBoundary>
+        );
     }
   };
 
   return (
-    <SafeLayout currentView={currentView} onViewChange={setCurrentView}>
-      <Suspense fallback={<LoadingFallback />}>{renderView()}</Suspense>
-      {/* AIGuide temporarily disabled for debugging */}
-    </SafeLayout>
+    <ErrorBoundary level="page" onError={(error) => console.error('App-level error:', error)}>
+      <CompactLayout currentView={currentView} onViewChange={setCurrentView}>
+        <ErrorBoundary level="component">
+          <Suspense fallback={<LoadingFallback />}>{renderView()}</Suspense>
+        </ErrorBoundary>
+        <AIGuide currentView={currentView} onNavigate={setCurrentView} />
+      </CompactLayout>
+    </ErrorBoundary>
   );
 }
 

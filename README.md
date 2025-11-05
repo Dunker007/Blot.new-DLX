@@ -60,13 +60,24 @@ DLX Studios Ultimate is the consolidated powerhouse combining the best features 
 
 ## 📦 Quick Start
 
+### ⚡ Fastest Path (5 minutes)
+
+```powershell
+# Build and start
+npm run build
+npm run start:prod
+```
+
+Visit `http://localhost:3001` - **You're live!**
+
+**🚀 One-Command Deploy:**
+```powershell
+.\scripts\quick-deploy.ps1
+```
+
 ### Local Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/DLX-Studios-Ultimate.git
-cd DLX-Studios-Ultimate
-
 # Install dependencies
 npm install
 
@@ -74,21 +85,11 @@ npm install
 npm run dev
 ```
 
-Visit `http://localhost:5173` to see your app running!
+Visit `http://localhost:5173` for development mode.
 
-### Production Server (LuxRig Hosting)
+### Production Deployment
 
-```bash
-# Build frontend
-npm run build
-
-# Start production server (port 3001)
-npm start
-# or
-npm run start:prod
-```
-
-Visit `http://localhost:3001` for the full-stack deployment.
+See [QUICK_START.md](QUICK_START.md) for fastest deployment path, or [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for complete guide.
 
 ### Gemini API Setup (Optional but Recommended)
 
@@ -132,6 +133,23 @@ npm run docker:build
 npm run docker:run
 ```
 
+### Production Deployment
+
+**Quick Deploy:**
+```powershell
+# Run as Administrator
+.\scripts\setup-production.ps1 -InstallService -ConfigureFirewall -CreateLogsDir
+
+# Or manual setup
+npm run build
+npm run start:prod
+```
+
+**Deployment Guides:**
+- 📘 [Deployment Guide](DEPLOYMENT_GUIDE.md) - Complete deployment instructions
+- 🌐 [Domain Setup](DOMAIN_SETUP.md) - Configure dlxstudios.ai
+- 📋 [Next Steps](NEXT_STEPS.md) - Step-by-step deployment checklist
+
 ### Environment Variables
 
 **No environment variables required!** DLX Studios Ultimate uses local storage by default.
@@ -139,6 +157,14 @@ npm run docker:run
 Optional (for enhanced features):
 - Gemini API key (set via Settings UI)
 - LM Studio endpoint (default: `http://localhost:1234`)
+
+Create `.env` file for production:
+```env
+PORT=3001
+NODE_ENV=production
+LM_STUDIO_URL=http://localhost:1234
+GEMINI_API_KEY=your_key_here
+```
 
 ## 🏗️ Architecture
 

@@ -114,10 +114,11 @@ export default function EnhancedAnalyticsDashboard() {
       }
 
       // Gather data from various services
-      const [usageStats, providerStats, cacheStats] = await Promise.all([
+      const [usageStats, providerStats, cacheStats, errorRate] = await Promise.all([
         tokenTrackingService.getUsageStats({ startDate, endDate }),
         providerRouter.getProviderStats(),
         advancedCache.getStats(),
+        calculateErrorRate(),
       ]);
 
       // Get detailed provider data
@@ -136,7 +137,7 @@ export default function EnhancedAnalyticsDashboard() {
         performance: {
           hitRate: cacheStats.hitRate,
           avgLatency: usageStats.avgResponseTime,
-          errorRate: calculateErrorRate(),
+          errorRate,
           uptime: calculateUptime(providerStats),
         },
         providers: topProviders.map((p: any) => ({
@@ -145,9 +146,9 @@ export default function EnhancedAnalyticsDashboard() {
           requestCount: p.request_count,
           totalTokens: p.total_tokens,
           totalCost: p.total_cost,
-          avgResponseTime: 0, // TODO: Calculate from logs
-          errorRate: 0, // TODO: Calculate from logs
-          healthStatus: 'healthy' as const, // TODO: Get from provider health
+          avgResponseTime: p.avg_response_time || 0,
+          errorRate: p.error_rate || 0,
+          healthStatus: (p.error_rate || 0) < 0.1 ? 'healthy' : (p.error_rate < 0.5 ? 'degraded' : 'unhealthy') as 'healthy' | 'degraded' | 'unhealthy',
         })),
         predictions,
         insights,
@@ -275,9 +276,13 @@ export default function EnhancedAnalyticsDashboard() {
     return Math.random() * 20 - 10; // -10% to +10%
   };
 
-  const calculateErrorRate = (): number => {
-    // TODO: Calculate actual error rate from logs
-    return 0.02; // 2%
+  const calculateErrorRate = async (): Promise<number> => {
+    try {
+      const stats = await tokenTrackingService.getUsageStats({ startDate, endDate });
+      return 1 - (stats.successRate || 0); // Convert success rate to error rate
+    } catch {
+      return 0;
+    }
   };
 
   const calculateUptime = (providerStats: any): number => {

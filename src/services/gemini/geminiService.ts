@@ -4,11 +4,37 @@ import { GoogleGenAI } from '@google/genai';
 class GeminiService {
   private apiKey: string | null = null;
 
+  constructor() {
+    // Auto-load API key from localStorage on initialization
+    this.loadApiKey();
+  }
+
+  private loadApiKey() {
+    try {
+      const storedKey = localStorage.getItem('gemini_api_key');
+      if (storedKey) {
+        this.apiKey = storedKey;
+      }
+    } catch (error) {
+      console.error('Failed to load Gemini API key from localStorage:', error);
+    }
+  }
+
   public setApiKey(key: string) {
     this.apiKey = key;
+    // Also save to localStorage
+    try {
+      localStorage.setItem('gemini_api_key', key);
+    } catch (error) {
+      console.error('Failed to save Gemini API key to localStorage:', error);
+    }
   }
 
   private getClient() {
+    // Always check localStorage first (in case of hot reload)
+    if (!this.apiKey) {
+      this.loadApiKey();
+    }
     if (!this.apiKey) {
       throw new Error('Gemini API key not set. Please configure in settings.');
     }

@@ -45,6 +45,10 @@ interface ProviderUsageStats {
   request_count: number;
   total_tokens: number;
   total_cost: number;
+  avg_response_time: number;
+  error_rate: number;
+  success_count: number;
+  error_count: number;
 }
 
 class TokenTrackingService {
@@ -222,11 +226,22 @@ class TokenTrackingService {
 
       const providerId = log.provider_id;
       const existing = providerStats.get(providerId);
+      const isSuccess = log.status === 'success';
 
       if (existing) {
         existing.request_count++;
         existing.total_tokens += log.total_tokens;
         existing.total_cost += log.estimated_cost;
+        // Update rolling average response time
+        existing.avg_response_time = 
+          (existing.avg_response_time * (existing.request_count - 1) + log.response_time_ms) / 
+          existing.request_count;
+        if (isSuccess) {
+          existing.success_count++;
+        } else {
+          existing.error_count++;
+        }
+        existing.error_rate = existing.error_count / existing.request_count;
       } else {
         providerStats.set(providerId, {
           provider_id: providerId,
@@ -234,6 +249,10 @@ class TokenTrackingService {
           request_count: 1,
           total_tokens: log.total_tokens,
           total_cost: log.estimated_cost,
+          avg_response_time: log.response_time_ms,
+          error_rate: isSuccess ? 0 : 1,
+          success_count: isSuccess ? 1 : 0,
+          error_count: isSuccess ? 0 : 1,
         });
       }
     }

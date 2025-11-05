@@ -19,6 +19,7 @@ import { components, gradients, spacing, utils } from '../styles/designSystem';
 import CostSavingsDashboard from './CostSavingsDashboard';
 import HolographicBrain from './HolographicBrain';
 import LuxRigTester from './LuxRigTester';
+import RevenueStreamsDashboard from './RevenueStreamsDashboard';
 
 interface AICommandCenterProps {
   onNavigate: (view: string) => void;
@@ -198,6 +199,11 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Revenue Streams Dashboard - Passive Income Focus */}
+      <div className="mb-6">
+        <RevenueStreamsDashboard />
       </div>
 
       {/* Realtime Metrics Grid */}
