@@ -143,20 +143,14 @@ class MultiModelOrchestratorService {
     }
 
     if (!primaryModel) return null;
-      case 'expert':
-        // Use model with largest context window
-        selectedModel = availableModels.sort((a, b) => b.context_window - a.context_window)[0];
-        break;
-
-      default:
-        selectedModel = availableModels[0];
-    }
 
     return {
-      modelId: selectedModel.model_name,
-      providerId: selectedModel.provider_id,
+      modelId: primaryModel.model_name,
+      providerId: primaryModel.provider_id,
       reason: `Selected for ${complexity.level} task`,
       estimatedCost: this.estimateCost(complexity.estimatedTokens),
+      fallbackModelId: fallbackModel?.model_name,
+      alternativeModelId: alternativeModel?.model_name,
     };
   }
 
@@ -255,8 +249,7 @@ class MultiModelOrchestratorService {
       return {
         content: response.content,
         model: strategy.modelId,
-        tokens: response.tokens || 0
-        tokens: 0, // TODO: Extract token count from response
+        tokens: response.tokens || 0,
       };
     } catch (error) {
       console.error('Orchestration failed:', error);

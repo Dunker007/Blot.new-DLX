@@ -158,7 +158,7 @@ export class EnvironmentDetectorService {
       return 'https://api.dlxstudios.ai';
     }
 
-    return 'http://localhost:3000';
+    return 'http://localhost:3001';
   }
 
   shouldUseLocalModels(): boolean {

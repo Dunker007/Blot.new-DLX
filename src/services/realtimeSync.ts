@@ -1,6 +1,19 @@
-import { RealtimeChannel } from '@supabase/supabase-js';
-
 import { supabase } from '../lib/supabase';
+
+// Simplified channel interface for local storage
+interface SimpleChannel {
+  on: (event: string, callback: (payload: any) => void) => SimpleChannel;
+  subscribe: () => Promise<void>;
+  unsubscribe: () => Promise<void>;
+  track: (data: any) => Promise<void>;
+  presenceState: () => any;
+  // Internal methods for callback management
+  _triggerCursorUpdate?: (cursor: LiveCursor) => void;
+  _triggerEvent?: (event: CollaborationEvent) => void;
+  _triggerPresenceChange?: (presence: PresenceData[]) => void;
+  _presenceData?: Map<string, PresenceData>;
+  _pollInterval?: number;
+}
 
 export interface WorkspaceSession {
   id: string;
@@ -58,9 +71,12 @@ export interface CollaborationEvent {
 }
 
 export class RealtimeSyncService {
-  private channels: Map<string, RealtimeChannel> = new Map();
+  private channels: Map<string, SimpleChannel> = new Map();
   private sessionId: string | null = null;
+  private sessionProjectMap: Map<string, string> = new Map(); // sessionId -> projectId
   private presenceUpdateInterval?: number;
+  private pollingIntervals: Map<string, number> = new Map();
+  private pollingInProgress: Map<string, boolean> = new Map(); // Track if polling is in progress per project
 
   async createSession(projectId: string, userId: string): Promise<WorkspaceSession | null> {
     const sessionToken = this.generateSessionToken();
@@ -85,6 +101,8 @@ export class RealtimeSyncService {
     }
 
     this.sessionId = data.id;
+    // Store session to project mapping for efficient cursor update routing
+    this.sessionProjectMap.set(data.id, projectId);
     this.startPresenceUpdates();
 
     return data;
@@ -110,6 +128,8 @@ export class RealtimeSyncService {
       .update({ status: 'disconnected' })
       .eq('id', this.sessionId);
 
+    // Clean up session mapping
+    this.sessionProjectMap.delete(this.sessionId);
     this.stopPresenceUpdates();
     this.sessionId = null;
   }
@@ -121,66 +141,206 @@ export class RealtimeSyncService {
       onEvent?: (event: CollaborationEvent) => void;
       onPresenceChange?: (presence: PresenceData[]) => void;
     }
-  ): RealtimeChannel {
+  ): SimpleChannel {
     const channelName = `project:${projectId}`;
 
+    // If channel exists, update callbacks and return it
     if (this.channels.has(channelName)) {
-      return this.channels.get(channelName)!;
+      const existingChannel = this.channels.get(channelName)!;
+      // Update callbacks
+      if (callbacks.onCursorUpdate) existingChannel._triggerCursorUpdate = callbacks.onCursorUpdate;
+      if (callbacks.onEvent) existingChannel._triggerEvent = callbacks.onEvent;
+      if (callbacks.onPresenceChange) existingChannel._triggerPresenceChange = callbacks.onPresenceChange;
+      return existingChannel;
     }
 
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'live_cursors',
-          filter: `session_id=in.(select id from workspace_sessions where project_id=eq.${projectId})`,
-        },
-        payload => {
-          if (callbacks.onCursorUpdate && payload.new) {
-            callbacks.onCursorUpdate(payload.new as LiveCursor);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'collaboration_events',
-          filter: `project_id=eq.${projectId}`,
-        },
-        payload => {
-          if (callbacks.onEvent && payload.new) {
-            callbacks.onEvent(payload.new as CollaborationEvent);
-          }
-        }
-      )
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        // Extract presence data from Supabase's presence state structure
-        const presenceList: PresenceData[] = [];
-        
-        for (const presenceArray of Object.values(state)) {
-          for (const presenceItem of presenceArray) {
-            // Filter out the presence_ref and extract actual PresenceData
-            const { presence_ref, ...data } = presenceItem as any;
-            if (data.user_id && data.status) {
-              presenceList.push(data as PresenceData);
-            }
-          }
-        }
+    // Create presence data storage for this channel
+    const presenceData = new Map<string, PresenceData>();
 
-        if (callbacks.onPresenceChange) {
-          callbacks.onPresenceChange(presenceList);
+    // Create a simplified channel using the storage layer
+    const channel: SimpleChannel = {
+      _triggerCursorUpdate: callbacks.onCursorUpdate,
+      _triggerEvent: callbacks.onEvent,
+      _triggerPresenceChange: callbacks.onPresenceChange,
+      _presenceData: presenceData,
+      
+      on: (_event: string, _callback: (payload: any) => void) => {
+        // Store additional event callbacks if needed
+        // For now, we use the direct callbacks from subscribeToProject
+        // Note: This could be extended to support multiple callbacks per event type
+        return channel;
+      },
+      
+      subscribe: async () => {
+        // Start polling for updates
+        this.startPollingForProject(projectId, channel);
+        return Promise.resolve();
+      },
+      
+      unsubscribe: async () => {
+        // Stop polling
+        this.stopPollingForProject(projectId);
+        return Promise.resolve();
+      },
+      
+      track: async (data: any) => {
+        // Store presence data locally
+        if (data.user_id && channel._presenceData) {
+          channel._presenceData.set(data.user_id, {
+            user_id: data.user_id,
+            username: data.username,
+            cursor_position: data.cursor_position,
+            current_file: data.current_file,
+            status: data.status || 'online',
+          });
+          
+          // Trigger presence change callback
+          if (channel._triggerPresenceChange) {
+            channel._triggerPresenceChange(Array.from(channel._presenceData.values()));
+          }
         }
-      })
-      .subscribe();
+        return Promise.resolve();
+      },
+      
+      presenceState: () => {
+        // Return current presence state
+        if (channel._presenceData) {
+          const state: Record<string, PresenceData[]> = {};
+          channel._presenceData.forEach((presence, userId) => {
+            state[userId] = [presence];
+          });
+          return state;
+        }
+        return {};
+      },
+    };
 
     this.channels.set(channelName, channel);
+    
+    // Auto-subscribe when channel is created
+    channel.subscribe();
+    
     return channel;
+  }
+
+  private startPollingForProject(projectId: string, channel: SimpleChannel): void {
+    // Stop existing polling if any
+    this.stopPollingForProject(projectId);
+
+    // Use recursive setTimeout instead of setInterval to prevent overlapping async operations
+    const poll = async (): Promise<void> => {
+      // Check if polling is already in progress or if channel was removed
+      if (this.pollingInProgress.get(projectId) || !this.channels.has(`project:${projectId}`)) {
+        return;
+      }
+
+      // Set polling flag to prevent concurrent executions
+      this.pollingInProgress.set(projectId, true);
+
+      try {
+        // Poll for cursor updates
+        if (channel._triggerCursorUpdate) {
+          const selectQuery = supabase
+            .from('live_cursors')
+            .select('*')
+            .eq('project_id', projectId)
+            .gte('updated_at', new Date(Date.now() - 5000).toISOString()); // Last 5 seconds
+
+          const cursorsResult = await (selectQuery as unknown as Promise<{ data: any[] | null; error: Error | null }>);
+          const cursors = cursorsResult?.data;
+
+          if (cursors && cursors.length > 0) {
+            cursors.forEach((cursor: any) => {
+              channel._triggerCursorUpdate?.(cursor as LiveCursor);
+            });
+          }
+        }
+
+        // Poll for collaboration events
+        if (channel._triggerEvent) {
+          const selectQuery = supabase
+            .from('collaboration_events')
+            .select('*')
+            .eq('project_id', projectId)
+            .gte('created_at', new Date(Date.now() - 5000).toISOString()) // Last 5 seconds
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+          const eventsResult = await (selectQuery as unknown as Promise<{ data: any[] | null; error: Error | null }>);
+          const events = eventsResult?.data;
+
+          if (events && events.length > 0) {
+            events.forEach((event: any) => {
+              channel._triggerEvent?.(event as CollaborationEvent);
+            });
+          }
+        }
+
+        // Poll for presence changes
+        if (channel._triggerPresenceChange) {
+          const selectQuery = supabase
+            .from('workspace_sessions')
+            .select('*')
+            .eq('project_id', projectId)
+            .eq('status', 'active')
+            .gte('last_activity', new Date(Date.now() - 30000).toISOString()); // Last 30 seconds
+
+          const sessionsResult = await (selectQuery as unknown as Promise<{ data: any[] | null; error: Error | null }>);
+          const sessions = sessionsResult?.data;
+
+          if (sessions) {
+            const presenceList: PresenceData[] = sessions.map((session: any) => ({
+              user_id: session.user_id,
+              username: session.metadata?.username,
+              cursor_position: session.cursor_position,
+              current_file: session.current_file,
+              status: 'online',
+            }));
+
+            // Update presence data map atomically
+            if (channel._presenceData) {
+              // Clear and rebuild to avoid race conditions
+              const newPresenceMap = new Map<string, PresenceData>();
+              presenceList.forEach(presence => {
+                newPresenceMap.set(presence.user_id, presence);
+              });
+              // Replace the entire map atomically
+              channel._presenceData = newPresenceMap;
+            }
+
+            channel._triggerPresenceChange(presenceList);
+          }
+        }
+      } catch (error) {
+        console.error('Error polling for project updates:', error);
+      } finally {
+        // Clear polling flag
+        this.pollingInProgress.set(projectId, false);
+
+        // Schedule next poll only if channel still exists
+        if (this.channels.has(`project:${projectId}`)) {
+          const timeoutId = window.setTimeout(() => {
+            poll();
+          }, 2000); // Poll every 2 seconds, but only after previous poll completes
+
+          // Store timeout ID so we can cancel it
+          this.pollingIntervals.set(projectId, timeoutId);
+        }
+      }
+    };
+
+    // Start the first poll immediately
+    poll();
+  }
+
+  private stopPollingForProject(projectId: string): void {
+    const timeoutId = this.pollingIntervals.get(projectId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+      this.pollingIntervals.delete(projectId);
+    }
+    // Clear polling flag
+    this.pollingInProgress.delete(projectId);
   }
 
   async trackPresence(projectId: string, data: Partial<PresenceData>): Promise<void> {
@@ -209,25 +369,71 @@ export class RealtimeSyncService {
     column: number,
     selection?: { start: any; end: any }
   ): Promise<void> {
-    const { error } = await supabase.from('live_cursors').upsert(
-      {
-        session_id: sessionId,
-        user_id: userId,
-        file_path: filePath,
-        line_number: line,
-        column_number: column,
-        selection_start: selection?.start,
-        selection_end: selection?.end,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict: 'session_id,file_path',
+    const cursorData = {
+      session_id: sessionId,
+      user_id: userId,
+      file_path: filePath,
+      line_number: line,
+      column_number: column,
+      selection_start: selection?.start,
+      selection_end: selection?.end,
+      updated_at: new Date().toISOString(),
+    };
+
+    // Use upsert which will insert or update based on the data
+    // The storage layer handles upsert by inserting/updating the record
+    const upsertResult = supabase.from('live_cursors').upsert(cursorData);
+    let finalData: any = cursorData;
+    let error: Error | null = null;
+    
+    // Handle the storage layer's select() method which returns a promise-like object
+    if (upsertResult.select) {
+      try {
+        const selectResult = upsertResult.select();
+        // The select() method returns an object with then() method (thenable)
+        const result = await (selectResult as unknown as Promise<any>);
+        if (result && result.data !== undefined) {
+          finalData = Array.isArray(result.data) ? result.data[0] : result.data;
+          error = result.error || null;
+        }
+      } catch (err) {
+        error = err as Error;
+        console.error('Error upserting cursor:', err);
       }
-    );
+    }
 
     if (error) {
       console.error('Failed to update cursor:', error);
+      return;
     }
+
+    // Immediately trigger cursor update callback for the relevant project channel
+    // Get projectId from session mapping
+    const projectId = this.sessionProjectMap.get(sessionId);
+    
+    if (projectId && finalData) {
+      const channelName = `project:${projectId}`;
+      const channel = this.channels.get(channelName);
+      
+      if (channel && channel._triggerCursorUpdate) {
+        // Create LiveCursor object from the stored data
+        const cursorRecord = Array.isArray(finalData) ? finalData[0] : finalData;
+        const liveCursor: LiveCursor = {
+          id: cursorRecord?.id || `${sessionId}-${filePath}`,
+          session_id: sessionId,
+          user_id: userId,
+          file_path: filePath,
+          line_number: line,
+          column_number: column,
+          selection_start: selection?.start,
+          selection_end: selection?.end,
+          color: cursorRecord?.color || '#06B6D4',
+          updated_at: cursorData.updated_at,
+        };
+        channel._triggerCursorUpdate(liveCursor);
+      }
+    }
+    // Note: If projectId is not found, the polling mechanism will still catch the update
   }
 
   async logEvent(
@@ -240,17 +446,59 @@ export class RealtimeSyncService {
       eventData?: any;
     }
   ): Promise<void> {
-    await supabase.from('collaboration_events').insert([
-      {
+    const eventData = {
+      project_id: projectId,
+      session_id: this.sessionId,
+      event_type: eventType,
+      actor_id: actorId,
+      actor_name: data?.actorName,
+      target_file: data?.targetFile,
+      event_data: data?.eventData,
+      created_at: new Date().toISOString(),
+    };
+
+      const insertResult = supabase.from('collaboration_events').insert([eventData]);
+      let insertedEvent: any = eventData;
+      let error: Error | null = null;
+      
+      // Handle the storage layer's select() method
+      if (insertResult.select) {
+        try {
+          const selectResult = insertResult.select();
+          // The select() method returns a thenable object
+          const result = await (selectResult as unknown as Promise<any>);
+          if (result && result.data !== undefined) {
+            insertedEvent = Array.isArray(result.data) ? result.data[0] : result.data;
+            error = result.error || null;
+          }
+        } catch (err) {
+          error = err as Error;
+          console.error('Error inserting event:', err);
+        }
+      }
+
+    if (error) {
+      console.error('Failed to log event:', error);
+      return;
+    }
+
+    // Immediately trigger event callback for the channel subscribed to this project
+    const channelName = `project:${projectId}`;
+    const channel = this.channels.get(channelName);
+    
+    if (channel && channel._triggerEvent && insertedEvent) {
+      const collaborationEvent: CollaborationEvent = {
+        id: (insertedEvent as any).id || `event-${Date.now()}`,
         project_id: projectId,
-        session_id: this.sessionId,
         event_type: eventType,
         actor_id: actorId,
         actor_name: data?.actorName,
         target_file: data?.targetFile,
         event_data: data?.eventData,
-      },
-    ]);
+        created_at: (insertedEvent as any).created_at || eventData.created_at,
+      };
+      channel._triggerEvent(collaborationEvent);
+    }
   }
 
   async getActiveUsers(projectId: string): Promise<WorkspaceSession[]> {
@@ -276,7 +524,7 @@ export class RealtimeSyncService {
     lockType: 'read' | 'write' | 'exclusive' = 'write'
   ): Promise<boolean> {
     try {
-      const { error } = await supabase.from('file_locks').insert([
+      const insertResult = supabase.from('file_locks').insert([
         {
           project_id: projectId,
           file_path: filePath,
@@ -287,7 +535,9 @@ export class RealtimeSyncService {
         },
       ]);
 
-      return !error;
+      // Handle the promise-like result
+      const result = await (insertResult as unknown as Promise<{ error: Error | null }>);
+      return !result?.error;
     } catch (error) {
       console.error('Failed to acquire lock:', error);
       return false;
@@ -295,12 +545,27 @@ export class RealtimeSyncService {
   }
 
   async releaseFileLock(projectId: string, filePath: string, userId: string): Promise<void> {
-    await supabase
+    // Get all locks and filter, then delete matching ones
+    // The storage layer delete() only supports eq() with a single value
+    // So we need to query first, then delete by ID
+    const selectQuery = supabase
       .from('file_locks')
-      .delete()
+      .select('*')
       .eq('project_id', projectId)
       .eq('file_path', filePath)
       .eq('locked_by', userId);
+    
+    const locksResult = await (selectQuery as unknown as Promise<{ data: any[] | null; error: Error | null }>);
+    const locks = locksResult?.data;
+    
+    if (locks && Array.isArray(locks)) {
+      for (const lock of locks) {
+        if (lock.id) {
+          const deleteResult = supabase.from('file_locks').delete().eq('id', lock.id);
+          await (deleteResult as unknown as Promise<any>);
+        }
+      }
+    }
   }
 
   async checkFileLock(
@@ -331,7 +596,17 @@ export class RealtimeSyncService {
   }
 
   async cleanupExpiredLocks(): Promise<void> {
-    await supabase.from('file_locks').delete().lt('expires_at', new Date().toISOString());
+    // Get all locks and filter expired ones, then delete them
+    const { data: locks } = await supabase.from('file_locks').select('*');
+    
+    if (locks && Array.isArray(locks)) {
+      const now = new Date().toISOString();
+      for (const lock of locks) {
+        if (lock.expires_at && lock.expires_at < now && lock.id) {
+          await supabase.from('file_locks').delete().eq('id', lock.id);
+        }
+      }
+    }
   }
 
   unsubscribeFromProject(projectId: string): void {
@@ -339,14 +614,24 @@ export class RealtimeSyncService {
     const channel = this.channels.get(channelName);
 
     if (channel) {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
+      this.stopPollingForProject(projectId);
       this.channels.delete(channelName);
     }
   }
 
   unsubscribeAll(): void {
+    // Stop all polling timeouts
+    this.pollingIntervals.forEach((timeoutId, _projectId) => {
+      clearTimeout(timeoutId);
+    });
+    this.pollingIntervals.clear();
+    // Clear all polling flags
+    this.pollingInProgress.clear();
+
+    // Unsubscribe all channels
     this.channels.forEach(channel => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     });
     this.channels.clear();
     this.stopPresenceUpdates();

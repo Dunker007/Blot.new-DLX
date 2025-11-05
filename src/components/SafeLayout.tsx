@@ -3,10 +3,14 @@ import { ReactNode, useState } from 'react';
 import {
   Activity,
   Brain,
+  Code2,
   FolderKanban,
+  Image,
   LayoutDashboard,
   Menu,
   MessageSquare,
+  Mic,
+  Network,
   Settings,
   X,
 } from 'lucide-react';
@@ -30,6 +34,10 @@ const navItems: NavItem[] = [
   { id: 'workspace', label: 'Workspace', icon: MessageSquare },
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'connections', label: 'Connections', icon: Activity },
+  { id: 'monaco-editor', label: 'Code Editor', icon: Code2 },
+  { id: 'audio-transcriber', label: 'Audio Transcriber', icon: Mic },
+  { id: 'image-analysis', label: 'Image Analysis', icon: Image },
+  { id: 'mind-map', label: 'Mind Map', icon: Network },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -53,8 +61,8 @@ const SafeLayout = ({ children, currentView, onViewChange }: LayoutProps) => {
           <div className={`bg-gradient-to-r ${safeGradients.primary} p-2 rounded-lg`}>
             <Brain className="w-6 h-6 text-white" />
           </div>
-          <span className={`text-2xl font-bold ${safeUtils.textGradient}`}>DLX Studios</span>
-          <span className="text-sm text-slate-400 hidden sm:block">AI Development</span>
+          <span className={`text-2xl font-bold ${safeUtils.textGradient}`}>DLX Studios Ultimate</span>
+          <span className="text-sm text-slate-400 hidden sm:block">All-in-One AI Platform</span>
         </div>
 
         <div className="flex items-center space-x-2">

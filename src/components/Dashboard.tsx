@@ -163,30 +163,10 @@ function Dashboard({ onNavigate }: DashboardProps) {
             <div className="flex-1">
               <h3 className="text-cyan-400 font-semibold text-lg mb-2">Demo Mode Active</h3>
               <p className="text-slate-300 mb-3">
-                You're viewing demo data. To unlock full functionality with your own projects:
+                All data is stored locally in your browser using IndexedDB and LocalStorage.
               </p>
-              <ol className="text-slate-400 text-sm space-y-1 mb-4 list-decimal list-inside">
-                <li>
-                  Create a free Supabase account at{' '}
-                  <a
-                    href="https://supabase.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-cyan-400 hover:underline"
-                  >
-                    supabase.com
-                  </a>
-                </li>
-                <li>Create a new project and copy your credentials</li>
-                <li>
-                  Update the{' '}
-                  <code className="bg-slate-800 px-2 py-1 rounded text-cyan-400">.env</code> file
-                  with your VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
-                </li>
-                <li>Restart the development server</li>
-              </ol>
               <p className="text-slate-500 text-xs">
-                💡 All features work in demo mode, but data won't persist between sessions.
+                💡 Your projects, providers, and settings are automatically saved locally.
               </p>
             </div>
           </div>

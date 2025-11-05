@@ -1,19 +1,21 @@
 import { useState } from 'react';
 
-import { Activity, BarChart3, Brain, Globe, Server, Settings as SettingsIcon } from 'lucide-react';
+import { Activity, BarChart3, Brain, Globe, Key, Server, Settings as SettingsIcon } from 'lucide-react';
 
 import EnvironmentSettings from './EnvironmentSettings';
+import GeminiSettings from './GeminiSettings';
 import ModelPerformanceDashboard from './ModelPerformanceDashboard';
 import ModelRecommendations from './ModelRecommendations';
 import Settings from './Settings';
 import TokenAnalytics from './TokenAnalytics';
 
-type TabType = 'providers' | 'recommendations' | 'performance' | 'analytics' | 'environment';
+type TabType = 'providers' | 'recommendations' | 'performance' | 'analytics' | 'environment' | 'gemini';
 
 export default function EnhancedSettings() {
-  const [activeTab, setActiveTab] = useState<TabType>('providers');
+  const [activeTab, setActiveTab] = useState<TabType>('gemini');
 
   const tabs = [
+    { id: 'gemini' as TabType, label: 'Gemini API', icon: Key },
     { id: 'providers' as TabType, label: 'Providers & Models', icon: Server },
     { id: 'recommendations' as TabType, label: 'AI Recommendations', icon: Brain },
     { id: 'performance' as TabType, label: 'Performance', icon: Activity },
@@ -53,6 +55,7 @@ export default function EnhancedSettings() {
         </div>
 
         <div className="p-6">
+          {activeTab === 'gemini' && <GeminiSettings />}
           {activeTab === 'providers' && <Settings />}
           {activeTab === 'recommendations' && <ModelRecommendations />}
           {activeTab === 'performance' && <ModelPerformanceDashboard />}

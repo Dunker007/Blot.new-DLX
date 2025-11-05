@@ -9,6 +9,12 @@ const EnhancedSettings = lazy(() => import('./components/EnhancedSettings'));
 const Projects = lazy(() => import('./components/Projects'));
 const Workspace = lazy(() => import('./components/Workspace'));
 
+// New DLX-Studios-Ultimate modules
+const MonacoEditorPage = lazy(() => import('./modules/monaco-editor/MonacoEditorPage'));
+const AudioTranscriber = lazy(() => import('./modules/multimodal/AudioTranscriber'));
+const ImageAnalysis = lazy(() => import('./modules/multimodal/ImageAnalysis'));
+const MindMapPage = lazy(() => import('./modules/mind-map/MindMapPage'));
+
 // Loading fallback component
 const LoadingFallback = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -52,6 +58,15 @@ function App() {
         return <ConnectionDashboard />;
       case 'settings':
         return <EnhancedSettings />;
+      // New DLX-Studios-Ultimate modules
+      case 'monaco-editor':
+        return <MonacoEditorPage />;
+      case 'audio-transcriber':
+        return <AudioTranscriber />;
+      case 'image-analysis':
+        return <ImageAnalysis />;
+      case 'mind-map':
+        return <MindMapPage />;
       default:
         try {
           return <AICommandCenter onNavigate={setCurrentView} />;

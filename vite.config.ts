@@ -10,24 +10,59 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks for better caching
-          'react-vendor': ['react', 'react-dom'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'lucide-vendor': ['lucide-react'],
-          // Service chunks
-          services: [
-            './src/services/llm.ts',
-            './src/services/providerRouter.ts',
-            './src/services/tokenTracking.ts',
-          ],
-          // Component chunks
-          components: [
-            './src/components/Dashboard.tsx',
-            './src/components/Settings.tsx',
-            './src/components/TokenAnalytics.tsx',
-          ],
+        manualChunks: (id) => {
+          // Vendor chunks
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('lucide-react')) {
+              return 'lucide-vendor';
+            }
+            if (id.includes('monaco-editor')) {
+              return 'monaco-vendor';
+            }
+            if (id.includes('three') || id.includes('@react-three')) {
+              return 'three-vendor';
+            }
+            // Other node_modules
+            return 'vendor';
+          }
+          
+          // Large services
+          if (id.includes('/services/')) {
+            if (id.includes('llm') || id.includes('providerRouter') || id.includes('tokenTracking')) {
+              return 'core-services';
+            }
+            if (id.includes('multiModelOrchestrator') || id.includes('modelDiscovery')) {
+              return 'ai-services';
+            }
+            return 'services';
+          }
+          
+          // Large components
+          if (id.includes('/components/')) {
+            if (id.includes('AICommandCenter') || id.includes('Dashboard')) {
+              return 'core-components';
+            }
+            if (id.includes('MonacoEditor') || id.includes('Workspace')) {
+              return 'editor-components';
+            }
+            if (id.includes('AudioTranscriber') || id.includes('ImageAnalysis')) {
+              return 'multimodal-components';
+            }
+            return 'components';
+          }
+          
+          // Modules
+          if (id.includes('/modules/')) {
+            return 'modules';
+          }
         },
+        // Optimize chunk names
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
     // Enable minification and tree shaking
@@ -36,10 +71,21 @@ export default defineConfig({
       compress: {
         drop_console: true, // Remove console.logs in production
         drop_debugger: true,
+        pure_funcs: ['console.log', 'console.info'], // Remove specific console methods
+        passes: 2, // Multiple passes for better optimization
+      },
+      mangle: {
+        safari10: true, // Fix Safari 10 issues
       },
     },
     // Optimize chunk size
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 600,
+    // Source maps for production debugging (optional)
+    sourcemap: false,
+    // Target modern browsers
+    target: 'esnext',
+    // CSS code splitting
+    cssCodeSplit: true,
   },
   test: {
     globals: true,

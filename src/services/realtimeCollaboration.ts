@@ -63,71 +63,27 @@ export class RealtimeCollaborationService {
       await this.leaveSession();
     }
 
-    // Create new channel for the project
-    this.channel = supabase.channel(`project:${projectId}`, {
-      config: {
-        presence: {
-          key: user.id,
-        },
-      },
+    // Create simplified local channel (no Supabase needed)
+    this.channel = {
+      on: () => this.channel,
+      subscribe: async () => Promise.resolve(),
+      unsubscribe: async () => Promise.resolve(),
+      track: async () => Promise.resolve(),
+      send: () => {},
+      presenceState: () => ({}),
+    };
+
+    // Add current user to active users
+    this.activeUsers.set(this.currentUser.id, this.currentUser);
+    this.emitEvent({
+      type: 'user_join',
+      userId: this.currentUser.id,
+      data: this.currentUser,
+      timestamp: new Date(),
     });
 
-    // Subscribe to presence changes
-    this.channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = this.channel?.presenceState();
-        this.updatePresenceState(state || {});
-      })
-      .on(
-        'presence',
-        { event: 'join' },
-        ({ key, newPresences }: { key: string; newPresences: any[] }) => {
-          console.log('User joined:', key, newPresences);
-          this.emitEvent({
-            type: 'user_join',
-            userId: key,
-            data: newPresences[0],
-            timestamp: new Date(),
-          });
-        }
-      )
-      .on(
-        'presence',
-        { event: 'leave' },
-        ({ key, leftPresences }: { key: string; leftPresences: any[] }) => {
-          console.log('User left:', key, leftPresences);
-          this.activeUsers.delete(key);
-          this.emitEvent({
-            type: 'user_leave',
-            userId: key,
-            data: leftPresences[0],
-            timestamp: new Date(),
-          });
-        }
-      );
-
-    // Subscribe to broadcast events
-    this.channel
-      .on('broadcast', { event: 'cursor_move' }, (payload: any) => {
-        this.handleCursorMove(payload);
-      })
-      .on('broadcast', { event: 'text_change' }, (payload: any) => {
-        this.handleTextChange(payload);
-      })
-      .on('broadcast', { event: 'selection_change' }, (payload: any) => {
-        this.handleSelectionChange(payload);
-      })
-      .on('broadcast', { event: 'ai_response' }, (payload: any) => {
-        this.handleAIResponse(payload);
-      });
-
-    // Subscribe and track presence
-    await this.channel.subscribe(async (status: string) => {
-      if (status !== 'SUBSCRIBED') return;
-
-      await this.channel?.track(this.currentUser);
-      this.startPresenceHeartbeat();
-    });
+    // Start presence heartbeat for local mode
+    this.startPresenceHeartbeat();
   }
 
   async leaveSession(): Promise<void> {
@@ -146,17 +102,15 @@ export class RealtimeCollaborationService {
   }
 
   broadcastCursorMove(cursor: { x: number; y: number; elementId?: string }): void {
-    if (!this.channel || !this.currentUser) return;
+    if (!this.currentUser) return;
 
     this.currentUser.cursor = cursor;
-    this.channel.send({
-      type: 'broadcast',
-      event: 'cursor_move',
-      payload: {
-        userId: this.currentUser.id,
-        cursor,
-        timestamp: new Date().toISOString(),
-      },
+    // In local mode, cursor updates are handled locally
+    this.emitEvent({
+      type: 'cursor_move',
+      userId: this.currentUser.id,
+      data: cursor,
+      timestamp: new Date(),
     });
   }
 
@@ -169,33 +123,27 @@ export class RealtimeCollaborationService {
       length?: number;
     }
   ): void {
-    if (!this.channel || !this.currentUser) return;
+    if (!this.currentUser) return;
 
-    this.channel.send({
-      type: 'broadcast',
-      event: 'text_change',
-      payload: {
-        userId: this.currentUser.id,
-        elementId,
-        change,
-        timestamp: new Date().toISOString(),
-      },
+    this.emitEvent({
+      type: 'text_change',
+      userId: this.currentUser.id,
+      elementId,
+      data: change,
+      timestamp: new Date(),
     });
   }
 
   broadcastSelectionChange(elementId: string, selection: { start: number; end: number }): void {
-    if (!this.channel || !this.currentUser) return;
+    if (!this.currentUser) return;
 
     this.currentUser.selection = { ...selection, elementId };
-    this.channel.send({
-      type: 'broadcast',
-      event: 'selection_change',
-      payload: {
-        userId: this.currentUser.id,
-        elementId,
-        selection,
-        timestamp: new Date().toISOString(),
-      },
+    this.emitEvent({
+      type: 'selection_change',
+      userId: this.currentUser.id,
+      elementId,
+      data: selection,
+      timestamp: new Date(),
     });
   }
 
@@ -207,17 +155,13 @@ export class RealtimeCollaborationService {
       tokens?: number;
     }
   ): void {
-    if (!this.channel || !this.currentUser) return;
+    if (!this.currentUser) return;
 
-    this.channel.send({
-      type: 'broadcast',
-      event: 'ai_response',
-      payload: {
-        userId: this.currentUser.id,
-        conversationId,
-        response,
-        timestamp: new Date().toISOString(),
-      },
+    this.emitEvent({
+      type: 'ai_response',
+      userId: this.currentUser.id,
+      data: { conversationId, response },
+      timestamp: new Date(),
     });
   }
 
@@ -328,10 +272,11 @@ export class RealtimeCollaborationService {
   }
 
   private startPresenceHeartbeat(): void {
-    this.presenceTimer = setInterval(async () => {
-      if (this.currentUser && this.channel) {
+    this.presenceTimer = setInterval(() => {
+      if (this.currentUser) {
         this.currentUser.lastActive = new Date();
-        await this.channel.track(this.currentUser);
+        // Update user in active users map
+        this.activeUsers.set(this.currentUser.id, this.currentUser);
       }
     }, 30000); // Update every 30 seconds
   }

@@ -111,8 +111,6 @@ export class ProjectSyncService {
     // Optionally log the export (async, non-blocking)
     if (this.logExports) {
       supabase.from('project_exports').insert([{
-    await supabase.from('project_exports').insert([
-      {
         project_id: projectId,
         export_type: exportType,
         file_size_bytes: blob.size,
@@ -120,8 +118,6 @@ export class ProjectSyncService {
         created_at: new Date().toISOString(),
       }]).catch(err => console.error('Failed to log export:', err));
     }
-      },
-    ]);
 
     return blob;
   }
