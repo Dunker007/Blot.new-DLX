@@ -34,15 +34,16 @@ DLX Studios Ultimate is the consolidated powerhouse combining the best features 
 - **Video Analysis**: Video understanding and frame analysis (coming soon)
 
 ### 🧠 **AI Tools**
-- **Mind Map**: Visual brainstorming and idea organization
-- **Agent Designer**: Build custom AI agents with visual tools (coming soon)
+- **Mind Map**: Enhanced visual brainstorming with WebGL background, voice control, drag & drop nodes, and zoom/pan ✨ **NEW**
+- **Feature Flags**: Advanced feature management system with 6 states (active, preview, labs, comingSoon, inactive, disabled) ✨ **NEW**
+- **Agent Designer**: Build custom AI agents with visual tools (via Labs Hub - preview)
 - **Story Writer**: Automated narrative tracking and timeline visualization (coming soon)
-- **Feature Flags**: Advanced feature management and A/B testing (coming soon)
 
 ### 📊 **Command Center Features**
-- **Idea Board**: Kanban-style brainstorming system (coming soon)
-- **Task Management**: Project tracking with priorities and deadlines (coming soon)
-- **Crypto Lab**: Cryptocurrency analysis and portfolio tracking (coming soon)
+- **Idea Lab**: Kanban-style brainstorming system with 4 status columns (New → Discussion → Approved → Archived) ✨ **NEW**
+- **Task Management**: AI-powered task execution with Gemini, Intel analysis mode, filtering and search ✨ **NEW**
+- **Labs Hub**: Central hub for 11 specialized labs including AURA Interface, Agent Forge, Data Weave, and more ✨ **NEW**
+- **Crypto Lab**: Cryptocurrency analysis and portfolio tracking (via Labs Hub - coming soon)
 - **Knowledge Base**: Documentation system with search (coming soon)
 
 ### 🔧 **Token Management & Cost Optimization**
@@ -63,18 +64,11 @@ DLX Studios Ultimate is the consolidated powerhouse combining the best features 
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/dlx-studios.git
-cd dlx-studios
+git clone https://github.com/yourusername/DLX-Studios-Ultimate.git
+cd DLX-Studios-Ultimate
 
 # Install dependencies
 npm install
-
-# Set up environment variables (interactive setup)
-npm run setup
-
-# Or manually copy and edit
-cp .env.example .env
-# Edit .env with your Supabase credentials
 
 # Start development server
 npm run dev
@@ -82,12 +76,27 @@ npm run dev
 
 Visit `http://localhost:5173` to see your app running!
 
-### Database Setup
+### Production Server (LuxRig Hosting)
 
-1. Create a Supabase account at [supabase.com](https://supabase.com)
-2. Create a new project
-3. Copy your project URL and anon key to `.env`
-4. Migrations will be applied automatically on first run
+```bash
+# Build frontend
+npm run build
+
+# Start production server (port 3001)
+npm start
+# or
+npm run start:prod
+```
+
+Visit `http://localhost:3001` for the full-stack deployment.
+
+### Gemini API Setup (Optional but Recommended)
+
+For AI features (Task Management, AURA Interface, Mind Map voice control):
+
+1. Get API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Navigate to Settings → Gemini API in the app
+3. Enter your API key and save
 
 ### Add Your First LLM Provider
 
@@ -125,22 +134,23 @@ npm run docker:run
 
 ### Environment Variables
 
-Required for all deployments:
+**No environment variables required!** DLX Studios Ultimate uses local storage by default.
 
-```bash
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
-```
+Optional (for enhanced features):
+- Gemini API key (set via Settings UI)
+- LM Studio endpoint (default: `http://localhost:1234`)
 
 ## 🏗️ Architecture
 
 ### Tech Stack
 
-- **Frontend**: React 18 + TypeScript + Vite
+- **Frontend**: React 19 + TypeScript + Vite 6
+- **Backend**: Node.js + Express (production server)
 - **Styling**: Tailwind CSS
-- **Database**: Supabase (PostgreSQL)
+- **Storage**: LocalStorage + IndexedDB (no database required!)
 - **Icons**: Lucide React
-- **Deployment**: Vercel, Netlify, Railway, Docker
+- **AI**: Google Gemini API, LM Studio, Ollama
+- **Deployment**: Standalone server, Vercel, Netlify, Railway, Docker
 
 ### Project Structure
 
@@ -220,22 +230,36 @@ Migrations are located in `supabase/migrations/` and follow this naming conventi
 YYYYMMDDHHMMSS_description.sql
 ```
 
+## 🎯 Recent Updates
+
+### ✨ Version 2.0 - Consolidation Complete!
+
+All features from 10 repositories have been consolidated into Ultimate:
+
+- ✅ **Feature Flags System** - Toggle features on/off in real-time
+- ✅ **Idea Lab** - Kanban board for idea management
+- ✅ **Enhanced Mind Map** - WebGL background + voice control
+- ✅ **Labs Hub** - 11 specialized AI labs
+- ✅ **Task Management** - AI-powered task execution
+
+See [CONSOLIDATION_COMPLETE.md](./CONSOLIDATION_COMPLETE.md) for details.
+
 ## 🎯 Roadmap
 
-- [ ] User authentication with Supabase Auth
-- [ ] Team collaboration features
-- [ ] Advanced code generation with context awareness
+- [ ] Complete remaining Labs (Agent Forge, Code Review, etc.)
+- [ ] Enhanced collaboration features
 - [ ] Plugin system for extensibility
 - [ ] Mobile app for iOS and Android
-- [ ] Self-hosted version with docker-compose
 - [ ] Integration with GitHub/GitLab
 - [ ] Template marketplace
 
 ## 📚 Documentation
 
-- **[API Documentation](./docs/API.md)** - Detailed API reference for all services
-- **[Architecture Guide](./docs/ARCHITECTURE.md)** - System architecture and design patterns
-- **[Contributing Guide](./CONTRIBUTING.md)** - How to contribute to the project
+- **[Consolidation Complete](./CONSOLIDATION_COMPLETE.md)** - Full feature port summary
+- **[Migration Guide](./MIGRATION_GUIDE.md)** - How to use new features
+- **[Consolidation Plan](./CONSOLIDATION_PLAN.md)** - Original consolidation strategy
+- **[Deployment Guide](./LUXRIG_DEPLOYMENT.md)** - LuxRig hosting instructions
+- **[Troubleshooting](./TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## 📄 License
 

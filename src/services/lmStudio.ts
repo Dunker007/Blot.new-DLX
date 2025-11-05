@@ -72,7 +72,13 @@ class LMStudioService {
         throw new Error('No models available in LM Studio');
       }
 
-      const selectedModel = options.model || models[0].id;
+      // Prefer gemma-3n-e4b-it if available (user's preferred model)
+      const preferredModel = models.find(m => 
+        m.id.toLowerCase().includes('gemma-3n-e4b-it') || 
+        m.id.toLowerCase().includes('gemma')
+      );
+      
+      const selectedModel = options.model || preferredModel?.id || models[0].id;
 
       const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
         method: 'POST',

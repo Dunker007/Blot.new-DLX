@@ -210,7 +210,8 @@ app.post('/api/ai/chat', async (req, res) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: model || 'auto', // LM Studio will auto-select
+            // Prefer gemma-3n-e4b-it if available, otherwise auto-select
+            model: model || 'gemma-3n-e4b-it', // User's preferred model
             messages,
             max_tokens,
             temperature,

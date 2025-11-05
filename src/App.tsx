@@ -14,6 +14,10 @@ const MonacoEditorPage = lazy(() => import('./modules/monaco-editor/MonacoEditor
 const AudioTranscriber = lazy(() => import('./modules/multimodal/AudioTranscriber'));
 const ImageAnalysis = lazy(() => import('./modules/multimodal/ImageAnalysis'));
 const MindMapPage = lazy(() => import('./modules/mind-map/MindMapPage'));
+const FeatureFlags = lazy(() => import('./components/FeatureFlags'));
+const IdeaLab = lazy(() => import('./components/IdeaLab'));
+const LabsRouter = lazy(() => import('./modules/labs/LabsRouter'));
+const TaskManagement = lazy(() => import('./components/TaskManagement'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -35,6 +39,7 @@ const LoadingFallback = () => (
 
 function App() {
   const [currentView, setCurrentView] = useState('dashboard');
+  const [activeLabId, setActiveLabId] = useState<string | null>(null);
 
   const renderView = () => {
     switch (currentView) {
@@ -58,6 +63,14 @@ function App() {
         return <ConnectionDashboard />;
       case 'settings':
         return <EnhancedSettings />;
+      case 'feature-flags':
+        return <FeatureFlags />;
+      case 'idea-lab':
+        return <IdeaLab />;
+      case 'labs':
+        return <LabsRouter activeLabId={activeLabId as any} onSelectLab={setActiveLabId} />;
+      case 'tasks':
+        return <TaskManagement />;
       // New DLX-Studios-Ultimate modules
       case 'monaco-editor':
         return <MonacoEditorPage />;

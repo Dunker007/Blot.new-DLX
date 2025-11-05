@@ -3,10 +3,14 @@ import { ReactNode, useState } from 'react';
 import {
   Activity,
   Brain,
+  CheckSquare,
   Code2,
+  Flag,
+  FlaskConical,
   FolderKanban,
   Image,
   LayoutDashboard,
+  Lightbulb,
   Menu,
   MessageSquare,
   Mic,
@@ -38,6 +42,10 @@ const navItems: NavItem[] = [
   { id: 'audio-transcriber', label: 'Audio Transcriber', icon: Mic },
   { id: 'image-analysis', label: 'Image Analysis', icon: Image },
   { id: 'mind-map', label: 'Mind Map', icon: Network },
+  { id: 'idea-lab', label: 'Idea Lab', icon: Lightbulb },
+  { id: 'tasks', label: 'Task Management', icon: CheckSquare },
+  { id: 'labs', label: 'Labs Hub', icon: FlaskConical },
+  { id: 'feature-flags', label: 'Feature Flags', icon: Flag },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
