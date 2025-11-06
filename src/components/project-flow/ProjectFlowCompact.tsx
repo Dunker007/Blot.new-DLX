@@ -2,14 +2,23 @@
  * Compact Project Flow View
  * Optimized for split-screen layout (1080p)
  */
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { ProjectFlowItem, FlowColumn } from '../../types/projectFlow';
-import { projectFlowService } from '../../services/projectFlowService';
-import { 
-  Search, Filter, Plus, Network, Lightbulb, CheckSquare,
-  ChevronRight, ChevronLeft, Play, X
+import {
+  CheckSquare,
+  ChevronLeft,
+  ChevronRight,
+  Filter,
+  Lightbulb,
+  Network,
+  Play,
+  Plus,
+  Search,
+  X,
 } from 'lucide-react';
+
+import { projectFlowService } from '../../services/projectFlowService';
+import { FlowColumn, ProjectFlowItem } from '../../types/projectFlow';
 
 interface ProjectFlowCompactProps {
   onFullView?: () => void;
@@ -29,6 +38,30 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
     { id: 'done', label: 'Done', color: 'green' },
   ];
 
+  // Static mapping for Tailwind classes (required for JIT compilation)
+  const COLUMN_COLOR_CLASSES: Record<string, { active: string; inactive: string }> = {
+    cyan: {
+      active: 'bg-cyan-600/30 text-cyan-400 border border-cyan-500/50',
+      inactive: 'bg-slate-700/50 text-gray-400 hover:bg-slate-700/70',
+    },
+    blue: {
+      active: 'bg-blue-600/30 text-blue-400 border border-blue-500/50',
+      inactive: 'bg-slate-700/50 text-gray-400 hover:bg-slate-700/70',
+    },
+    yellow: {
+      active: 'bg-yellow-600/30 text-yellow-400 border border-yellow-500/50',
+      inactive: 'bg-slate-700/50 text-gray-400 hover:bg-slate-700/70',
+    },
+    purple: {
+      active: 'bg-purple-600/30 text-purple-400 border border-purple-500/50',
+      inactive: 'bg-slate-700/50 text-gray-400 hover:bg-slate-700/70',
+    },
+    green: {
+      active: 'bg-green-600/30 text-green-400 border border-green-500/50',
+      inactive: 'bg-slate-700/50 text-gray-400 hover:bg-slate-700/70',
+    },
+  };
+
   useEffect(() => {
     // Migrate labs on mount if not already done
     const labCount = projectFlowService.migrateLabsToFlow();
@@ -46,12 +79,13 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
   const filteredItems = useMemo(() => {
     const columnItems = items.filter(item => item.column === selectedColumn);
     if (!searchQuery) return columnItems;
-    
+
     const query = searchQuery.toLowerCase();
-    return columnItems.filter(item => 
-      item.title.toLowerCase().includes(query) ||
-      item.description.toLowerCase().includes(query) ||
-      item.tags?.some(tag => tag.toLowerCase().includes(query))
+    return columnItems.filter(
+      item =>
+        item.title.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.tags?.some(tag => tag.toLowerCase().includes(query))
     );
   }, [items, selectedColumn, searchQuery]);
 
@@ -108,14 +142,14 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
 
         {/* Column Tabs */}
         <div className="flex gap-1 mb-2">
-          {COLUMNS.map((col) => (
+          {COLUMNS.map(col => (
             <button
               key={col.id}
               onClick={() => setSelectedColumn(col.id)}
               className={`flex-1 px-2 py-1 text-xs font-semibold rounded transition-colors ${
                 selectedColumn === col.id
-                  ? `bg-${col.color}-600/30 text-${col.color}-400 border border-${col.color}-500/50`
-                  : 'bg-slate-700/50 text-gray-400 hover:bg-slate-700/70'
+                  ? COLUMN_COLOR_CLASSES[col.color]?.active || COLUMN_COLOR_CLASSES.cyan.active
+                  : COLUMN_COLOR_CLASSES[col.color]?.inactive || COLUMN_COLOR_CLASSES.cyan.inactive
               }`}
             >
               {col.label} ({items.filter(i => i.column === col.id).length})
@@ -129,7 +163,7 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             placeholder="Search..."
             className="w-full pl-7 pr-2 py-1.5 text-xs bg-slate-900/50 border border-slate-700 rounded text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-500"
           />
@@ -143,7 +177,7 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
             {searchQuery ? 'No items match your search' : 'No items in this column'}
           </div>
         ) : (
-          filteredItems.slice(0, 20).map((item) => (
+          filteredItems.slice(0, 20).map(item => (
             <div
               key={item.id}
               className={`group bg-slate-800/50 border rounded-lg p-2 transition-all hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 ${
@@ -160,12 +194,17 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
                     )}
                     <span className="text-xs font-semibold text-white truncate">{item.title}</span>
                     {item.priority && (
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
-                        item.priority === 'critical' ? 'bg-red-500/20 text-red-400' :
-                        item.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                        item.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-blue-500/20 text-blue-400'
-                      }`}>
+                      <span
+                        className={`text-xs px-1.5 py-0.5 rounded ${
+                          item.priority === 'critical'
+                            ? 'bg-red-500/20 text-red-400'
+                            : item.priority === 'high'
+                              ? 'bg-orange-500/20 text-orange-400'
+                              : item.priority === 'medium'
+                                ? 'bg-yellow-500/20 text-yellow-400'
+                                : 'bg-blue-500/20 text-blue-400'
+                        }`}
+                      >
                         {item.priority}
                       </span>
                     )}
@@ -176,7 +215,10 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
                   {item.tags && item.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-1">
                       {item.tags.slice(0, 2).map((tag, idx) => (
-                        <span key={idx} className="text-xs px-1.5 py-0.5 bg-slate-700/50 text-gray-300 rounded">
+                        <span
+                          key={idx}
+                          className="text-xs px-1.5 py-0.5 bg-slate-700/50 text-gray-300 rounded"
+                        >
                           {tag}
                         </span>
                       ))}
@@ -213,18 +255,18 @@ const ProjectFlowCompact: React.FC<ProjectFlowCompactProps> = ({ onFullView }) =
 
               {/* Quick Actions */}
               <div className="flex gap-1 mt-2">
-                {COLUMNS.filter(col => col.id !== selectedColumn).map((col) => (
+                {COLUMNS.filter(col => col.id !== selectedColumn).map(col => (
                   <button
                     key={col.id}
                     onClick={() => handleMoveItem(item.id, col.id)}
                     className={`flex-1 px-2 py-1 text-xs rounded transition-colors ${
-                      col.id === 'done' 
+                      col.id === 'done'
                         ? 'bg-green-600/20 text-green-400 hover:bg-green-600/30'
                         : col.id === 'backlog'
-                        ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
-                        : col.id === 'review'
-                        ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
-                        : 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
+                          ? 'bg-blue-600/20 text-blue-400 hover:bg-blue-600/30'
+                          : col.id === 'review'
+                            ? 'bg-purple-600/20 text-purple-400 hover:bg-purple-600/30'
+                            : 'bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/30'
                     }`}
                   >
                     → {col.label}

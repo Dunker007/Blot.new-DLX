@@ -2,9 +2,9 @@
  * Flow Board Component
  * Kanban board with drag-and-drop support
  */
+import React, { useCallback, useState } from 'react';
 
-import React, { useState, useCallback } from 'react';
-import { ProjectFlowItem, FlowColumn } from '../../types/projectFlow';
+import { FlowColumn, ProjectFlowItem } from '../../types/projectFlow';
 import { FlowCard } from './FlowCard';
 import { FlowConnector } from './FlowConnector';
 
@@ -25,6 +25,15 @@ const COLUMNS: Array<{ id: FlowColumn; label: string; color: string }> = [
   { id: 'review', label: 'Review', color: 'purple' },
   { id: 'done', label: 'Done', color: 'green' },
 ];
+
+// Static mapping for Tailwind classes (required for JIT compilation)
+const COLUMN_COLOR_CLASSES: Record<string, string> = {
+  cyan: 'text-cyan-400',
+  blue: 'text-blue-400',
+  yellow: 'text-yellow-400',
+  purple: 'text-purple-400',
+  green: 'text-green-400',
+};
 
 export const FlowBoard: React.FC<FlowBoardProps> = ({
   items,
@@ -47,15 +56,18 @@ export const FlowBoard: React.FC<FlowBoardProps> = ({
     setDragOverColumn(null);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, column: FlowColumn) => {
-    e.preventDefault();
-    const itemId = e.dataTransfer.getData('itemId');
-    if (itemId) {
-      onMoveItem(itemId, column);
-    }
-    setDraggedItem(null);
-    setDragOverColumn(null);
-  }, [onMoveItem]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent, column: FlowColumn) => {
+      e.preventDefault();
+      const itemId = e.dataTransfer.getData('itemId');
+      if (itemId) {
+        onMoveItem(itemId, column);
+      }
+      setDraggedItem(null);
+      setDragOverColumn(null);
+    },
+    [onMoveItem]
+  );
 
   const handleDragStart = useCallback((itemId: string) => {
     setDraggedItem(itemId);
@@ -72,7 +84,7 @@ export const FlowBoard: React.FC<FlowBoardProps> = ({
 
       {/* Kanban Board */}
       <div className="flex gap-4 overflow-x-auto pb-4 relative z-10">
-        {COLUMNS.map((column) => {
+        {COLUMNS.map(column => {
           const columnItems = getColumnItems(column.id);
           const isDragOver = dragOverColumn === column.id;
 
@@ -82,13 +94,15 @@ export const FlowBoard: React.FC<FlowBoardProps> = ({
               className={`flex-shrink-0 w-80 bg-slate-800/50 border rounded-lg p-4 transition-all ${
                 isDragOver ? 'border-cyan-400 bg-cyan-500/10' : 'border-slate-700'
               }`}
-              onDragOver={(e) => handleDragOver(e, column.id)}
+              onDragOver={e => handleDragOver(e, column.id)}
               onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, column.id)}
+              onDrop={e => handleDrop(e, column.id)}
             >
               {/* Column Header */}
               <div className="flex items-center justify-between mb-4">
-                <h3 className={`font-bold text-lg text-${column.color}-400`}>
+                <h3
+                  className={`font-bold text-lg ${COLUMN_COLOR_CLASSES[column.color] || 'text-gray-400'}`}
+                >
                   {column.label}
                 </h3>
                 <span className="text-sm text-gray-500 bg-slate-700/50 px-2 py-1 rounded">
@@ -98,7 +112,7 @@ export const FlowBoard: React.FC<FlowBoardProps> = ({
 
               {/* Column Items */}
               <div className="space-y-3 min-h-[200px]">
-                {columnItems.map((item) => (
+                {columnItems.map(item => (
                   <FlowCard
                     key={item.id}
                     item={item}
@@ -111,9 +125,7 @@ export const FlowBoard: React.FC<FlowBoardProps> = ({
                   />
                 ))}
                 {columnItems.length === 0 && (
-                  <div className="text-center py-8 text-gray-500 text-sm">
-                    Drop items here
-                  </div>
+                  <div className="text-center py-8 text-gray-500 text-sm">Drop items here</div>
                 )}
               </div>
             </div>

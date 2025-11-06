@@ -2,18 +2,30 @@
  * Flow Card Component
  * Displays both Idea and Task items in the Kanban board
  */
-
 import React, { useState } from 'react';
-import { ProjectFlowItem } from '../../types/projectFlow';
-import { 
-  Lightbulb, CheckSquare, Play, MoreVertical, Tag, Calendar, 
-  ChevronUp, ChevronDown, Link2, Trash2, Edit2, Sparkles, FlaskConical
+
+import {
+  Calendar,
+  CheckSquare,
+  ChevronDown,
+  ChevronUp,
+  Edit2,
+  FlaskConical,
+  Lightbulb,
+  Link2,
+  MoreVertical,
+  Play,
+  Sparkles,
+  Tag,
+  Trash2,
 } from 'lucide-react';
+
 import { IdeaStatus } from '../../types/idea';
+import { FlowColumn, ProjectFlowItem } from '../../types/projectFlow';
 
 interface FlowCardProps {
   item: ProjectFlowItem;
-  onMove: (id: string, column: string) => void;
+  onMove: (id: string, column: FlowColumn) => void;
   onExecute?: (id: string) => void;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
@@ -56,7 +68,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
         typeColors[item.type]
       } ${isCompleted ? 'opacity-75' : ''} ${isRunning ? 'ring-2 ring-cyan-400 animate-pulse' : ''}`}
       draggable
-      onDragStart={(e) => {
+      onDragStart={e => {
         e.dataTransfer.setData('itemId', item.id);
       }}
     >
@@ -78,13 +90,15 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             </span>
           )}
           {item.priority && (
-            <span className={`text-xs px-2 py-0.5 rounded-full border ${priorityColors[item.priority]}`}>
+            <span
+              className={`text-xs px-2 py-0.5 rounded-full border ${priorityColors[item.priority]}`}
+            >
               {item.priority}
             </span>
           )}
         </div>
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             setShowMenu(!showMenu);
           }}
@@ -106,10 +120,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
       {item.tags && item.tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mb-2">
           {item.tags.slice(0, 3).map((tag, idx) => (
-            <span
-              key={idx}
-              className="text-xs px-2 py-0.5 bg-slate-700/50 text-gray-300 rounded"
-            >
+            <span key={idx} className="text-xs px-2 py-0.5 bg-slate-700/50 text-gray-300 rounded">
               {tag}
             </span>
           ))}
@@ -139,7 +150,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
       {/* Task-specific: Execute button */}
       {isTask && onExecute && !isCompleted && (
         <button
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation();
             onExecute(item.id);
           }}
@@ -181,7 +192,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
           <div className="py-1">
             {onEdit && (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onEdit(item.id);
                   setShowMenu(false);
@@ -194,7 +205,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             )}
             {onLink && (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onLink(item.id);
                   setShowMenu(false);
@@ -207,7 +218,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
             )}
             {onDelete && (
               <button
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation();
                   onDelete(item.id);
                   setShowMenu(false);
@@ -223,12 +234,7 @@ export const FlowCard: React.FC<FlowCardProps> = ({
       )}
 
       {/* Click outside to close menu */}
-      {showMenu && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setShowMenu(false)}
-        />
-      )}
+      {showMenu && <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />}
     </div>
   );
 };

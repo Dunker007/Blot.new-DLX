@@ -38,12 +38,12 @@ class LightweightStorage {
   private async initDB(): Promise<void> {
     return new Promise((resolve, reject) => {
       const request = indexedDB.open(this.dbName, this.version);
-      
+
       // Add timeout to DB initialization
       const timeout = setTimeout(() => {
         reject(new Error('Database initialization timeout'));
       }, this.OPERATION_TIMEOUT);
-      
+
       request.onerror = () => {
         clearTimeout(timeout);
         reject(request.error);
@@ -51,12 +51,12 @@ class LightweightStorage {
       request.onsuccess = () => {
         clearTimeout(timeout);
         this.db = request.result;
-        
+
         // Add error handler for database-level errors
-        this.db.onerror = (event) => {
+        this.db.onerror = event => {
           console.error('Database error:', event);
         };
-        
+
         resolve();
       };
 
@@ -100,11 +100,11 @@ class LightweightStorage {
           const transaction = this.db!.transaction([table], 'readonly');
           const store = transaction.objectStore(table);
           const request = store.getAll();
-          
+
           request.onsuccess = () => {
             resolve({ data: request.result, error: null });
           };
-          
+
           request.onerror = () => {
             reject(request.error || new Error('Select operation failed'));
           };
@@ -118,17 +118,17 @@ class LightweightStorage {
   async insert(table: string, data: any): Promise<StorageResponse<any>> {
     try {
       await this.ensureDB();
-      
+
       // Handle array of items
       const items = Array.isArray(data) ? data : [data];
       const insertedItems: any[] = [];
-      
+
       for (const item of items) {
         // Generate ID if missing
         if (!item.id) {
           item.id = `${table}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         }
-        
+
         // Add timestamps if missing
         if (!item.created_at) {
           item.created_at = new Date().toISOString();
@@ -136,12 +136,12 @@ class LightweightStorage {
         if (!item.updated_at) {
           item.updated_at = new Date().toISOString();
         }
-        
+
         // Add user_id if missing (default to 'local')
         if (!item.user_id) {
           item.user_id = 'local';
         }
-        
+
         // Add default fields based on table
         if (table === 'llm_providers' && item.is_active === undefined) {
           item.is_active = true;
@@ -155,26 +155,31 @@ class LightweightStorage {
         if (table === 'models' && !item.performance_metrics) {
           item.performance_metrics = {};
         }
-        
+
         const result = await this.withTimeout(
           new Promise<StorageResponse<any>>((resolve, reject) => {
             const transaction = this.db!.transaction([table], 'readwrite');
             const store = transaction.objectStore(table);
             const request = store.add(item);
-            
+
             request.onsuccess = () => {
               resolve({ data: item, error: null });
             };
-            
+
             request.onerror = () => {
               // If duplicate key error, try update instead
+              // Note: Transaction is aborted after error, need new transaction
               if (request.error?.name === 'ConstraintError') {
-                const updateRequest = store.put(item);
+                // Create a new transaction for the update operation
+                const updateTransaction = this.db!.transaction([table], 'readwrite');
+                const updateStore = updateTransaction.objectStore(table);
+                const updateRequest = updateStore.put(item);
+
                 updateRequest.onsuccess = () => {
                   resolve({ data: item, error: null });
                 };
                 updateRequest.onerror = () => {
-                  reject(request.error || new Error('Insert/Update operation failed'));
+                  reject(updateRequest.error || new Error('Insert/Update operation failed'));
                 };
               } else {
                 reject(request.error || new Error('Insert operation failed'));
@@ -182,16 +187,16 @@ class LightweightStorage {
             };
           })
         );
-        
+
         if (result.data) {
           insertedItems.push(result.data);
         }
       }
-      
+
       // Return single item if single insert, array if multiple
-      return { 
-        data: Array.isArray(data) ? insertedItems : insertedItems[0], 
-        error: null 
+      return {
+        data: Array.isArray(data) ? insertedItems : insertedItems[0],
+        error: null,
       };
     } catch (error) {
       return { data: null, error: error as Error };
@@ -206,11 +211,11 @@ class LightweightStorage {
           const transaction = this.db!.transaction([table], 'readwrite');
           const store = transaction.objectStore(table);
           const request = store.put(data);
-          
+
           request.onsuccess = () => {
             resolve({ data: data, error: null });
           };
-          
+
           request.onerror = () => {
             reject(request.error || new Error('Update operation failed'));
           };
@@ -229,11 +234,11 @@ class LightweightStorage {
           const transaction = this.db!.transaction([table], 'readwrite');
           const store = transaction.objectStore(table);
           const request = store.delete(id);
-          
+
           request.onsuccess = () => {
             resolve({ data: null, error: null });
           };
-          
+
           request.onerror = () => {
             reject(request.error || new Error('Delete operation failed'));
           };
@@ -248,9 +253,9 @@ class LightweightStorage {
   private async withTimeout<T>(promise: Promise<T>): Promise<T> {
     return Promise.race([
       promise,
-      new Promise<T>((_, reject) => 
+      new Promise<T>((_, reject) =>
         setTimeout(() => reject(new Error('Operation timeout')), this.OPERATION_TIMEOUT)
-      )
+      ),
     ]);
   }
 
@@ -268,25 +273,45 @@ class LightweightStorage {
     ): QueryBuilder<T> => {
       const builder: QueryBuilder<T> = {
         eq(column: string, value: any) {
-          return createQueryBuilder<T>([...filters, { column, value, operator: 'eq' }], orderBy, limitCount);
+          return createQueryBuilder<T>(
+            [...filters, { column, value, operator: 'eq' }],
+            orderBy,
+            limitCount
+          );
         },
         order(column: string, options?: { ascending?: boolean }) {
-          return createQueryBuilder<T>(filters, {
-            column,
-            ascending: options?.ascending ?? true,
-          }, limitCount);
+          return createQueryBuilder<T>(
+            filters,
+            {
+              column,
+              ascending: options?.ascending ?? true,
+            },
+            limitCount
+          );
         },
         in(column: string, values: any[]) {
-          return createQueryBuilder<T>([...filters, { column, value: values, operator: 'in' }], orderBy, limitCount);
+          return createQueryBuilder<T>(
+            [...filters, { column, value: values, operator: 'in' }],
+            orderBy,
+            limitCount
+          );
         },
         limit(count: number) {
           return createQueryBuilder<T>(filters, orderBy, count);
         },
         gte(column: string, value: any) {
-          return createQueryBuilder<T>([...filters, { column, value, operator: 'gte' }], orderBy, limitCount);
+          return createQueryBuilder<T>(
+            [...filters, { column, value, operator: 'gte' }],
+            orderBy,
+            limitCount
+          );
         },
         lt(column: string, value: any) {
-          return createQueryBuilder<T>([...filters, { column, value, operator: 'lt' }], orderBy, limitCount);
+          return createQueryBuilder<T>(
+            [...filters, { column, value, operator: 'lt' }],
+            orderBy,
+            limitCount
+          );
         },
         async select(_columns?: string) {
           const result = await storageInstance.select(table);
@@ -331,9 +356,7 @@ class LightweightStorage {
           const result = await this.select();
           if (!result.data) return { data: null, error: result.error };
           const data = Array.isArray(result.data) ? result.data[0] : result.data;
-          return { data: data ?? null, error: null } as StorageResponse<
-            T extends any[] ? T[0] : T
-          >;
+          return { data: data ?? null, error: null } as StorageResponse<T extends any[] ? T[0] : T>;
         },
         async maybeSingle() {
           const result = await this.select();
@@ -362,8 +385,7 @@ class LightweightStorage {
             }
             return result;
           },
-          then: (onfulfilled: any, onrejected: any) =>
-            insertPromise.then(onfulfilled, onrejected),
+          then: (onfulfilled: any, onrejected: any) => insertPromise.then(onfulfilled, onrejected),
         };
         return {
           select: () => selectBuilder,
@@ -374,8 +396,7 @@ class LightweightStorage {
             }
             return result;
           },
-          then: (onfulfilled: any, onrejected: any) =>
-            insertPromise.then(onfulfilled, onrejected),
+          then: (onfulfilled: any, onrejected: any) => insertPromise.then(onfulfilled, onrejected),
         };
       },
       update: (data: any) => {
@@ -390,16 +411,13 @@ class LightweightStorage {
         const upsertPromise = this.insert(table, Array.isArray(data) ? data[0] : data);
         const selectBuilder = {
           single: () => upsertPromise,
-          then: (onfulfilled: any, onrejected: any) =>
-            upsertPromise.then(onfulfilled, onrejected),
+          then: (onfulfilled: any, onrejected: any) => upsertPromise.then(onfulfilled, onrejected),
         };
         return {
-          eq: (column: string, value: any) =>
-            this.insert(table, { ...data, [column]: value }),
+          eq: (column: string, value: any) => this.insert(table, { ...data, [column]: value }),
           select: () => selectBuilder,
           single: () => upsertPromise,
-          then: (onfulfilled: any, onrejected: any) =>
-            upsertPromise.then(onfulfilled, onrejected),
+          then: (onfulfilled: any, onrejected: any) => upsertPromise.then(onfulfilled, onrejected),
         };
       },
       delete: () => ({
