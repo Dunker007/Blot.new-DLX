@@ -1,0 +1,79 @@
+/**
+ * Performance Optimizations for Animations
+ * 
+ * These optimizations improve rendering performance by:
+ * - Using GPU acceleration (transform, translateZ)
+ * - CSS containment for better isolation
+ * - Reduced motion support
+ * - Optimized animation properties
+ */
+
+/* Force GPU acceleration for animated elements */
+.dlx-gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Optimize backdrop blur performance */
+.dlx-backdrop-blur {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transform: translateZ(0); /* Force GPU layer */
+}
+
+/* Reduce animation complexity on low-end devices */
+@media (max-width: 768px) {
+  .dlx-command-center-bg,
+  .dlx-neural-bg,
+  .dlx-grid-overlay {
+    animation-duration: 60s; /* Slower = less CPU usage */
+  }
+  
+  /* Reduce blur complexity on mobile */
+  .dlx-backdrop-blur {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+}
+
+/* Reduce animations for users with motion sensitivity */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Optimize paint operations */
+.dlx-contain-paint {
+  contain: paint;
+}
+
+.dlx-contain-layout {
+  contain: layout;
+}
+
+.dlx-contain-style {
+  contain: style;
+}
+
+.dlx-contain-all {
+  contain: strict;
+}
+
+/* Optimize scroll performance */
+.dlx-smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optimize image rendering */
+.dlx-image-optimized {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+

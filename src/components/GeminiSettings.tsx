@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { Key, Save } from 'lucide-react';
 import { geminiService } from '../services/gemini/geminiService';
+import { apiKeyManager } from '../services/apiKeyManager';
 
 export default function GeminiSettings() {
   const [apiKey, setApiKey] = useState('');
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    // Load API key from localStorage
-    const storedKey = localStorage.getItem('gemini_api_key');
+    // Load API key from centralized manager (Google key works for Gemini, Notebook LM, etc.)
+    const storedKey = apiKeyManager.getGoogleKey();
     if (storedKey) {
       setApiKey(storedKey);
       geminiService.setApiKey(storedKey);
@@ -16,7 +17,8 @@ export default function GeminiSettings() {
   }, []);
 
   const handleSave = () => {
-    localStorage.setItem('gemini_api_key', apiKey);
+    // Save to centralized manager (shared for all Google services)
+    apiKeyManager.setGoogleKey(apiKey);
     geminiService.setApiKey(apiKey);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -51,6 +53,7 @@ export default function GeminiSettings() {
             >
               Google AI Studio
             </a>
+            . This key will be shared across all Google services (Gemini, Notebook LM, etc.)
           </p>
         </div>
 
@@ -64,7 +67,7 @@ export default function GeminiSettings() {
 
         {saved && (
           <div className="text-green-400 text-sm">
-            ✓ API key saved successfully! You can now use Gemini-powered features.
+            ✓ API key saved successfully! This key is now available for all Google services (Gemini, Notebook LM, etc.).
           </div>
         )}
       </div>
@@ -76,6 +79,7 @@ export default function GeminiSettings() {
           <li>• Audio Transcriber - Voice-to-text transcription</li>
           <li>• Image Analysis - Vision AI for image understanding</li>
           <li>• Mind Map - AI-assisted brainstorming</li>
+          <li>• Notebook LM - Document-based research (coming soon)</li>
         </ul>
       </div>
     </div>

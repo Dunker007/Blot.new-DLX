@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { Network, RefreshCw, Save, AlertCircle, CheckCircle, Key, Loader2 } from 'lucide-react';
+import { Network, RefreshCw, Save, AlertCircle, CheckCircle, Key, Loader2, X, RotateCcw } from 'lucide-react';
 import { spaceshipAPI } from '../services/spaceshipApi';
 import { HolographicCard } from './HolographicCard';
 import { CompactSection } from './CompactSection';
@@ -13,7 +13,7 @@ interface DNSRecord {
   host: string;
   type: string;
   value: string;
-  ttl: number;
+  ttl?: number;
 }
 
 const SpaceshipDNSManager: React.FC = () => {
@@ -27,22 +27,60 @@ const SpaceshipDNSManager: React.FC = () => {
   const [domain] = useState('dlxstudios.ai');
   const [newIP, setNewIP] = useState('');
 
+  // Debug: Log when newIP changes
   useEffect(() => {
-    setIsConfigured(spaceshipAPI.isConfigured());
-    if (spaceshipAPI.isConfigured()) {
-      loadDNSRecords();
-    }
+    console.log('newIP state changed to:', newIP);
+  }, [newIP]);
+
+  useEffect(() => {
+    const checkConfig = () => {
+      setIsConfigured(spaceshipAPI.isConfigured());
+      if (spaceshipAPI.isConfigured()) {
+        loadDNSRecords();
+      } else {
+        // Pre-populate API key if available in localStorage (even if incomplete)
+        try {
+          const savedKey = localStorage.getItem('spaceship_api_key');
+          if (savedKey) {
+            setApiKey(savedKey);
+          }
+        } catch (error) {
+          // Ignore localStorage errors
+        }
+      }
+    };
+    checkConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSaveCredentials = () => {
-    if (spaceshipAPI.setCredentials(apiKey, apiSecret)) {
+    if (!apiKey.trim() || !apiSecret.trim()) {
+      setError('Please enter both API Key and API Secret');
+      return;
+    }
+    
+    if (spaceshipAPI.setCredentials(apiKey.trim(), apiSecret.trim())) {
       setIsConfigured(true);
       setSuccess('API credentials saved successfully!');
       setError(null);
+      // Clear form fields
+      setApiKey('');
+      setApiSecret('');
+      // Load DNS records automatically
       loadDNSRecords();
     } else {
-      setError('Failed to save credentials');
+      setError('Failed to save credentials. Please check your browser console for details.');
     }
+  };
+
+  const handleClearCredentials = () => {
+    spaceshipAPI.clearCredentials();
+    setIsConfigured(false);
+    setApiKey('');
+    setApiSecret('');
+    setRecords([]);
+    setError(null);
+    setSuccess('Credentials cleared. You can now enter new credentials.');
   };
 
   const loadDNSRecords = async () => {
@@ -55,12 +93,16 @@ const SpaceshipDNSManager: React.FC = () => {
       
       // Find current A record IP
       const aRecord = dnsRecords.find(r => r.host === '@' && r.type === 'A');
-      if (aRecord) {
+      if (aRecord && aRecord.value) {
         setNewIP(aRecord.value);
+      } else if (!newIP) {
+        // If no A record found and no IP set, try to get public IP
+        // Don't auto-fetch, just leave empty for user to fill
       }
       
       if (dnsRecords.length === 0) {
-        setError('No DNS records found. Domain may not be configured in Spaceship.');
+        // Don't show error, just show empty state - user can still update
+        console.log('No DNS records found - this is okay, you can create new ones');
       }
     } catch (err: any) {
       console.error('DNS Manager Error:', err);
@@ -78,27 +120,37 @@ const SpaceshipDNSManager: React.FC = () => {
   };
 
   const updateARecord = async () => {
-    if (!newIP) {
+    console.log('Update DNS Record clicked');
+    console.log('Current newIP state:', newIP);
+    
+    if (!newIP || !newIP.trim()) {
       setError('Please enter an IP address');
       return;
     }
+
+    const ipToUse = newIP.trim();
+    console.log('Sending IP to API:', ipToUse);
 
     setLoading(true);
     setError(null);
     setSuccess(null);
 
     try {
-      const result = await spaceshipAPI.updateARecord(domain, newIP, 300);
+      const result = await spaceshipAPI.updateARecord(domain, ipToUse, 300);
       
       if (result.operationId) {
         setSuccess(`DNS update initiated! Operation ID: ${result.operationId}`);
-        // Wait a moment then reload records
+        // Wait longer for async operations
         setTimeout(() => {
           loadDNSRecords();
-        }, 2000);
+        }, 3000);
       } else {
         setSuccess('DNS record updated successfully!');
-        loadDNSRecords();
+        // Wait for API to process and DNS to propagate
+        setTimeout(() => {
+          console.log('Refreshing DNS records after update...');
+          loadDNSRecords();
+        }, 2000);
       }
     } catch (err: any) {
       setError(err.message || 'Failed to update DNS record');
@@ -108,12 +160,37 @@ const SpaceshipDNSManager: React.FC = () => {
   };
 
   const getCurrentPublicIP = async () => {
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
     try {
       const response = await fetch('https://api.ipify.org?format=json');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
       const data = await response.json();
-      setNewIP(data.ip);
-    } catch (err) {
-      setError('Failed to fetch public IP');
+      if (data.ip) {
+        const detectedIP = data.ip.trim();
+        console.log('Auto IP detected:', detectedIP);
+        console.log('Updating newIP state to:', detectedIP);
+        
+        // Update state immediately
+        setNewIP(detectedIP);
+        
+        // Verify state was set (will log via useEffect)
+        // Then show success message
+        setTimeout(() => {
+          console.log('Success message showing, newIP should be:', detectedIP);
+          setSuccess(`Public IP detected: ${detectedIP}`);
+        }, 100);
+      } else {
+        throw new Error('No IP address in response');
+      }
+    } catch (err: any) {
+      console.error('Failed to fetch public IP:', err);
+      setError(`Failed to fetch public IP: ${err.message || 'Unknown error'}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -157,14 +234,26 @@ const SpaceshipDNSManager: React.FC = () => {
                 Spaceship API Manager
               </a>
             </div>
-            <button
-              onClick={handleSaveCredentials}
-              disabled={!apiKey || !apiSecret}
-              className="w-full px-3 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded text-xs font-semibold transition-colors flex items-center justify-center gap-2"
-            >
-              <Key className="w-3 h-3" />
-              Save Credentials
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSaveCredentials}
+                disabled={!apiKey || !apiSecret}
+                className="flex-1 px-3 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+              >
+                <Key className="w-3 h-3" />
+                Save Credentials
+              </button>
+              {(apiKey || apiSecret) && (
+                <button
+                  onClick={handleClearCredentials}
+                  className="px-3 py-2 bg-red-600/50 hover:bg-red-600/70 text-white rounded text-xs font-semibold transition-colors flex items-center justify-center gap-2"
+                  title="Clear all fields"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         </CompactSection>
       </div>
@@ -176,19 +265,50 @@ const SpaceshipDNSManager: React.FC = () => {
       {/* Current DNS Records */}
       <CompactSection title={`DNS Records for ${domain}`} card glow="cyan">
         <div className="flex items-center justify-between mb-2">
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              loadDNSRecords();
-            }}
-            disabled={loading}
-            type="button"
-            className="flex items-center gap-1.5 px-2 py-1 bg-[rgba(0,255,255,0.1)] hover:bg-[rgba(0,255,255,0.2)] border border-[rgba(0,255,255,0.3)] rounded text-xs text-cyan-400 transition-colors disabled:opacity-50"
-          >
-            <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </button>
+          <div className="flex gap-1.5">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                loadDNSRecords();
+              }}
+              disabled={loading}
+              type="button"
+              className="flex items-center gap-1.5 px-2 py-1 bg-[rgba(0,255,255,0.1)] hover:bg-[rgba(0,255,255,0.2)] border border-[rgba(0,255,255,0.3)] rounded text-xs text-cyan-400 transition-colors disabled:opacity-50"
+            >
+              <RefreshCw className={`w-3 h-3 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+            <button
+              onClick={async () => {
+                const aRecords = records.filter(r => r.host === '@' && r.type === 'A');
+                if (aRecords.length > 1) {
+                  if (confirm(`Found ${aRecords.length} A records. Clean up duplicates?`)) {
+                    setLoading(true);
+                    try {
+                      const result = await spaceshipAPI.cleanupDuplicateARecords(domain);
+                      if (result.success) {
+                        setSuccess(`Cleaned up ${result.removed} duplicate A record(s)`);
+                        setTimeout(() => loadDNSRecords(), 1000);
+                      }
+                    } catch (err: any) {
+                      setError(err.message || 'Failed to clean up duplicates');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                } else {
+                  handleClearCredentials();
+                }
+              }}
+              type="button"
+              className="flex items-center gap-1.5 px-2 py-1 bg-[rgba(255,0,0,0.1)] hover:bg-[rgba(255,0,0,0.2)] border border-[rgba(255,0,0,0.3)] rounded text-xs text-red-400 transition-colors"
+              title={records.filter(r => r.host === '@' && r.type === 'A').length > 1 ? "Clean up duplicate A records" : "Clear credentials and start fresh"}
+            >
+              <RotateCcw className="w-3 h-3" />
+              {records.filter(r => r.host === '@' && r.type === 'A').length > 1 ? 'Fix Duplicates' : 'Change Credentials'}
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -205,9 +325,14 @@ const SpaceshipDNSManager: React.FC = () => {
           </div>
         )}
 
-        {loading && !records.length ? (
+        {loading ? (
           <div className="flex items-center justify-center py-4">
             <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+          </div>
+        ) : records.length === 0 ? (
+          <div className="py-4 text-center">
+            <p className="text-xs text-gray-500 mb-2">No DNS records found.</p>
+            <p className="text-[10px] text-gray-600">Click Refresh to load records or update the A record below.</p>
           </div>
         ) : (
           <div className="space-y-1">
@@ -221,8 +346,8 @@ const SpaceshipDNSManager: React.FC = () => {
                     <span className="text-gray-500">{record.type}</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-cyan-400 font-mono">{record.value}</div>
-                    <div className="text-gray-600">TTL: {record.ttl}s</div>
+                    <div className="text-cyan-400 font-mono">{record.value || '(empty)'}</div>
+                    <div className="text-gray-600">TTL: {record.ttl || 300}s</div>
                   </div>
                 </div>
               </HolographicCard>
@@ -241,17 +366,34 @@ const SpaceshipDNSManager: React.FC = () => {
             <div className="flex gap-1.5">
               <input
                 type="text"
-                value={newIP}
-                onChange={(e) => setNewIP(e.target.value)}
+                value={newIP || ''}
+                onChange={(e) => {
+                  console.log('Input field changed to:', e.target.value);
+                  setNewIP(e.target.value);
+                }}
                 placeholder="74.208.170.210"
                 className="flex-1 px-2 py-1.5 bg-[rgba(255,0,255,0.1)] border border-[rgba(255,0,255,0.3)] rounded text-xs text-white font-mono"
               />
               <button
-                onClick={getCurrentPublicIP}
-                className="px-2 py-1.5 bg-[rgba(255,0,255,0.1)] hover:bg-[rgba(255,0,255,0.2)] border border-[rgba(255,0,255,0.3)] rounded text-xs text-magenta-400 transition-colors"
-                title="Get current public IP"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Auto IP button clicked');
+                  getCurrentPublicIP();
+                }}
+                disabled={loading}
+                type="button"
+                className="px-2 py-1.5 bg-[rgba(255,0,255,0.1)] hover:bg-[rgba(255,0,255,0.2)] border border-[rgba(255,0,255,0.3)] rounded text-xs text-magenta-400 transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Auto-detect your current public IP address"
               >
-                <Network className="w-3 h-3" />
+                {loading ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <>
+                    <Network className="w-3 h-3" />
+                    <span className="ml-1 text-[9px]">Auto</span>
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -340,6 +340,11 @@ export class RealtimeCollaborationService {
 
     // Simple last-write-wins for now
     // TODO: Implement proper operational transformation
+    // NOTE: This is a simplified conflict resolution. For production use, consider:
+    // - Y.js (CRDT-based collaboration)
+    // - ShareJS (Operational Transformation)
+    // - Automerge (CRDT library)
+    // Priority: Medium - Needed for multi-user real-time editing
     if (remoteChange.timestamp > localChange.timestamp) {
       resolved = this.applyChange(resolved, remoteChange);
       conflicts.push({

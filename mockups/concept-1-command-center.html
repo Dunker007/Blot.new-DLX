@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLX Studios - Concept 1: Command Center</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 0;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            margin-bottom: 3rem;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+        .status-bar {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+        }
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff00;
+            box-shadow: 0 0 10px #00ff00;
+        }
+        .main-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr 350px;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .sidebar {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+        .nav-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #888;
+            margin-bottom: 0.75rem;
+            letter-spacing: 1px;
+        }
+        .nav-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .nav-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-left: 3px solid #00ffff;
+        }
+        .nav-item.active {
+            background: rgba(0, 255, 255, 0.15);
+            border-left: 3px solid #00ffff;
+        }
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+        }
+        .command-center {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+        }
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        .console-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .console-output {
+            background: #000;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            min-height: 400px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .console-line {
+            margin-bottom: 0.5rem;
+            color: #00ff00;
+        }
+        .console-line.prompt { color: #00ffff; }
+        .console-line.error { color: #ff00ff; }
+        .console-input-area {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+        }
+        .console-input {
+            flex: 1;
+            background: #000;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+        }
+        .console-input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        .action-panel {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        .quick-actions {
+            margin-bottom: 2rem;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .action-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .action-card:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.2);
+        }
+        .action-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .action-title {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        .action-desc {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .stats-panel {
+            margin-top: 2rem;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .stat-value {
+            font-weight: bold;
+            color: #00ffff;
+        }
+        .note {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            max-width: 300px;
+            font-size: 0.85rem;
+        }
+        .note-title {
+            font-weight: bold;
+            color: #ff00ff;
+            margin-bottom: 0.5rem;
+        }
+        .console-line.user {
+            color: #00ffff;
+        }
+    </style>
+    <script>
+        function navigate(destination) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            const consoleOutput = document.querySelector('.console-output');
+            const newLine = document.createElement('div');
+            newLine.className = 'console-line prompt';
+            newLine.textContent = `DLX> Navigating to ${destination.replace('-', ' ')}...`;
+            consoleOutput.appendChild(newLine);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            
+            setTimeout(() => {
+                const successLine = document.createElement('div');
+                successLine.className = 'console-line';
+                successLine.textContent = `✓ Navigation successful: ${destination}`;
+                consoleOutput.appendChild(successLine);
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }, 500);
+        }
+        
+        function executeCommand() {
+            const input = document.getElementById('consoleInput');
+            const command = input.value.trim();
+            if (!command) return;
+            
+            const consoleOutput = document.querySelector('.console-output');
+            const userLine = document.createElement('div');
+            userLine.className = 'console-line user';
+            userLine.textContent = `DLX> ${command}`;
+            consoleOutput.appendChild(userLine);
+            
+            const responseLine = document.createElement('div');
+            responseLine.className = 'console-line prompt';
+            responseLine.textContent = `Processing command: ${command}...`;
+            consoleOutput.appendChild(responseLine);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            
+            setTimeout(() => {
+                const resultLine = document.createElement('div');
+                resultLine.className = 'console-line';
+                resultLine.textContent = `✓ Command executed successfully. Type /help for available commands.`;
+                consoleOutput.appendChild(resultLine);
+                consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            }, 800);
+            
+            input.value = '';
+        }
+        
+        function handleConsoleKey(event) {
+            if (event.key === 'Enter') {
+                executeCommand();
+            }
+        }
+        
+        // Make action cards clickable
+        document.addEventListener('DOMContentLoaded', () => {
+            const actionCards = document.querySelectorAll('.action-card');
+            actionCards.forEach(card => {
+                card.style.cursor = 'pointer';
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="bg-grid"></div>
+    <div class="container">
+        <header>
+            <div class="logo">DLX STUDIOS</div>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>Systems Online</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" style="background: #ffff00;"></div>
+                    <span>3 Active Sessions</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" style="background: #00ffff;"></div>
+                    <span>AI Ready</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-grid">
+            <div class="sidebar">
+                <div class="nav-section">
+                    <div class="nav-title">Core</div>
+                    <div class="nav-item active" onclick="navigate('command-center')">
+                        <span class="nav-icon">⚡</span>
+                        <span>Command Center</span>
+                    </div>
+                    <div class="nav-item" onclick="navigate('dashboard')">
+                        <span class="nav-icon">📊</span>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item" onclick="navigate('workspace')">
+                        <span class="nav-icon">🔧</span>
+                        <span>Workspace</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">Revenue</div>
+                    <div class="nav-item" onclick="navigate('business-generator')">
+                        <span class="nav-icon">💰</span>
+                        <span>Business Generator</span>
+                    </div>
+                    <div class="nav-item" onclick="navigate('affiliate-factory')">
+                        <span class="nav-icon">🔗</span>
+                        <span>Affiliate Factory</span>
+                    </div>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-title">Labs</div>
+                    <div class="nav-item" onclick="navigate('aura')">
+                        <span class="nav-icon">🧠</span>
+                        <span>AURA Interface</span>
+                    </div>
+                    <div class="nav-item" onclick="navigate('code-review')">
+                        <span class="nav-icon">🔍</span>
+                        <span>Code Review</span>
+                    </div>
+                    <div class="nav-item" onclick="navigate('crypto-lab')">
+                        <span class="nav-icon">₿</span>
+                        <span>Crypto Lab</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="command-center">
+                <div class="console-header">
+                    <div class="console-title">Command Center</div>
+                    <div style="font-size: 0.85rem; color: #888;">Ready for input</div>
+                </div>
+                <div class="console-output">
+                    <div class="console-line prompt">DLX> System initialized. All modules operational.</div>
+                    <div class="console-line prompt">DLX> Welcome to DLX Studios Command Center</div>
+                    <div class="console-line">Available commands:</div>
+                    <div class="console-line">  • /labs - Open Labs Hub</div>
+                    <div class="console-line">  • /revenue - Revenue Dashboard</div>
+                    <div class="console-line">  • /workspace - Code Workspace</div>
+                    <div class="console-line">  • /settings - System Settings</div>
+                    <div class="console-line prompt" style="margin-top: 1rem;">DLX> _</div>
+                </div>
+                <div class="console-input-area">
+                    <input type="text" class="console-input" placeholder="Type command or ask AI..." id="consoleInput" onkeypress="handleConsoleKey(event)">
+                    <button onclick="executeCommand()" style="padding: 0.75rem 2rem; background: linear-gradient(135deg, #00ffff, #ff00ff); border: none; border-radius: 6px; color: white; font-weight: bold; cursor: pointer;">Execute</button>
+                </div>
+            </div>
+
+            <div class="action-panel">
+                <div class="quick-actions">
+                    <div class="nav-title">Quick Actions</div>
+                    <div class="action-grid">
+                        <div class="action-card" onclick="navigate('generate-code')">
+                            <div class="action-icon">🚀</div>
+                            <div class="action-title">Generate Code</div>
+                            <div class="action-desc">AI-powered coding</div>
+                        </div>
+                        <div class="action-card" onclick="navigate('create-project')">
+                            <div class="action-icon">📝</div>
+                            <div class="action-title">Create Project</div>
+                            <div class="action-desc">Start new project</div>
+                        </div>
+                        <div class="action-card" onclick="navigate('code-review')">
+                            <div class="action-icon">🔍</div>
+                            <div class="action-title">Review Code</div>
+                            <div class="action-desc">AI code analysis</div>
+                        </div>
+                        <div class="action-card" onclick="navigate('revenue')">
+                            <div class="action-icon">💰</div>
+                            <div class="action-title">Revenue</div>
+                            <div class="action-desc">Income streams</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-panel">
+                    <div class="nav-title">System Stats</div>
+                    <div class="stat-item">
+                        <span class="stat-label">Active Labs</span>
+                        <span class="stat-value">6</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Revenue Streams</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">AI Requests</span>
+                        <span class="stat-value">1,247</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Uptime</span>
+                        <span class="stat-value">99.9%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <div class="note-title">Concept 1: Command Center</div>
+        <div>Terminal-inspired interface with console input/output. Perfect for power users who want direct command access. Sidebar navigation + central command console + quick actions panel.</div>
+    </div>
+</body>
+</html>
+

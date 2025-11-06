@@ -34,13 +34,13 @@
   --dlx-spacing-lg: 1rem;
   --dlx-spacing-xl: 1.5rem;
   
-  /* Typography - Compact */
-  --dlx-font-xs: 0.625rem;
-  --dlx-font-sm: 0.75rem;
-  --dlx-font-base: 0.875rem;
-  --dlx-font-lg: 1rem;
-  --dlx-font-xl: 1.25rem;
-  --dlx-font-2xl: 1.5rem;
+  /* Typography - Larger */
+  --dlx-font-xs: 0.75rem;
+  --dlx-font-sm: 0.875rem;
+  --dlx-font-base: 1rem;
+  --dlx-font-lg: 1.125rem;
+  --dlx-font-xl: 1.375rem;
+  --dlx-font-2xl: 1.75rem;
   
   /* Shadows & Glows */
   --dlx-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -82,7 +82,7 @@ body {
   color: var(--dlx-magenta);
 }
 
-/* Neural Network Background Pattern - Enhanced */
+/* Neural Network Background Pattern - Enhanced & Optimized */
 .dlx-neural-bg {
   position: fixed;
   top: 0;
@@ -96,7 +96,11 @@ body {
     radial-gradient(circle at 80% 50%, var(--dlx-magenta-glow) 0%, transparent 50%),
     radial-gradient(circle at 50% 20%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
   pointer-events: none;
+  will-change: opacity;
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
   animation: neuralPulse 20s ease-in-out infinite;
+  contain: layout style paint;
 }
 
 @keyframes neuralPulse {
@@ -104,7 +108,14 @@ body {
   50% { opacity: 0.2; }
 }
 
-/* Animated Grid Overlay */
+/* Reduce animation on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  .dlx-neural-bg {
+    animation: none;
+  }
+}
+
+/* Animated Grid Overlay - Optimized */
 .dlx-grid-overlay {
   position: fixed;
   top: 0;
@@ -117,13 +128,25 @@ body {
     linear-gradient(rgba(0, 255, 255, 0.1) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
   background-size: 50px 50px;
+  background-position: 0 0;
   pointer-events: none;
+  will-change: transform;
+  transform: translateZ(0) translate(0, 0); /* Force GPU acceleration */
+  backface-visibility: hidden;
   animation: gridMove 30s linear infinite;
+  contain: layout style paint;
 }
 
 @keyframes gridMove {
-  0% { transform: translate(0, 0); }
-  100% { transform: translate(50px, 50px); }
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(50px, 50px, 0); }
+}
+
+/* Reduce animation on low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  .dlx-grid-overlay {
+    animation: none;
+  }
 }
 
 /* Compact Cards */
@@ -261,5 +284,187 @@ body {
   top: 100%;
   border-top: 15px solid var(--dlx-cyan);
   width: 0;
+}
+
+/* DLX Command Center HUD Background - Using Actual Image */
+.dlx-command-center-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.68; /* Increased for better visibility */
+  background-color: transparent;
+  /* Use actual image with fallback gradients */
+  background-image: 
+    url('/images/dlx-command-center-hud.png'),
+    /* Fallback gradients if image not found */
+    radial-gradient(circle at center, rgba(6, 182, 212, 0.3) 0%, rgba(6, 182, 212, 0.15) 20%, transparent 50%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 80px,
+      rgba(6, 182, 212, 0.06) 80px,
+      rgba(6, 182, 212, 0.06) 81px
+    ),
+    radial-gradient(ellipse 400px 200px at 20% 35%, rgba(217, 70, 239, 0.2) 0%, rgba(217, 70, 239, 0.08) 30%, transparent 70%),
+    radial-gradient(ellipse 400px 200px at 80% 65%, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.08) 30%, transparent 70%);
+  background-size: 
+    cover, /* Image covers the area */
+    100% 100%,
+    80px 80px,
+    100% 100%,
+    100% 100%;
+  background-position:
+    center center, /* Image centered */
+    center center,
+    0% 0%,
+    center center,
+    center center;
+  background-repeat: 
+    no-repeat, /* Image no repeat */
+    no-repeat,
+    repeat,
+    no-repeat,
+    no-repeat;
+  will-change: transform, opacity;
+  transform: translateZ(0); /* Force GPU acceleration */
+  backface-visibility: hidden;
+  animation: dlx-hud-pan-optimized 40s infinite linear;
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: overlay; /* Changed from screen to overlay for better visibility */
+  contain: layout style paint;
+}
+
+/* Optimized animation - only animate transform and opacity, not background-position - more subtle */
+@keyframes dlx-hud-pan-optimized {
+  0% {
+    transform: translateZ(0) translate(0, 0) rotate(0deg);
+    opacity: 0.68;
+  }
+  25% {
+    transform: translateZ(0) translate(1px, 1px) rotate(0.5deg);
+    opacity: 0.70;
+  }
+  50% {
+    transform: translateZ(0) translate(2px, 2px) rotate(0deg);
+    opacity: 0.68;
+  }
+  75% {
+    transform: translateZ(0) translate(1px, 1px) rotate(-0.5deg);
+    opacity: 0.70;
+  }
+  100% {
+    transform: translateZ(0) translate(0, 0) rotate(0deg);
+    opacity: 0.68;
+  }
+}
+
+/* Fallback for older browsers - simpler animation */
+@keyframes dlx-hud-pan {
+  0% {
+    opacity: 0.5;
+    transform: translateZ(0) rotate(0deg);
+  }
+  50% {
+    opacity: 0.52;
+    transform: translateZ(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0.5;
+    transform: translateZ(0) rotate(0deg);
+  }
+}
+
+/* Reduce animation on low-end devices and reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .dlx-command-center-bg {
+    animation: none;
+    opacity: 0.68;
+  }
+}
+
+/* Simplified animation on mobile devices */
+@media (max-width: 768px) {
+  .dlx-command-center-bg {
+    animation-duration: 60s; /* Slower on mobile */
+    background-image: 
+      url('/images/dlx-command-center-hud.png'),
+      /* Fallback gradients */
+      radial-gradient(circle at center, rgba(6, 182, 212, 0.4) 0%, transparent 60%),
+      radial-gradient(circle at 50% 45%, rgba(217, 70, 239, 0.3) 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(6, 182, 212, 0.1) 80px, rgba(6, 182, 212, 0.1) 81px);
+    background-size: cover, 100% 100%, 100% 100%, 80px 80px;
+    background-position: center center, center center, center center, 0% 0%;
+    background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+  }
+}
+
+
+/* Holographic Glow Effect - Optimized */
+.dlx-holographic-glow {
+  box-shadow: 
+    0 0 20px rgba(6, 182, 212, 0.4),
+    0 0 40px rgba(217, 70, 239, 0.3),
+    0 0 60px rgba(6, 182, 212, 0.2),
+    inset 0 0 20px rgba(6, 182, 212, 0.1);
+  will-change: box-shadow;
+  transform: translateZ(0);
+  animation: dlx-glow-pulse 3s ease-in-out infinite;
+  contain: style;
+}
+
+@keyframes dlx-glow-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(6, 182, 212, 0.4),
+      0 0 40px rgba(217, 70, 239, 0.3),
+      0 0 60px rgba(6, 182, 212, 0.2),
+      inset 0 0 20px rgba(6, 182, 212, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(6, 182, 212, 0.6),
+      0 0 50px rgba(217, 70, 239, 0.5),
+      0 0 80px rgba(6, 182, 212, 0.3),
+      inset 0 0 30px rgba(6, 182, 212, 0.2);
+  }
+}
+
+/* Reduce animation on reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .dlx-holographic-glow {
+    animation: none;
+  }
+}
+
+/* Special styling for top 2 tabs */
+.dlx-top-tab-pulse {
+  animation: dlx-top-tab-pulse 4s ease-in-out infinite;
+}
+
+@keyframes dlx-top-tab-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.9;
+  }
 }
 

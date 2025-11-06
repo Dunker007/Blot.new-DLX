@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout 1: Hub & Spoke - DLX Studios</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at center, rgba(0, 255, 255, 0.05) 0%, transparent 70%);
+        }
+        .header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .main-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 3rem;
+        }
+        .central-hub {
+            width: 300px;
+            height: 300px;
+            background: rgba(20, 20, 30, 0.95);
+            border: 3px solid rgba(0, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.3);
+        }
+        .hub-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .hub-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .hub-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .spoke {
+            position: absolute;
+            width: 200px;
+            height: 100px;
+            background: rgba(20, 20, 30, 0.9);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .spoke:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            transform: scale(1.05);
+        }
+        .spoke-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .spoke-title {
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        .spoke-desc {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .spoke-connection {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.3), transparent);
+            z-index: 1;
+        }
+        /* Position spokes around hub */
+        .spoke-1 { top: 10%; left: 50%; transform: translateX(-50%); }
+        .spoke-2 { top: 50%; right: 5%; transform: translateY(-50%) rotate(90deg); }
+        .spoke-3 { bottom: 10%; left: 50%; transform: translateX(-50%) rotate(180deg); }
+        .spoke-4 { top: 50%; left: 5%; transform: translateY(-50%) rotate(-90deg); }
+        .spoke-5 { top: 20%; right: 20%; transform: rotate(45deg); }
+        .spoke-6 { top: 20%; left: 20%; transform: rotate(-45deg); }
+        .spoke-7 { bottom: 20%; right: 20%; transform: rotate(-135deg); }
+        .spoke-8 { bottom: 20%; left: 20%; transform: rotate(135deg); }
+        .connection-1 { top: 13%; left: 50%; width: 0; height: 15%; transform: translateX(-50%); }
+        .connection-2 { top: 50%; right: 8%; width: 15%; height: 0; transform: translateY(-50%); }
+        .connection-3 { bottom: 13%; left: 50%; width: 0; height: 15%; transform: translateX(-50%); }
+        .connection-4 { top: 50%; left: 8%; width: 15%; height: 0; transform: translateY(-50%); }
+        .connection-5 { top: 23%; right: 23%; width: 12%; height: 12%; transform: rotate(45deg); }
+        .connection-6 { top: 23%; left: 23%; width: 12%; height: 12%; transform: rotate(-45deg); }
+        .connection-7 { bottom: 23%; right: 23%; width: 12%; height: 12%; transform: rotate(-135deg); }
+        .connection-8 { bottom: 23%; left: 23%; width: 12%; height: 12%; transform: rotate(135deg); }
+        .feature-list {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            right: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .feature-badge {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            color: #00ffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DLX STUDIOS</div>
+            <div style="font-size: 0.9rem; color: #888;">Hub & Spoke Navigation</div>
+        </div>
+        <div class="main-area">
+            <!-- Connection lines -->
+            <div class="spoke-connection connection-1"></div>
+            <div class="spoke-connection connection-2"></div>
+            <div class="spoke-connection connection-3"></div>
+            <div class="spoke-connection connection-4"></div>
+            <div class="spoke-connection connection-5"></div>
+            <div class="spoke-connection connection-6"></div>
+            <div class="spoke-connection connection-7"></div>
+            <div class="spoke-connection connection-8"></div>
+            
+            <!-- Central Hub -->
+            <div class="central-hub">
+                <div class="hub-icon">⚡</div>
+                <div class="hub-title">Command Center</div>
+                <div class="hub-subtitle">Your AI Powerhouse</div>
+            </div>
+            
+            <!-- Spokes -->
+            <div class="spoke spoke-1">
+                <div class="spoke-icon">🧠</div>
+                <div class="spoke-title">AURA Interface</div>
+                <div class="spoke-desc">Core AI</div>
+            </div>
+            <div class="spoke spoke-2">
+                <div class="spoke-icon">💰</div>
+                <div class="spoke-title">Revenue Hub</div>
+                <div class="spoke-desc">Passive Income</div>
+            </div>
+            <div class="spoke spoke-3">
+                <div class="spoke-icon">🧪</div>
+                <div class="spoke-title">Labs</div>
+                <div class="spoke-desc">11 Specialized Labs</div>
+            </div>
+            <div class="spoke spoke-4">
+                <div class="spoke-icon">⚙️</div>
+                <div class="spoke-title">Workspace</div>
+                <div class="spoke-desc">Code Editor</div>
+            </div>
+            <div class="spoke spoke-5">
+                <div class="spoke-icon">🔍</div>
+                <div class="spoke-title">Code Review</div>
+                <div class="spoke-desc">AI Analysis</div>
+            </div>
+            <div class="spoke spoke-6">
+                <div class="spoke-icon">₿</div>
+                <div class="spoke-title">Crypto Lab</div>
+                <div class="spoke-desc">Market Analysis</div>
+            </div>
+            <div class="spoke spoke-7">
+                <div class="spoke-icon">🔗</div>
+                <div class="spoke-title">Data Weave</div>
+                <div class="spoke-desc">Multi-Agent</div>
+            </div>
+            <div class="spoke spoke-8">
+                <div class="spoke-icon">⚡</div>
+                <div class="spoke-title">System Matrix</div>
+                <div class="spoke-desc">Architecture</div>
+            </div>
+        </div>
+        <div class="feature-list">
+            <div class="feature-badge">Business Generator</div>
+            <div class="feature-badge">Affiliate Factory</div>
+            <div class="feature-badge">Agent Forge</div>
+            <div class="feature-badge">Monaco Editor</div>
+            <div class="feature-badge">Mind Map</div>
+            <div class="feature-badge">Task Management</div>
+        </div>
+    </div>
+</body>
+</html>
+

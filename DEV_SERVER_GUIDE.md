@@ -73,12 +73,35 @@ npm run dev
 ## 🎯 Current Focus
 
 1. ✅ Site is working (dev server)
-2. ⏭️ Test DNS Manager (Settings → DNS Manager)
-3. ⏭️ Update DNS A record
-4. ⏭️ Configure router port forwarding
-5. ⏭️ Test domain access
+2. ✅ Brand new revenue features added!
+3. ⏭️ Test new revenue features
+4. ⏭️ Test DNS Manager (Settings → DNS Manager)
+5. ⏭️ Update DNS A record
+6. ⏭️ Configure router port forwarding
+7. ⏭️ Test domain access
 
 ---
 
-**You're good to go! Test the DNS Manager now!** 🚀
+## 💰 New Revenue Features to Test
+
+### Business Model Generator (Revenue → Business Generator)
+- ✅ **Revenue Model Presets**: 4 presets (Content Crusher, Sales Genius, Code Wizard, Market Prophet)
+- ✅ **ROI Calculator**: Shows projections per preset
+- ✅ **PDF/Word Export**: Export business models for implementation
+- ✅ **Dashboard Integration**: Add models to Revenue Streams Dashboard
+
+### Auto-Affiliate Content Factory (Revenue → Affiliate Factory)
+- ✅ **Smart Scheduling System**: Batch generation (5-10 articles/night), auto-publish to WordPress/Medium/Substack
+- ✅ **Affiliate Link Manager**: Auto-inject tracking codes, A/B test placements, commission tracking
+- ✅ **Content Refresh Automator**: Re-runs old articles through AI for updates
+- ✅ **Performance Dashboard**: Track clicks, conversions, revenue per article
+
+### Revenue Streams Dashboard (Home → AI Command Center)
+- ✅ Real-time passive income tracking
+- ✅ Automation health monitoring
+- ✅ Opportunity scanner
+
+---
+
+**🚀 Ready to test! Start with the new revenue features!** 💰
 

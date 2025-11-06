@@ -51,7 +51,7 @@ const DEFAULT_AGENTS: Agent[] = [
     description: 'Specializes in creative content, storytelling, and writing',
     corePrompt:
       'You are a creative writing assistant. You help with storytelling, character development, world-building, and crafting engaging narratives. You provide constructive feedback and creative suggestions.',
-    model: 'gemini-2.5-pro',
+    model: 'gemini-2.5-flash',
     temperature: 0.9,
     tools: [],
   },

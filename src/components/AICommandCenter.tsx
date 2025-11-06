@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 import {
   Brain,
+  ChevronDown,
   ChevronRight,
   Code2,
   Coins,
@@ -10,7 +11,6 @@ import {
   Rocket,
   Sparkles,
   TrendingUp,
-  Wallet,
   Zap,
 } from 'lucide-react';
 
@@ -38,6 +38,7 @@ interface AIInsight {
 
 export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
   const [currentInsight, setCurrentInsight] = useState(0);
+  const [showScrollHint, setShowScrollHint] = useState(true);
   const [realtimeMetrics, setRealtimeMetrics] = useState({
     activeProjects: 0,
     aiCallsToday: 0,
@@ -150,15 +151,35 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
       setCurrentUpdate(prev => (prev + 1) % realtimeUpdates.length);
     }, 2000);
 
+    // Handle scroll to hide hint
+    const handleScroll = () => {
+      const scrollY = window.scrollY || window.pageYOffset;
+      if (scrollY > 200) {
+        setShowScrollHint(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
     return () => {
       clearInterval(interval);
       clearInterval(insightInterval);
       clearInterval(updateInterval);
+      window.removeEventListener('scroll', handleScroll);
     };
   }, []);
 
   return (
-    <div className={`${spacing.container} ${spacing.section}`}>
+    <div className={`${spacing.container} ${spacing.section} relative`}>
+      {/* Background Image */}
+      <div 
+        className="fixed inset-0 w-full h-full bg-cover bg-center bg-no-repeat opacity-20 pointer-events-none z-0"
+        style={{ backgroundImage: 'url(/images/download (1).png)' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/80 via-slate-900/60 to-slate-900/80 pointer-events-none z-0" />
+      
+      {/* Content */}
+      <div className="relative z-10">
       {/* AI Command Header */}
       <div className="mb-12">
         <div className={`${utils.spaceBetween} mb-6`}>
@@ -174,12 +195,6 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <button
-              className={`${components.buttonPrimary.replace('bg-gradient-to-r from-purple-600 to-pink-600', 'bg-gradient-to-r from-emerald-500 to-cyan-500')} flex items-center space-x-2`}
-            >
-              <Wallet className="w-5 h-5" />
-              <span>Connect Wallet</span>
-            </button>
             <div className="bg-emerald-500/10 border border-emerald-500/30 px-4 py-2 rounded-lg">
               <span className="text-emerald-400 font-mono font-bold">⚡ LIVE</span>
             </div>
@@ -319,11 +334,59 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
         </div>
       </div>
 
+      {/* Scroll Indicator - Neural Core Preview */}
+      {showScrollHint && (
+        <div className="relative mb-12">
+          {/* Scroll Prompt */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center z-10 pointer-events-none">
+            <div className="bg-gradient-to-b from-purple-500/20 via-transparent to-transparent backdrop-blur-sm rounded-xl p-8 border border-purple-500/30 mb-6">
+              <div className="text-center mb-4">
+                <div className="inline-flex items-center space-x-2 bg-emerald-500/20 px-4 py-2 rounded-full border border-emerald-500/30 mb-4">
+                  <Brain className="w-5 h-5 text-emerald-400 animate-pulse" />
+                  <span className="text-emerald-400 font-bold">Discover Neural Core</span>
+                </div>
+                <p className="text-white/80 text-lg mb-6">
+                  Explore real-time AI processing visualization below
+                </p>
+                <div className="flex flex-col items-center space-y-2 animate-bounce">
+                  <ChevronDown className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
+                  <span className="text-cyan-400/70 text-sm font-medium">Scroll to explore</span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Neural Core Preview Peek */}
+            <div className="relative w-full h-32 overflow-hidden rounded-xl border border-cyan-500/20 bg-gradient-to-b from-cyan-500/5 to-transparent backdrop-blur-sm opacity-60">
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="relative w-24 h-24">
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-purple-500/20 to-pink-500/20 rounded-full blur-xl animate-pulse"></div>
+                  <Brain className="relative w-16 h-16 text-cyan-400/50 drop-shadow-[0_0_20px_rgba(6,182,212,0.5)]" />
+                </div>
+              </div>
+              {/* Gradient fade overlay */}
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-[#0a0a0f] to-transparent"></div>
+            </div>
+          </div>
+          
+          {/* Spacer to push content below */}
+          <div className="h-64"></div>
+        </div>
+      )}
+
       {/* Holographic AI Brain Visualization */}
-      <div className="mb-12">
+      <div className="mb-12 scroll-mt-8" id="neural-core">
         <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-2">AI Neural Core</h2>
-          <p className="text-white/70 text-lg">Real-time AI processing visualization</p>
+          <div className="inline-flex items-center space-x-3 mb-4">
+            <div className="bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-pink-500/20 p-3 rounded-xl border border-cyan-500/30">
+              <Brain className="w-8 h-8 text-cyan-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                AI Neural Core
+              </h2>
+              <p className="text-white/70 text-lg">Real-time AI processing visualization</p>
+            </div>
+          </div>
         </div>
         <HolographicBrain />
       </div>
@@ -364,6 +427,7 @@ export default function AICommandCenter({ onNavigate }: AICommandCenterProps) {
             </div>
           </button>
         ))}
+      </div>
       </div>
     </div>
   );

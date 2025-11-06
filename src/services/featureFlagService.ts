@@ -39,16 +39,19 @@ const defaultFlags: FeatureFlags = {
   ideaBoard: 'preview',
   taskManagement: 'preview',
   knowledgeBase: 'comingSoon',
-  cryptoLab: 'comingSoon',
   
   // Lab System (from DLX-Ultra-2)
-  labs: 'preview',
-  auraInterface: 'preview',
-  agentForge: 'preview',
-  dataWeave: 'preview',
-  signalLab: 'comingSoon',
-  creatorStudio: 'comingSoon',
-  systemMatrix: 'comingSoon',
+  labs: 'active', // Upgraded from preview
+  auraInterface: 'active', // Upgraded from preview - fully functional
+  agentForge: 'active', // Upgraded from preview - fully functional
+  dataWeave: 'preview', // Keep as preview - needs multiple agents
+  codeReview: 'preview', // Keep as preview - needs testing
+  cryptoLab: 'active', // Fully implemented with portfolio tracking, markets, bots, and research tools
+  systemMatrix: 'preview', // Keep as preview - needs configuration
+  signalLab: 'preview', // Keep as preview - needs Google Search API
+  creatorStudio: 'preview', // Keep as preview - needs image gen API
+  commsChannel: 'preview', // Keep as preview - needs audio transcription API
+  dataverse: 'preview', // Keep as preview - needs RAG setup
   
   // Advanced features
   featureFlags: 'active', // Meta!

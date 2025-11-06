@@ -16,5 +16,13 @@ export interface Idea {
   description: string;
   status: IdeaStatus;
   timestamp: string;
+  // New fields
+  tags?: string[];
+  priority?: 'low' | 'medium' | 'high' | 'critical';
+  votes?: number;
+  dueDate?: string;
+  attachments?: Array<{ name: string; url: string; type: string }>;
+  template?: string;
+  aiGenerated?: boolean;
 }
 

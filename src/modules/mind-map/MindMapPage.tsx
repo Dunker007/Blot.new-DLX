@@ -34,7 +34,7 @@ const MindMapPage: React.FC = () => {
     } catch (e) {
       console.error('Failed to load mind map', e);
     }
-    // Default nodes
+    // Default nodes - will be centered on load
     return [
       {
         id: 'root',
@@ -72,6 +72,91 @@ const MindMapPage: React.FC = () => {
   const isDragging = useRef(false);
   const dragStart = useRef<Point>({ x: 0, y: 0 });
   const selectedNodePosition = useRef<Point | null>(null);
+  const [isHoveringRightPane, setIsHoveringRightPane] = useState(false);
+  const returnToCenterIntervalRef = useRef<number | null>(null);
+  const originalPanRef = useRef<Point>({ x: 0, y: 0 });
+
+  // Center nodes on initial load
+  React.useEffect(() => {
+    if (containerRef.current && nodes.length > 0) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const centerX = rect.width / 2;
+      const centerY = rect.height / 2;
+      
+      // Calculate bounding box of all nodes
+      const minX = Math.min(...nodes.map(n => n.position.x));
+      const maxX = Math.max(...nodes.map(n => n.position.x));
+      const minY = Math.min(...nodes.map(n => n.position.y));
+      const maxY = Math.max(...nodes.map(n => n.position.y));
+      
+      const nodesCenterX = (minX + maxX) / 2;
+      const nodesCenterY = (minY + maxY) / 2;
+      
+      // Center the nodes
+      const offsetX = centerX - nodesCenterX;
+      const offsetY = centerY - nodesCenterY;
+      
+      setPan({ x: offsetX, y: offsetY });
+      originalPanRef.current = { x: offsetX, y: offsetY };
+    }
+  }, []); // Only run on mount
+
+  // Listen for right pane hover events from HybridLayout
+  React.useEffect(() => {
+    const handleRightPaneHover = (e: CustomEvent) => {
+      setIsHoveringRightPane(e.detail.hovering);
+    };
+    
+    const handleRightPaneClick = () => {
+      // Snap back immediately on click
+      setPan(originalPanRef.current);
+    };
+    
+    window.addEventListener('mind-map-right-pane-hover', handleRightPaneHover as EventListener);
+    window.addEventListener('mind-map-right-pane-click', handleRightPaneClick);
+    
+    return () => {
+      window.removeEventListener('mind-map-right-pane-hover', handleRightPaneHover as EventListener);
+      window.removeEventListener('mind-map-right-pane-click', handleRightPaneClick);
+    };
+  }, []);
+
+  // Handle slow return to center on hover
+  React.useEffect(() => {
+    if (isHoveringRightPane && containerRef.current) {
+      // Start slow return animation
+      returnToCenterIntervalRef.current = window.setInterval(() => {
+        setPan((currentPan) => {
+          const targetPan = originalPanRef.current;
+          const dx = targetPan.x - currentPan.x;
+          const dy = targetPan.y - currentPan.y;
+          
+          // If very close, snap to center
+          if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+            return targetPan;
+          }
+          
+          // Slow return (10% per frame, ~60fps = smooth)
+          return {
+            x: currentPan.x + dx * 0.1,
+            y: currentPan.y + dy * 0.1,
+          };
+        });
+      }, 16); // ~60fps
+    } else {
+      // Stop animation
+      if (returnToCenterIntervalRef.current) {
+        clearInterval(returnToCenterIntervalRef.current);
+        returnToCenterIntervalRef.current = null;
+      }
+    }
+    
+    return () => {
+      if (returnToCenterIntervalRef.current) {
+        clearInterval(returnToCenterIntervalRef.current);
+      }
+    };
+  }, [isHoveringRightPane]);
 
   // Persist nodes
   React.useEffect(() => {
@@ -104,8 +189,13 @@ const MindMapPage: React.FC = () => {
     setClickEffect({ pos: { x: e.clientX, y: e.clientY }, time: Date.now() });
   };
 
-  const handleCanvasClick = () => {
-    setSelectedNodeId(null);
+  const handleCanvasClick = (e: React.MouseEvent) => {
+    // Check if clicking on blank space (not a node)
+    if (e.target === containerRef.current || (e.target as SVGElement).tagName === 'svg') {
+      setSelectedNodeId(null);
+      // Snap back to center immediately
+      setPan(originalPanRef.current);
+    }
   };
 
   const handleNodeDrag = useCallback((nodeId: string, newPosition: Point) => {

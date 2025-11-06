@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout 3: Flow Tabs - DLX Studios</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .tab-bar {
+            display: flex;
+            gap: 0.5rem;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            overflow-x: auto;
+            background: rgba(10, 10, 15, 0.95);
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px 12px 0 0;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .tab:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.4);
+        }
+        .tab.active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border-color: #00ffff;
+            border-bottom-color: transparent;
+        }
+        .tab-icon {
+            font-size: 1.2rem;
+        }
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .section-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .section-card {
+            background: rgba(20, 20, 30, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .section-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.3);
+            transform: translateY(-4px);
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .section-icon {
+            font-size: 2rem;
+        }
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        .section-items {
+            list-style: none;
+        }
+        .section-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .item-name {
+            font-size: 0.95rem;
+        }
+        .item-status {
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        .item-status.preview {
+            background: rgba(255, 255, 0, 0.1);
+            color: #ffff00;
+        }
+        .quick-access {
+            background: rgba(20, 20, 30, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .quick-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+        .quick-btn {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .quick-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: #00ffff;
+        }
+        .quick-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .quick-label {
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DLX STUDIOS</div>
+            <div style="font-size: 0.9rem; color: #888;">Flow-Based Navigation</div>
+        </div>
+        
+        <div class="tab-bar">
+            <div class="tab active" onclick="switchTab('home')">
+                <span class="tab-icon">🏠</span>
+                <span>Home</span>
+            </div>
+            <div class="tab" onclick="switchTab('labs')">
+                <span class="tab-icon">🧪</span>
+                <span>Labs (11)</span>
+            </div>
+            <div class="tab" onclick="switchTab('revenue')">
+                <span class="tab-icon">💰</span>
+                <span>Revenue</span>
+            </div>
+            <div class="tab" onclick="switchTab('dev')">
+                <span class="tab-icon">⚡</span>
+                <span>Development</span>
+            </div>
+            <div class="tab" onclick="switchTab('ai')">
+                <span class="tab-icon">🧠</span>
+                <span>AI Tools</span>
+            </div>
+            <div class="tab" onclick="switchTab('system')">
+                <span class="tab-icon">⚙️</span>
+                <span>System</span>
+            </div>
+        </div>
+
+        <div class="content-area">
+            <!-- Home Tab -->
+            <div class="tab-content active" id="home">
+                <div class="quick-access">
+                    <div class="quick-title">Quick Access</div>
+                    <div class="quick-grid">
+                        <div class="quick-btn">
+                            <div class="quick-icon">🧠</div>
+                            <div class="quick-label">AURA Interface</div>
+                        </div>
+                        <div class="quick-btn">
+                            <div class="quick-icon">🔍</div>
+                            <div class="quick-label">Code Review</div>
+                        </div>
+                        <div class="quick-btn">
+                            <div class="quick-icon">💰</div>
+                            <div class="quick-label">Business Gen</div>
+                        </div>
+                        <div class="quick-btn">
+                            <div class="quick-icon">⚙️</div>
+                            <div class="quick-label">Workspace</div>
+                        </div>
+                        <div class="quick-btn">
+                            <div class="quick-icon">₿</div>
+                            <div class="quick-label">Crypto Lab</div>
+                        </div>
+                        <div class="quick-btn">
+                            <div class="quick-icon">📊</div>
+                            <div class="quick-label">Revenue Dashboard</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-grid">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">⚡</div>
+                            <div class="section-title">Command Center</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Central hub for all AI operations</p>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Multi-LLM Routing</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Token Analytics</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Cost Optimization</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">📊</div>
+                            <div class="section-title">Analytics</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Performance and usage metrics</p>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Request Tracking</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Cost Analysis</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Performance Metrics</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Labs Tab -->
+            <div class="tab-content" id="labs">
+                <div class="section-grid">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🧠</div>
+                            <div class="section-title">AI Labs</div>
+                        </div>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">AURA Interface</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Agent Forge</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Creator Studio</span>
+                                <span class="item-status preview">Preview</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🔍</div>
+                            <div class="section-title">Analysis Labs</div>
+                        </div>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Code Review Lab</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Data Weave</span>
+                                <span class="item-status preview">Preview</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Signal Lab</span>
+                                <span class="item-status preview">Preview</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🌌</div>
+                            <div class="section-title">Research Labs</div>
+                        </div>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Crypto Lab</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Dataverse</span>
+                                <span class="item-status preview">Preview</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">System Matrix</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Tab -->
+            <div class="tab-content" id="revenue">
+                <div class="section-grid">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">💼</div>
+                            <div class="section-title">Business Generator</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Generate complete business models with ROI projections, implementation plans, and risk assessment. Export to PDF/Word.</p>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Revenue Model Presets</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">ROI Calculator</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">PDF/Word Export</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🔗</div>
+                            <div class="section-title">Affiliate Factory</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Automated affiliate content generation with smart scheduling, A/B testing, and performance tracking.</p>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Smart Scheduling</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Link Manager</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">A/B Testing</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">📊</div>
+                            <div class="section-title">Revenue Dashboard</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Real-time tracking of all passive income streams with automation health monitoring.</p>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Stream Tracking</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Automation Health</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">Opportunity Scanner</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dev Tab -->
+            <div class="tab-content" id="dev">
+                <div class="section-grid">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">📝</div>
+                            <div class="section-title">Monaco Editor</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Full IDE experience with syntax highlighting for 12+ languages and AI code generation.</p>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">⚙️</div>
+                            <div class="section-title">Workspace</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Multi-file editor with real-time collaboration features.</p>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">✅</div>
+                            <div class="section-title">Task Management</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">AI-powered task execution with Gemini integration.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Tools Tab -->
+            <div class="tab-content" id="ai">
+                <div class="section-grid">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🧠</div>
+                            <div class="section-title">Mind Map</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Visual brainstorming with WebGL background and voice control.</p>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🎤</div>
+                            <div class="section-title">Audio Transcriber</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Real-time voice-to-text transcription via Gemini.</p>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🖼️</div>
+                            <div class="section-title">Image Analysis</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">AI-powered image understanding and description.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Tab -->
+            <div class="tab-content" id="system">
+                <div class="section-grid">
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">⚙️</div>
+                            <div class="section-title">Settings</div>
+                        </div>
+                        <ul class="section-items">
+                            <li class="section-item">
+                                <span class="item-name">Gemini API</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">LuxRig Settings</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                            <li class="section-item">
+                                <span class="item-name">DNS Manager</span>
+                                <span class="item-status">Active</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="section-card">
+                        <div class="section-header">
+                            <div class="section-icon">🚩</div>
+                            <div class="section-title">Feature Flags</div>
+                        </div>
+                        <p style="color: #888; margin-bottom: 1rem;">Control feature visibility and rollout.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            // Remove active from all tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // Add active to clicked tab
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
+

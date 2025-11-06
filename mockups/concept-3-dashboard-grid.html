@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLX Studios - Concept 3: Dashboard Grid</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow-x: hidden;
+        }
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(255, 0, 255, 0.05) 0%, transparent 50%);
+            z-index: 0;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .search-bar {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 2rem;
+            position: relative;
+        }
+        .search-input {
+            width: 100%;
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 25px;
+            padding: 0.75rem 1rem 0.75rem 3rem;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+        }
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .notifications {
+            position: relative;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .notification-badge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: #ff00ff;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .widget {
+            background: rgba(20, 20, 30, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .widget:hover {
+            border-color: #00ffff;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.2);
+            transform: translateY(-4px);
+        }
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .widget-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .widget-icon {
+            font-size: 1.5rem;
+        }
+        .widget-menu {
+            color: #888;
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        .widget-content {
+            margin-top: 1rem;
+        }
+        .widget-large {
+            grid-column: span 2;
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        .stat-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .stat-value {
+            font-weight: bold;
+            color: #00ffff;
+        }
+        .progress-bar {
+            background: rgba(0, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 8px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s;
+        }
+        .feature-list {
+            list-style: none;
+        }
+        .feature-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .feature-name {
+            font-size: 0.9rem;
+        }
+        .feature-status {
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        .feature-status.preview {
+            background: rgba(255, 255, 0, 0.1);
+            color: #ffff00;
+        }
+        .quick-launch {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+        }
+        .launch-btn {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .launch-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: scale(1.05);
+        }
+        .launch-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .launch-label {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 80px;
+            height: 100vh;
+            background: rgba(20, 20, 30, 0.95);
+            border-right: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+            gap: 2rem;
+            z-index: 100;
+        }
+        .sidebar-icon {
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .sidebar-icon:hover {
+            background: rgba(0, 255, 255, 0.1);
+        }
+        .sidebar-icon.active {
+            background: rgba(0, 255, 255, 0.2);
+            border: 1px solid rgba(0, 255, 255, 0.4);
+        }
+        .note {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        .note-title {
+            font-weight: bold;
+            color: #ff00ff;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+        .widget-menu:hover {
+            color: #00ffff;
+        }
+    </style>
+    <script>
+        function sidebarNav(iconElement, section) {
+            document.querySelectorAll('.sidebar-icon').forEach(icon => icon.classList.remove('active'));
+            iconElement.classList.add('active');
+            console.log(`Navigating to: ${section}`);
+            alert(`Opening ${section}...`);
+        }
+        
+        function openLab(labName) {
+            console.log(`Opening lab: ${labName}`);
+            alert(`Opening ${labName.replace('-', ' ')} lab...`);
+        }
+        
+        function quickLaunch(feature) {
+            console.log(`Quick launching: ${feature}`);
+            alert(`Launching ${feature.replace('-', ' ')}...`);
+        }
+        
+        // Make widgets clickable
+        document.addEventListener('DOMContentLoaded', () => {
+            const widgets = document.querySelectorAll('.widget');
+            widgets.forEach(widget => {
+                widget.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('widget-menu') && !e.target.closest('.launch-btn') && !e.target.closest('.feature-item')) {
+                        const title = widget.querySelector('.widget-title span:last-child').textContent;
+                        console.log(`Opening widget: ${title}`);
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+    
+    <div class="sidebar">
+        <div class="sidebar-icon active" onclick="sidebarNav(this, 'home')" title="Home">🏠</div>
+        <div class="sidebar-icon" onclick="sidebarNav(this, 'command')" title="Command Center">⚡</div>
+        <div class="sidebar-icon" onclick="sidebarNav(this, 'revenue')" title="Revenue">💰</div>
+        <div class="sidebar-icon" onclick="sidebarNav(this, 'labs')" title="Labs">🧪</div>
+        <div class="sidebar-icon" onclick="sidebarNav(this, 'settings')" title="Settings">⚙️</div>
+    </div>
+
+    <div class="container" style="margin-left: 80px;">
+        <div class="top-bar">
+            <div class="logo-section">
+                <div class="logo">DLX STUDIOS</div>
+            </div>
+            <div class="search-bar">
+                <div class="search-icon">🔍</div>
+                <input type="text" class="search-input" placeholder="Search features, labs, or ask AI...">
+            </div>
+            <div class="user-section">
+                <div class="notifications">
+                    🔔
+                    <div class="notification-badge">3</div>
+                </div>
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #00ffff, #ff00ff);"></div>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="widget widget-large">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="widget-icon">⚡</span>
+                        <span>Command Center</span>
+                    </div>
+                    <div class="widget-menu">⋯</div>
+                </div>
+                <div class="widget-content">
+                    <div class="stat-row">
+                        <span class="stat-label">Active Sessions</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">AI Requests Today</span>
+                        <span class="stat-value">1,247</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">System Status</span>
+                        <span class="stat-value" style="color: #00ff00;">Operational</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="widget-icon">💰</span>
+                        <span>Revenue</span>
+                    </div>
+                    <div class="widget-menu">⋯</div>
+                </div>
+                <div class="widget-content">
+                    <div style="font-size: 2rem; font-weight: bold; background: linear-gradient(135deg, #00ffff, #ff00ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 1rem 0;">$2,427</div>
+                    <div style="color: #888; font-size: 0.9rem; margin-bottom: 1rem;">This Month</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 65%;"></div>
+                    </div>
+                    <div style="margin-top: 1rem; font-size: 0.85rem; color: #888;">3 active streams</div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="widget-icon">🧪</span>
+                        <span>Labs</span>
+                    </div>
+                    <div class="widget-menu">⋯</div>
+                </div>
+                <div class="widget-content">
+                    <ul class="feature-list">
+                        <li class="feature-item" onclick="openLab('code-review')" style="cursor: pointer;">
+                            <span class="feature-name">Code Review</span>
+                            <span class="feature-status">Active</span>
+                        </li>
+                        <li class="feature-item" onclick="openLab('crypto-lab')" style="cursor: pointer;">
+                            <span class="feature-name">Crypto Lab</span>
+                            <span class="feature-status">Active</span>
+                        </li>
+                        <li class="feature-item" onclick="openLab('data-weave')" style="cursor: pointer;">
+                            <span class="feature-name">Data Weave</span>
+                            <span class="feature-status preview">Preview</span>
+                        </li>
+                        <li class="feature-item" onclick="openLab('system-matrix')" style="cursor: pointer;">
+                            <span class="feature-name">System Matrix</span>
+                            <span class="feature-status">Active</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="widget widget-large">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="widget-icon">🚀</span>
+                        <span>Quick Launch</span>
+                    </div>
+                    <div class="widget-menu">⋯</div>
+                </div>
+                <div class="widget-content">
+                    <div class="quick-launch">
+                        <div class="launch-btn" onclick="quickLaunch('code-review')">
+                            <div class="launch-icon">🔍</div>
+                            <div class="launch-label">Code Review</div>
+                        </div>
+                        <div class="launch-btn" onclick="quickLaunch('business-generator')">
+                            <div class="launch-icon">💰</div>
+                            <div class="launch-label">Business Gen</div>
+                        </div>
+                        <div class="launch-btn" onclick="quickLaunch('aura')">
+                            <div class="launch-icon">🧠</div>
+                            <div class="launch-label">AURA</div>
+                        </div>
+                        <div class="launch-btn" onclick="quickLaunch('workspace')">
+                            <div class="launch-icon">⚙️</div>
+                            <div class="launch-label">Workspace</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="widget-icon">📊</span>
+                        <span>Performance</span>
+                    </div>
+                    <div class="widget-menu">⋯</div>
+                </div>
+                <div class="widget-content">
+                    <div class="stat-row">
+                        <span class="stat-label">Uptime</span>
+                        <span class="stat-value">99.9%</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Avg Response</span>
+                        <span class="stat-value">1.2s</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Success Rate</span>
+                        <span class="stat-value">98.5%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="widget">
+                <div class="widget-header">
+                    <div class="widget-title">
+                        <span class="widget-icon">🔧</span>
+                        <span>Projects</span>
+                    </div>
+                    <div class="widget-menu">⋯</div>
+                </div>
+                <div class="widget-content">
+                    <div class="stat-row">
+                        <span class="stat-label">Active</span>
+                        <span class="stat-value">8</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Completed</span>
+                        <span class="stat-value">23</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">In Progress</span>
+                        <span class="stat-value">3</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="note">
+        <div class="note-title">Concept 3: Dashboard Grid</div>
+        <div>Modern dashboard layout with widget-based grid system. Clean, organized, and information-dense. Perfect for users who want to see everything at a glance. Sidebar navigation + search bar + customizable widget grid.</div>
+    </div>
+</body>
+</html>
+

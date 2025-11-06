@@ -12,7 +12,7 @@ export const LABS: Lab[] = [
     name: 'AURA Interface',
     description: 'Direct communication channel with AURA, the core cognitive AI',
     icon: '🧠',
-    status: featureFlagService.isAvailable('auraInterface') ? 'active' : 'preview',
+    status: featureFlagService.isActive('auraInterface') ? 'active' : 'preview',
     category: 'ai',
   },
   {
@@ -20,7 +20,7 @@ export const LABS: Lab[] = [
     name: 'Agent Forge',
     description: 'Create, manage, and simulate specialized AI agents',
     icon: '⚙️',
-    status: featureFlagService.isAvailable('agentForge') ? 'active' : 'preview',
+    status: featureFlagService.isActive('agentForge') ? 'active' : 'preview',
     category: 'ai',
   },
   {
@@ -28,7 +28,7 @@ export const LABS: Lab[] = [
     name: 'Data Weave',
     description: 'Synthesize outputs from multiple agents for cross-domain insights',
     icon: '🔗',
-    status: featureFlagService.isAvailable('dataWeave') ? 'active' : 'preview',
+    status: featureFlagService.isAvailable('dataWeave') ? 'preview' : 'coming-soon',
     category: 'research',
   },
   {
@@ -60,7 +60,7 @@ export const LABS: Lab[] = [
     name: 'Crypto Lab',
     description: 'Cryptocurrency analysis and portfolio tracking',
     icon: '₿',
-    status: featureFlagService.isAvailable('cryptoLab') ? 'preview' : 'coming-soon',
+    status: 'active',
     category: 'research',
   },
   {

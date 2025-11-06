@@ -38,6 +38,15 @@
     "docker:build": "docker build -t dlx-studios .",
     "docker:run": "docker-compose up -d",
     "docker:stop": "docker-compose down",
+    "pm2:setup": "powershell -ExecutionPolicy Bypass -File scripts/setup-pm2.ps1",
+    "pm2:dev": "pm2 start ecosystem.config.cjs --only dlx-dev",
+    "pm2:prod": "pm2 start ecosystem.config.cjs --only dlx-prod",
+    "pm2:stop": "pm2 stop dlx-dev dlx-prod",
+    "pm2:restart": "pm2 restart dlx-dev dlx-prod",
+    "pm2:logs": "pm2 logs",
+    "pm2:monit": "pm2 monit",
+    "pm2:status": "pm2 list",
+    "pm2:delete": "pm2 delete dlx-dev dlx-prod",
     "check": "npm run format:check && npm run typecheck && npm run lint && npm run test:run && npm run build"
   },
   "keywords": [

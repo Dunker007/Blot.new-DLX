@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout 2: Discovery Grid - DLX Studios</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow-y: auto;
+        }
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+        .hero-section {
+            background: rgba(20, 20, 30, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 3rem;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        .hero-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #00ffff;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .category-section {
+            margin-bottom: 4rem;
+        }
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        .category-icon {
+            font-size: 2rem;
+        }
+        .category-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .category-count {
+            margin-left: auto;
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            color: #00ffff;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .feature-card {
+            background: rgba(20, 20, 30, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff);
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+        .feature-card:hover {
+            border-color: #00ffff;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.3);
+            transform: translateY(-4px);
+        }
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .feature-desc {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+        .feature-tags {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .tag {
+            background: rgba(0, 255, 255, 0.1);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            color: #00ffff;
+        }
+        .feature-status {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border-radius: 12px;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+        }
+        .feature-status.preview {
+            background: rgba(255, 255, 0, 0.1);
+            color: #ffff00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DLX STUDIOS</div>
+            <div class="subtitle">Discovery Grid Layout - All Features Visible</div>
+        </div>
+        
+        <div class="hero-section">
+            <div class="hero-title">AI-Powered Development Platform</div>
+            <div style="color: #aaa; font-size: 1.1rem; margin-bottom: 1rem;">
+                Everything you need to build, analyze, and monetize
+            </div>
+            <div class="hero-stats">
+                <div class="stat">
+                    <div class="stat-value">11</div>
+                    <div class="stat-label">Specialized Labs</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Active Features</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Revenue Streams</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value">12+</div>
+                    <div class="stat-label">AI Agents</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-icon">🧪</div>
+                <div class="category-title">AI Labs</div>
+                <div class="category-count">11 Labs</div>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">🧠</div>
+                    <div class="feature-title">AURA Interface</div>
+                    <div class="feature-desc">Direct communication with core cognitive AI</div>
+                    <div class="feature-tags">
+                        <span class="tag">AI</span>
+                        <span class="tag">Core</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">🔍</div>
+                    <div class="feature-title">Code Review Lab</div>
+                    <div class="feature-desc">AI-powered code analysis and review</div>
+                    <div class="feature-tags">
+                        <span class="tag">Development</span>
+                        <span class="tag">AI Analysis</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">₿</div>
+                    <div class="feature-title">Crypto Lab</div>
+                    <div class="feature-desc">Cryptocurrency analysis and portfolio tracking</div>
+                    <div class="feature-tags">
+                        <span class="tag">Crypto</span>
+                        <span class="tag">Analysis</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status preview">Preview</div>
+                    <div class="feature-icon">🔗</div>
+                    <div class="feature-title">Data Weave</div>
+                    <div class="feature-desc">Synthesize outputs from multiple agents</div>
+                    <div class="feature-tags">
+                        <span class="tag">Multi-Agent</span>
+                        <span class="tag">Synthesis</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">⚡</div>
+                    <div class="feature-title">System Matrix</div>
+                    <div class="feature-desc">Core concepts and operational parameters</div>
+                    <div class="feature-tags">
+                        <span class="tag">System</span>
+                        <span class="tag">Architecture</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">⚙️</div>
+                    <div class="feature-title">Agent Forge</div>
+                    <div class="feature-desc">Create and manage specialized AI agents</div>
+                    <div class="feature-tags">
+                        <span class="tag">AI</span>
+                        <span class="tag">Agents</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-icon">💰</div>
+                <div class="category-title">Revenue Generation</div>
+                <div class="category-count">3 Tools</div>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">💼</div>
+                    <div class="feature-title">Business Model Generator</div>
+                    <div class="feature-desc">Generate complete business models with ROI projections</div>
+                    <div class="feature-tags">
+                        <span class="tag">Business</span>
+                        <span class="tag">ROI</span>
+                        <span class="tag">PDF Export</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">🔗</div>
+                    <div class="feature-title">Auto-Affiliate Factory</div>
+                    <div class="feature-desc">Automated affiliate content generation with smart scheduling</div>
+                    <div class="feature-tags">
+                        <span class="tag">Affiliate</span>
+                        <span class="tag">Automation</span>
+                        <span class="tag">A/B Testing</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">📊</div>
+                    <div class="feature-title">Revenue Streams Dashboard</div>
+                    <div class="feature-desc">Real-time passive income tracking and analytics</div>
+                    <div class="feature-tags">
+                        <span class="tag">Dashboard</span>
+                        <span class="tag">Analytics</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-header">
+                <div class="category-icon">⚡</div>
+                <div class="category-title">Development Tools</div>
+                <div class="category-count">4 Tools</div>
+            </div>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">📝</div>
+                    <div class="feature-title">Monaco Editor</div>
+                    <div class="feature-desc">Full IDE with syntax highlighting and AI code generation</div>
+                    <div class="feature-tags">
+                        <span class="tag">Editor</span>
+                        <span class="tag">12+ Languages</span>
+                        <span class="tag">AI Code Gen</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">⚙️</div>
+                    <div class="feature-title">Workspace</div>
+                    <div class="feature-desc">Multi-file editor with real-time collaboration</div>
+                    <div class="feature-tags">
+                        <span class="tag">Multi-File</span>
+                        <span class="tag">Collaboration</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">🧠</div>
+                    <div class="feature-title">Mind Map</div>
+                    <div class="feature-desc">Visual brainstorming with WebGL background</div>
+                    <div class="feature-tags">
+                        <span class="tag">Visualization</span>
+                        <span class="tag">WebGL</span>
+                    </div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-status">Active</div>
+                    <div class="feature-icon">✅</div>
+                    <div class="feature-title">Task Management</div>
+                    <div class="feature-desc">AI-powered task execution with Gemini</div>
+                    <div class="feature-tags">
+                        <span class="tag">Tasks</span>
+                        <span class="tag">AI</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

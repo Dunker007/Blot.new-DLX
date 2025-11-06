@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid: Hub & Flow - DLX Studios</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        .container {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: radial-gradient(circle at center, rgba(0, 255, 255, 0.05) 0%, transparent 70%);
+        }
+        .header {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .main-area {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+        .left-panel {
+            width: 300px;
+            border-right: 1px solid rgba(0, 255, 255, 0.2);
+            background: rgba(20, 20, 30, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .tab-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .tab-item {
+            padding: 1rem 1.5rem;
+            background: rgba(20, 20, 30, 0.8);
+            border: 2px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+        }
+        .tab-item:hover {
+            border-color: rgba(0, 255, 255, 0.5);
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+        .tab-item.active {
+            background: linear-gradient(135deg, rgba(0, 255, 255, 0.2), rgba(255, 0, 255, 0.2));
+            border-color: #00ffff;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        .tab-item.active::before {
+            content: '';
+            position: absolute;
+            left: -2px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background: linear-gradient(180deg, #00ffff, #ff00ff);
+            border-radius: 0 4px 4px 0;
+        }
+        .tab-icon {
+            font-size: 1.5rem;
+        }
+        .tab-info {
+            flex: 1;
+        }
+        .tab-title {
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        .tab-count {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .center-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .central-hub {
+            width: 280px;
+            height: 280px;
+            background: rgba(20, 20, 30, 0.95);
+            border: 3px solid rgba(0, 255, 255, 0.5);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 0 60px rgba(0, 255, 255, 0.3);
+            transition: all 0.5s;
+        }
+        .hub-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .hub-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .hub-subtitle {
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .hub-stats {
+            margin-top: 1rem;
+            display: flex;
+            gap: 1rem;
+            font-size: 0.85rem;
+        }
+        .hub-stat {
+            text-align: center;
+        }
+        .hub-stat-value {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        .hub-stat-label {
+            color: #888;
+            font-size: 0.75rem;
+        }
+        .spoke {
+            position: absolute;
+            width: 180px;
+            height: 90px;
+            background: rgba(20, 20, 30, 0.95);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none;
+        }
+        .spoke.visible {
+            opacity: 1;
+            transform: scale(1);
+            pointer-events: all;
+        }
+        .spoke:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.4);
+            transform: scale(1.1) !important;
+            z-index: 20;
+        }
+        .spoke-icon {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .spoke-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+        }
+        .spoke-desc {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        .spoke-connection {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.4), transparent);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .spoke-connection.visible {
+            opacity: 1;
+        }
+        /* Spoke positions */
+        .spoke-1 { top: 8%; left: 50%; transform: translateX(-50%); }
+        .spoke-2 { top: 50%; right: 8%; transform: translateY(-50%) rotate(90deg); }
+        .spoke-3 { bottom: 8%; left: 50%; transform: translateX(-50%) rotate(180deg); }
+        .spoke-4 { top: 50%; left: 8%; transform: translateY(-50%) rotate(-90deg); }
+        .spoke-5 { top: 15%; right: 18%; transform: rotate(45deg); }
+        .spoke-6 { top: 15%; left: 18%; transform: rotate(-45deg); }
+        .spoke-7 { bottom: 15%; right: 18%; transform: rotate(-135deg); }
+        .spoke-8 { bottom: 15%; left: 18%; transform: rotate(135deg); }
+        .connection-1 { top: 11%; left: 50%; width: 0; height: 12%; transform: translateX(-50%); }
+        .connection-2 { top: 50%; right: 11%; width: 12%; height: 0; transform: translateY(-50%); }
+        .connection-3 { bottom: 11%; left: 50%; width: 0; height: 12%; transform: translateX(-50%); }
+        .connection-4 { top: 50%; left: 11%; width: 12%; height: 0; transform: translateY(-50%); }
+        .connection-5 { top: 18%; right: 21%; width: 10%; height: 10%; transform: rotate(45deg); }
+        .connection-6 { top: 18%; left: 21%; width: 10%; height: 10%; transform: rotate(-45deg); }
+        .connection-7 { bottom: 18%; right: 21%; width: 10%; height: 10%; transform: rotate(-135deg); }
+        .connection-8 { bottom: 18%; left: 21%; width: 10%; height: 10%; transform: rotate(135deg); }
+        .right-panel {
+            width: 400px;
+            border-left: 1px solid rgba(0, 255, 255, 0.2);
+            background: rgba(20, 20, 30, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        .panel-section {
+            margin-bottom: 2rem;
+        }
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .feature-list {
+            list-style: none;
+        }
+        .feature-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.1);
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .feature-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+        .item-name {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .item-status {
+            padding: 0.25rem 0.75rem;
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border-radius: 12px;
+            font-size: 0.75rem;
+        }
+        .item-status.preview {
+            background: rgba(255, 255, 0, 0.1);
+            color: #ffff00;
+        }
+        .quick-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #00ffff;
+            margin-bottom: 0.25rem;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">DLX STUDIOS</div>
+            <div style="font-size: 0.9rem; color: #888;">Hybrid: Hub & Flow Navigation</div>
+        </div>
+        
+        <div class="main-area">
+            <!-- Left Panel - Tabs -->
+            <div class="left-panel">
+                <div class="tab-list">
+                    <div class="tab-item active" onclick="switchTab('home')">
+                        <div class="tab-icon">🏠</div>
+                        <div class="tab-info">
+                            <div class="tab-title">Home</div>
+                            <div class="tab-count">Quick Access</div>
+                        </div>
+                    </div>
+                    <div class="tab-item" onclick="switchTab('labs')">
+                        <div class="tab-icon">🧪</div>
+                        <div class="tab-info">
+                            <div class="tab-title">Labs</div>
+                            <div class="tab-count">11 Specialized</div>
+                        </div>
+                    </div>
+                    <div class="tab-item" onclick="switchTab('revenue')">
+                        <div class="tab-icon">💰</div>
+                        <div class="tab-info">
+                            <div class="tab-title">Revenue</div>
+                            <div class="tab-count">3 Streams</div>
+                        </div>
+                    </div>
+                    <div class="tab-item" onclick="switchTab('dev')">
+                        <div class="tab-icon">⚡</div>
+                        <div class="tab-info">
+                            <div class="tab-title">Development</div>
+                            <div class="tab-count">4 Tools</div>
+                        </div>
+                    </div>
+                    <div class="tab-item" onclick="switchTab('ai')">
+                        <div class="tab-icon">🧠</div>
+                        <div class="tab-info">
+                            <div class="tab-title">AI Tools</div>
+                            <div class="tab-count">Multi-Modal</div>
+                        </div>
+                    </div>
+                    <div class="tab-item" onclick="switchTab('system')">
+                        <div class="tab-icon">⚙️</div>
+                        <div class="tab-info">
+                            <div class="tab-title">System</div>
+                            <div class="tab-count">Settings & Config</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Area - Hub & Spokes -->
+            <div class="center-area">
+                <!-- Connection Lines -->
+                <div class="spoke-connection connection-1"></div>
+                <div class="spoke-connection connection-2"></div>
+                <div class="spoke-connection connection-3"></div>
+                <div class="spoke-connection connection-4"></div>
+                <div class="spoke-connection connection-5"></div>
+                <div class="spoke-connection connection-6"></div>
+                <div class="spoke-connection connection-7"></div>
+                <div class="spoke-connection connection-8"></div>
+
+                <!-- Central Hub -->
+                <div class="central-hub" id="centralHub">
+                    <div class="hub-icon">⚡</div>
+                    <div class="hub-title" id="hubTitle">Command Center</div>
+                    <div class="hub-subtitle" id="hubSubtitle">Your AI Powerhouse</div>
+                    <div class="hub-stats" id="hubStats">
+                        <div class="hub-stat">
+                            <div class="hub-stat-value">11</div>
+                            <div class="hub-stat-label">Labs</div>
+                        </div>
+                        <div class="hub-stat">
+                            <div class="hub-stat-value">6</div>
+                            <div class="hub-stat-label">Active</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spokes (dynamically shown based on tab) -->
+                <div class="spoke spoke-1" data-category="home">
+                    <div class="spoke-icon">🧠</div>
+                    <div class="spoke-title">AURA Interface</div>
+                    <div class="spoke-desc">Core AI</div>
+                </div>
+                <div class="spoke spoke-2" data-category="home">
+                    <div class="spoke-icon">📊</div>
+                    <div class="spoke-title">Dashboard</div>
+                    <div class="spoke-desc">Overview</div>
+                </div>
+                <div class="spoke spoke-3" data-category="home">
+                    <div class="spoke-icon">⚙️</div>
+                    <div class="spoke-title">Workspace</div>
+                    <div class="spoke-desc">Code Editor</div>
+                </div>
+                <div class="spoke spoke-4" data-category="home">
+                    <div class="spoke-icon">✅</div>
+                    <div class="spoke-title">Tasks</div>
+                    <div class="spoke-desc">Management</div>
+                </div>
+                <div class="spoke spoke-5" data-category="labs">
+                    <div class="spoke-icon">🔍</div>
+                    <div class="spoke-title">Code Review</div>
+                    <div class="spoke-desc">AI Analysis</div>
+                </div>
+                <div class="spoke spoke-6" data-category="labs">
+                    <div class="spoke-icon">₿</div>
+                    <div class="spoke-title">Crypto Lab</div>
+                    <div class="spoke-desc">Market Data</div>
+                </div>
+                <div class="spoke spoke-7" data-category="labs">
+                    <div class="spoke-icon">🔗</div>
+                    <div class="spoke-title">Data Weave</div>
+                    <div class="spoke-desc">Multi-Agent</div>
+                </div>
+                <div class="spoke spoke-8" data-category="labs">
+                    <div class="spoke-icon">⚡</div>
+                    <div class="spoke-title">System Matrix</div>
+                    <div class="spoke-desc">Architecture</div>
+                </div>
+                <!-- Revenue Spokes -->
+                <div class="spoke spoke-1" data-category="revenue">
+                    <div class="spoke-icon">💼</div>
+                    <div class="spoke-title">Business Gen</div>
+                    <div class="spoke-desc">ROI Models</div>
+                </div>
+                <div class="spoke spoke-2" data-category="revenue">
+                    <div class="spoke-icon">🔗</div>
+                    <div class="spoke-title">Affiliate</div>
+                    <div class="spoke-desc">Factory</div>
+                </div>
+                <div class="spoke spoke-3" data-category="revenue">
+                    <div class="spoke-icon">📊</div>
+                    <div class="spoke-title">Revenue</div>
+                    <div class="spoke-desc">Dashboard</div>
+                </div>
+                <!-- Dev Spokes -->
+                <div class="spoke spoke-4" data-category="dev">
+                    <div class="spoke-icon">📝</div>
+                    <div class="spoke-title">Monaco</div>
+                    <div class="spoke-desc">Editor</div>
+                </div>
+                <div class="spoke spoke-5" data-category="dev">
+                    <div class="spoke-icon">⚙️</div>
+                    <div class="spoke-title">Workspace</div>
+                    <div class="spoke-desc">Multi-File</div>
+                </div>
+                <div class="spoke spoke-6" data-category="dev">
+                    <div class="spoke-icon">✅</div>
+                    <div class="spoke-title">Tasks</div>
+                    <div class="spoke-desc">Management</div>
+                </div>
+                <!-- AI Spokes -->
+                <div class="spoke spoke-7" data-category="ai">
+                    <div class="spoke-icon">🧠</div>
+                    <div class="spoke-title">Mind Map</div>
+                    <div class="spoke-desc">Visual</div>
+                </div>
+                <div class="spoke spoke-8" data-category="ai">
+                    <div class="spoke-icon">🎤</div>
+                    <div class="spoke-title">Audio</div>
+                    <div class="spoke-desc">Transcribe</div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Details -->
+            <div class="right-panel">
+                <div class="panel-section" id="panelContent">
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">11</div>
+                            <div class="stat-label">Labs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">6</div>
+                            <div class="stat-label">Active</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">3</div>
+                            <div class="stat-label">Revenue</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">12+</div>
+                            <div class="stat-label">Agents</div>
+                        </div>
+                    </div>
+                    <div class="panel-title">Quick Access</div>
+                    <ul class="feature-list">
+                        <li class="feature-item">
+                            <span class="item-name">🧠 AURA Interface</span>
+                            <span class="item-status">Active</span>
+                        </li>
+                        <li class="feature-item">
+                            <span class="item-name">🔍 Code Review</span>
+                            <span class="item-status">Active</span>
+                        </li>
+                        <li class="feature-item">
+                            <span class="item-name">💰 Business Gen</span>
+                            <span class="item-status">Active</span>
+                        </li>
+                        <li class="feature-item">
+                            <span class="item-name">⚙️ Workspace</span>
+                            <span class="item-status">Active</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const tabData = {
+            home: {
+                title: 'Command Center',
+                subtitle: 'Your AI Powerhouse',
+                stats: { value1: '11', label1: 'Labs', value2: '6', label2: 'Active' },
+                spokes: ['home'],
+                content: `
+                    <div class="quick-stats">
+                        <div class="stat-card">
+                            <div class="stat-value">11</div>
+                            <div class="stat-label">Labs</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">6</div>
+                            <div class="stat-label">Active</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">3</div>
+                            <div class="stat-label">Revenue</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">12+</div>
+                            <div class="stat-label">Agents</div>
+                        </div>
+                    </div>
+                    <div class="panel-title">Quick Access</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">🧠 AURA Interface</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🔍 Code Review</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">💰 Business Gen</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">⚙️ Workspace</span><span class="item-status">Active</span></li>
+                    </ul>
+                `
+            },
+            labs: {
+                title: 'AI Labs',
+                subtitle: '11 Specialized Labs',
+                stats: { value1: '6', label1: 'Active', value2: '5', label2: 'Preview' },
+                spokes: ['labs'],
+                content: `
+                    <div class="panel-title">🧪 Active Labs</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">🧠 AURA Interface</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🔍 Code Review</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">₿ Crypto Lab</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">⚡ System Matrix</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">⚙️ Agent Forge</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🔗 Data Weave</span><span class="item-status preview">Preview</span></li>
+                    </ul>
+                    <div class="panel-title" style="margin-top: 2rem;">📡 Preview Labs</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">📡 Signal Lab</span><span class="item-status preview">Preview</span></li>
+                        <li class="feature-item"><span class="item-name">🎨 Creator Studio</span><span class="item-status preview">Preview</span></li>
+                        <li class="feature-item"><span class="item-name">🌌 Dataverse</span><span class="item-status preview">Preview</span></li>
+                    </ul>
+                `
+            },
+            revenue: {
+                title: 'Revenue Hub',
+                subtitle: 'Passive Income Streams',
+                stats: { value1: '3', label1: 'Streams', value2: '$2.4K', label2: 'Monthly' },
+                spokes: ['revenue'],
+                content: `
+                    <div class="panel-title">💰 Revenue Tools</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">💼 Business Generator</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🔗 Affiliate Factory</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">📊 Revenue Dashboard</span><span class="item-status">Active</span></li>
+                    </ul>
+                    <div class="panel-title" style="margin-top: 2rem;">📈 Features</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">ROI Calculator</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">Smart Scheduling</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">A/B Testing</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">PDF Export</span><span class="item-status">Active</span></li>
+                    </ul>
+                `
+            },
+            dev: {
+                title: 'Dev Tools',
+                subtitle: 'Development Workspace',
+                stats: { value1: '4', label1: 'Tools', value2: '8', label2: 'Projects' },
+                spokes: ['dev'],
+                content: `
+                    <div class="panel-title">⚡ Development Tools</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">📝 Monaco Editor</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">⚙️ Workspace</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">✅ Task Management</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🧠 Mind Map</span><span class="item-status">Active</span></li>
+                    </ul>
+                    <div class="panel-title" style="margin-top: 2rem;">🔧 Features</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">12+ Languages</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">AI Code Gen</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">Real-time Collab</span><span class="item-status">Active</span></li>
+                    </ul>
+                `
+            },
+            ai: {
+                title: 'AI Tools',
+                subtitle: 'Multi-Modal AI',
+                stats: { value1: '12+', label1: 'Agents', value2: '3', label2: 'Modes' },
+                spokes: ['ai'],
+                content: `
+                    <div class="panel-title">🧠 AI Tools</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">🧠 Mind Map</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🎤 Audio Transcriber</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🖼️ Image Analysis</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🧠 AURA Interface</span><span class="item-status">Active</span></li>
+                    </ul>
+                    <div class="panel-title" style="margin-top: 2rem;">✨ Features</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">WebGL Background</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">Voice Control</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">Gemini Integration</span><span class="item-status">Active</span></li>
+                    </ul>
+                `
+            },
+            system: {
+                title: 'System',
+                subtitle: 'Settings & Config',
+                stats: { value1: '99.9%', label1: 'Uptime', value2: 'Active', label2: 'Status' },
+                spokes: [],
+                content: `
+                    <div class="panel-title">⚙️ System Settings</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">🔑 Gemini API</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🖥️ LuxRig Settings</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🌐 DNS Manager</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">🚩 Feature Flags</span><span class="item-status">Active</span></li>
+                    </ul>
+                    <div class="panel-title" style="margin-top: 2rem;">📊 System Info</div>
+                    <ul class="feature-list">
+                        <li class="feature-item"><span class="item-name">Uptime: 99.9%</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">Avg Response: 1.2s</span><span class="item-status">Active</span></li>
+                        <li class="feature-item"><span class="item-name">Success Rate: 98.5%</span><span class="item-status">Active</span></li>
+                    </ul>
+                `
+            }
+        };
+
+        function switchTab(tabId) {
+            // Update tab active state
+            document.querySelectorAll('.tab-item').forEach(tab => tab.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+
+            // Update hub
+            const data = tabData[tabId];
+            document.getElementById('hubTitle').textContent = data.title;
+            document.getElementById('hubSubtitle').textContent = data.subtitle;
+            const statsHtml = `
+                <div class="hub-stat">
+                    <div class="hub-stat-value">${data.stats.value1}</div>
+                    <div class="hub-stat-label">${data.stats.label1}</div>
+                </div>
+                <div class="hub-stat">
+                    <div class="hub-stat-value">${data.stats.value2}</div>
+                    <div class="hub-stat-label">${data.stats.label2}</div>
+                </div>
+            `;
+            document.getElementById('hubStats').innerHTML = statsHtml;
+
+            // Update spokes visibility
+            document.querySelectorAll('.spoke').forEach(spoke => {
+                const category = spoke.getAttribute('data-category');
+                if (data.spokes.includes(category)) {
+                    setTimeout(() => {
+                        spoke.classList.add('visible');
+                    }, 100);
+                } else {
+                    spoke.classList.remove('visible');
+                }
+            });
+
+            // Update connections
+            document.querySelectorAll('.spoke-connection').forEach(conn => {
+                setTimeout(() => {
+                    if (data.spokes.length > 0) {
+                        conn.classList.add('visible');
+                    } else {
+                        conn.classList.remove('visible');
+                    }
+                }, 200);
+            });
+
+            // Update panel content
+            document.getElementById('panelContent').innerHTML = data.content;
+        }
+
+        // Initialize with home tab
+        document.addEventListener('DOMContentLoaded', () => {
+            switchTab('home');
+        });
+    </script>
+</body>
+</html>
+

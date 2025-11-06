@@ -27,7 +27,7 @@ interface QueryBuilder<T> {
 
 class LightweightStorage {
   private dbName = 'dlx-studios';
-  private version = 2; // Incremented to trigger upgrade for new stores
+  private version = 3; // Incremented to trigger upgrade for business_models store
   private db: IDBDatabase | null = null;
   private readonly OPERATION_TIMEOUT = 5000; // 5 seconds
 
@@ -85,6 +85,9 @@ class LightweightStorage {
         if (!db.objectStoreNames.contains('plugins')) {
           db.createObjectStore('plugins', { keyPath: 'name' });
         }
+        if (!db.objectStoreNames.contains('business_models')) {
+          db.createObjectStore('business_models', { keyPath: 'id' });
+        }
       };
     });
   }
@@ -107,19 +110,6 @@ class LightweightStorage {
           };
         })
       );
-      return new Promise(resolve => {
-        const transaction = this.db!.transaction([table], 'readonly');
-        const store = transaction.objectStore(table);
-        const request = store.getAll();
-
-        request.onsuccess = () => {
-          resolve({ data: request.result, error: null });
-        };
-
-        request.onerror = () => {
-          resolve({ data: null, error: request.error });
-        };
-      });
     } catch (error) {
       return { data: null, error: error as Error };
     }
@@ -226,19 +216,6 @@ class LightweightStorage {
           };
         })
       );
-      return new Promise(resolve => {
-        const transaction = this.db!.transaction([table], 'readwrite');
-        const store = transaction.objectStore(table);
-        const request = store.put(data);
-
-        request.onsuccess = () => {
-          resolve({ data: data, error: null });
-        };
-
-        request.onerror = () => {
-          resolve({ data: null, error: request.error });
-        };
-      });
     } catch (error) {
       return { data: null, error: error as Error };
     }
@@ -279,6 +256,9 @@ class LightweightStorage {
 
   // Supabase-compatible query methods
   from(table: string) {
+    // Capture reference to storage instance to avoid recursion
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const storageInstance = this;
 
     // Create a chainable query builder
     const createQueryBuilder = <T = any>(
@@ -309,7 +289,7 @@ class LightweightStorage {
           return createQueryBuilder<T>([...filters, { column, value, operator: 'lt' }], orderBy, limitCount);
         },
         async select(_columns?: string) {
-          const result = await this.select(table);
+          const result = await storageInstance.select(table);
           if (!result.data) return result as StorageResponse<T>;
 
           let filtered = result.data;

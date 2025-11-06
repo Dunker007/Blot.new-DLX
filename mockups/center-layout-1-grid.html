@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Center Layout Option 1: Responsive Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); }
+            50% { box-shadow: 0 0 40px rgba(6, 182, 212, 0.6); }
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(6, 182, 212, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-[#0a0a0f] text-white min-h-screen p-8">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-2 bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+            Option 1: Responsive Grid Dashboard
+        </h1>
+        <p class="text-gray-400 mb-8">Clean grid layout with category sections and feature cards</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Home Section -->
+            <div class="bg-slate-800/60 backdrop-blur-xl border border-cyan-500/30 rounded-xl p-6 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">🏠</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-cyan-300">Home</h2>
+                </div>
+                <div class="space-y-2">
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">AURA Interface</div>
+                        <div class="text-xs text-gray-400">Core AI</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Dashboard</div>
+                        <div class="text-xs text-gray-400">Overview</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Workspace</div>
+                        <div class="text-xs text-gray-400">Code Editor</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Labs Section -->
+            <div class="bg-slate-800/60 backdrop-blur-xl border border-purple-500/30 rounded-xl p-6 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">🧪</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-purple-300">Labs</h2>
+                </div>
+                <div class="space-y-2">
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Code Review</div>
+                        <div class="text-xs text-gray-400">AI Analysis</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Crypto Lab</div>
+                        <div class="text-xs text-gray-400">Market Data</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Data Weave</div>
+                        <div class="text-xs text-gray-400">Multi-Agent</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Section -->
+            <div class="bg-slate-800/60 backdrop-blur-xl border border-green-500/30 rounded-xl p-6 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">💰</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-green-300">Revenue</h2>
+                </div>
+                <div class="space-y-2">
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Business Gen</div>
+                        <div class="text-xs text-gray-400">ROI Models</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Affiliate</div>
+                        <div class="text-xs text-gray-400">Factory</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Revenue Dashboard</div>
+                        <div class="text-xs text-gray-400">Analytics</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dev Section -->
+            <div class="bg-slate-800/60 backdrop-blur-xl border border-orange-500/30 rounded-xl p-6 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">⚙️</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-orange-300">Dev Tools</h2>
+                </div>
+                <div class="space-y-2">
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Monaco Editor</div>
+                        <div class="text-xs text-gray-400">Full IDE</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Workspace</div>
+                        <div class="text-xs text-gray-400">Multi-File</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Section -->
+            <div class="bg-slate-800/60 backdrop-blur-xl border border-pink-500/30 rounded-xl p-6 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-pink-500/20 to-rose-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">🤖</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-pink-300">AI Tools</h2>
+                </div>
+                <div class="space-y-2">
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Mind Map</div>
+                        <div class="text-xs text-gray-400">Visual</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Audio</div>
+                        <div class="text-xs text-gray-400">Transcribe</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Section -->
+            <div class="bg-slate-800/60 backdrop-blur-xl border border-blue-500/30 rounded-xl p-6 card-hover">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-lg flex items-center justify-center">
+                        <span class="text-2xl">⚙️</span>
+                    </div>
+                    <h2 class="text-xl font-bold text-blue-300">System</h2>
+                </div>
+                <div class="space-y-2">
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Settings</div>
+                        <div class="text-xs text-gray-400">Config</div>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-3 hover:bg-slate-700/80 cursor-pointer transition-colors">
+                        <div class="font-semibold text-white">Feature Flags</div>
+                        <div class="text-xs text-gray-400">Control</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

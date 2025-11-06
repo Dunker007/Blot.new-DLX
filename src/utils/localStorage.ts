@@ -5,13 +5,27 @@
 
 export class LocalStorageManager {
   /**
-   * Safely get item from localStorage
+   * Safely get item from localStorage (parses JSON)
    */
   static get<T>(key: string, defaultValue: T): T {
     try {
       const item = localStorage.getItem(key);
       if (item === null) return defaultValue;
       return JSON.parse(item) as T;
+    } catch (error) {
+      console.error(`Failed to load ${key} from localStorage:`, error);
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Get raw string from localStorage (no JSON parsing)
+   * Useful for API keys and other plain string values
+   */
+  static getRaw(key: string, defaultValue: string | null = null): string | null {
+    try {
+      const item = localStorage.getItem(key);
+      return item === null ? defaultValue : item;
     } catch (error) {
       console.error(`Failed to load ${key} from localStorage:`, error);
       return defaultValue;

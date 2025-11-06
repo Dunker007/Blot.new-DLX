@@ -333,12 +333,24 @@ Make all numbers realistic and specific to the industry and budget provided.
 
   // Get saved business models
   async getBusinessModels(limit = 10): Promise<BusinessModel[]> {
-    const { data } = await storage.select('business_models');
-    if (!data) return [];
+    try {
+      const { data, error } = await storage.select('business_models');
+      if (error || !data) {
+        // If object store doesn't exist yet, return empty array (will be created on next DB upgrade)
+        if (error?.message?.includes('object stores was not found')) {
+          console.warn('Business models store not yet initialized, returning empty array');
+          return [];
+        }
+        return [];
+      }
 
-    return (data as any[])
-      .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime())
-      .slice(0, limit);
+      return (data as any[])
+        .sort((a, b) => new Date(b.generatedAt).getTime() - new Date(a.generatedAt).getTime())
+        .slice(0, limit);
+    } catch (error) {
+      console.warn('Failed to load business models:', error);
+      return [];
+    }
   }
 
   // Simple premium check (in-memory for now)

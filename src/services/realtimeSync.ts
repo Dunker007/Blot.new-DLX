@@ -184,19 +184,25 @@ export class RealtimeSyncService {
       },
       
       track: async (data: any) => {
-        // Store presence data locally
+        // Store presence data locally - use atomic update to avoid race conditions
         if (data.user_id && channel._presenceData) {
-          channel._presenceData.set(data.user_id, {
+          // Create updated presence entry
+          const updatedPresence: PresenceData = {
             user_id: data.user_id,
             username: data.username,
             cursor_position: data.cursor_position,
             current_file: data.current_file,
             status: data.status || 'online',
-          });
+          };
           
-          // Trigger presence change callback
-          if (channel._triggerPresenceChange) {
-            channel._triggerPresenceChange(Array.from(channel._presenceData.values()));
+          // Atomically update the map - get current reference, update, then check if still valid
+          const currentMap = channel._presenceData;
+          currentMap.set(data.user_id, updatedPresence);
+          
+          // Only trigger callback if the map reference hasn't changed (no polling replaced it)
+          // This ensures we don't trigger with stale data if polling just replaced the map
+          if (channel._presenceData === currentMap && channel._triggerPresenceChange) {
+            channel._triggerPresenceChange(Array.from(currentMap.values()));
           }
         }
         return Promise.resolve();
@@ -297,18 +303,21 @@ export class RealtimeSyncService {
               status: 'online',
             }));
 
-            // Update presence data map atomically
+            // Update presence data map atomically - merge with existing data to avoid race conditions
             if (channel._presenceData) {
-              // Clear and rebuild to avoid race conditions
-              const newPresenceMap = new Map<string, PresenceData>();
+              // Merge: Start with existing data, then update/add from polling results
+              const mergedPresenceMap = new Map<string, PresenceData>(channel._presenceData);
               presenceList.forEach(presence => {
-                newPresenceMap.set(presence.user_id, presence);
+                mergedPresenceMap.set(presence.user_id, presence);
               });
-              // Replace the entire map atomically
-              channel._presenceData = newPresenceMap;
+              // Replace the entire map atomically after merging
+              channel._presenceData = mergedPresenceMap;
+              // Trigger callback with merged data
+              channel._triggerPresenceChange(Array.from(mergedPresenceMap.values()));
+            } else {
+              // If no existing map, just trigger with polling results
+              channel._triggerPresenceChange(presenceList);
             }
-
-            channel._triggerPresenceChange(presenceList);
           }
         }
       } catch (error) {

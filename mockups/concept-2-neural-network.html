@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLX Studios - Concept 2: Neural Network</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e0;
+            overflow: hidden;
+        }
+        .neural-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 50%, rgba(255, 0, 255, 0.1) 0%, transparent 50%);
+        }
+        .neural-network {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.3;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .container {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        header {
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .main-content {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+            padding: 0 2rem 2rem 2rem;
+        }
+        .node {
+            background: rgba(20, 20, 30, 0.9);
+            border: 2px solid rgba(0, 255, 255, 0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .node::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        .node:hover {
+            border-color: #00ffff;
+            box-shadow: 0 0 40px rgba(0, 255, 255, 0.4);
+            transform: scale(1.02);
+        }
+        .node.active {
+            border-color: #ff00ff;
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
+        .node-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+        .node-icon {
+            font-size: 2.5rem;
+            filter: drop-shadow(0 0 10px rgba(0, 255, 255, 0.5));
+        }
+        .node-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .node-content {
+            position: relative;
+            z-index: 1;
+        }
+        .node-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .stat {
+            background: rgba(0, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .stat-label {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 0.5rem;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #00ffff;
+        }
+        .node-features {
+            margin-top: 1.5rem;
+        }
+        .feature-list {
+            list-style: none;
+        }
+        .feature-item {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .feature-item::before {
+            content: '▶';
+            color: #00ffff;
+            font-size: 0.7rem;
+        }
+        .floating-nav {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(20, 20, 30, 0.9);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 50px;
+            padding: 1rem 2rem;
+            display: flex;
+            gap: 2rem;
+            backdrop-filter: blur(20px);
+            z-index: 10;
+        }
+        .nav-btn {
+            padding: 0.75rem 1.5rem;
+            background: transparent;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            border-radius: 25px;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+        }
+        .nav-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: #00ffff;
+        }
+        .nav-btn.active {
+            background: linear-gradient(135deg, #00ffff, #ff00ff);
+            border-color: transparent;
+        }
+        .node-clicked {
+            animation: nodePulse 0.5s ease;
+        }
+        @keyframes nodePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .note {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            background: rgba(255, 0, 255, 0.1);
+            border: 1px solid rgba(255, 0, 255, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            max-width: 350px;
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        .note-title {
+            font-weight: bold;
+            color: #ff00ff;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="neural-bg"></div>
+    <canvas class="neural-network" id="neuralCanvas"></canvas>
+    
+    <div class="container">
+        <header>
+            <div class="logo">DLX STUDIOS</div>
+            <div style="font-size: 0.9rem; color: #888;">Neural Network Interface</div>
+        </header>
+
+        <div class="main-content">
+            <div class="node active" onclick="selectNode(this, 'ai-core')">
+                <div class="node-header">
+                    <div class="node-icon">🧠</div>
+                    <div class="node-title">AI Core</div>
+                </div>
+                <div class="node-content">
+                    <p style="color: #aaa; margin-bottom: 1rem;">Central intelligence hub for all AI operations and agent management.</p>
+                    <div class="node-stats">
+                        <div class="stat">
+                            <div class="stat-label">Active Agents</div>
+                            <div class="stat-value">12</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Requests</div>
+                            <div class="stat-value">1.2K</div>
+                        </div>
+                    </div>
+                    <div class="node-features">
+                        <ul class="feature-list">
+                            <li class="feature-item">AURA Interface</li>
+                            <li class="feature-item">Agent Forge</li>
+                            <li class="feature-item">Multi-LLM Routing</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="node" onclick="selectNode(this, 'revenue-hub')">
+                <div class="node-header">
+                    <div class="node-icon">💰</div>
+                    <div class="node-title">Revenue Hub</div>
+                </div>
+                <div class="node-content">
+                    <p style="color: #aaa; margin-bottom: 1rem;">Passive income streams and business model generation.</p>
+                    <div class="node-stats">
+                        <div class="stat">
+                            <div class="stat-label">Streams</div>
+                            <div class="stat-value">3</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Monthly</div>
+                            <div class="stat-value">$2.4K</div>
+                        </div>
+                    </div>
+                    <div class="node-features">
+                        <ul class="feature-list">
+                            <li class="feature-item">Business Generator</li>
+                            <li class="feature-item">Affiliate Factory</li>
+                            <li class="feature-item">Crypto Hub</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="node" onclick="selectNode(this, 'dev-tools')">
+                <div class="node-header">
+                    <div class="node-icon">⚡</div>
+                    <div class="node-title">Dev Tools</div>
+                </div>
+                <div class="node-content">
+                    <p style="color: #aaa; margin-bottom: 1rem;">Development workspace and code analysis tools.</p>
+                    <div class="node-stats">
+                        <div class="stat">
+                            <div class="stat-label">Projects</div>
+                            <div class="stat-value">8</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-label">Reviews</div>
+                            <div class="stat-value">47</div>
+                        </div>
+                    </div>
+                    <div class="node-features">
+                        <ul class="feature-list">
+                            <li class="feature-item">Code Review Lab</li>
+                            <li class="feature-item">Monaco Editor</li>
+                            <li class="feature-item">Workspace</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-nav">
+        <button class="nav-btn active" onclick="navClick(this, 'home')">Home</button>
+        <button class="nav-btn" onclick="navClick(this, 'labs')">Labs</button>
+        <button class="nav-btn" onclick="navClick(this, 'revenue')">Revenue</button>
+        <button class="nav-btn" onclick="navClick(this, 'settings')">Settings</button>
+    </div>
+
+    <div class="note">
+        <div class="note-title">Concept 2: Neural Network</div>
+        <div>Visual node-based interface with animated neural network background. Each node represents a major feature area. Hover effects and connections create an immersive, futuristic feel. Perfect for showcasing interconnected systems.</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('neuralCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const nodes = [];
+        const connections = [];
+
+        // Create nodes
+        for (let i = 0; i < 15; i++) {
+            nodes.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.5,
+                vy: (Math.random() - 0.5) * 0.5,
+            });
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Update nodes
+            nodes.forEach(node => {
+                node.x += node.vx;
+                node.y += node.vy;
+                
+                if (node.x < 0 || node.x > canvas.width) node.vx *= -1;
+                if (node.y < 0 || node.y > canvas.height) node.vy *= -1;
+            });
+
+            // Draw connections
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < nodes.length; i++) {
+                for (let j = i + 1; j < nodes.length; j++) {
+                    const dx = nodes[i].x - nodes[j].x;
+                    const dy = nodes[i].y - nodes[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 200) {
+                        ctx.globalAlpha = 1 - dist / 200;
+                        ctx.beginPath();
+                        ctx.moveTo(nodes[i].x, nodes[i].y);
+                        ctx.lineTo(nodes[j].x, nodes[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            ctx.globalAlpha = 1;
+
+            // Draw nodes
+            nodes.forEach(node => {
+                ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+        
+        function selectNode(nodeElement, nodeId) {
+            // Remove active class from all nodes
+            document.querySelectorAll('.node').forEach(n => n.classList.remove('active'));
+            // Add active class to clicked node
+            nodeElement.classList.add('active');
+            nodeElement.classList.add('node-clicked');
+            setTimeout(() => nodeElement.classList.remove('node-clicked'), 500);
+            
+            // Show feedback
+            console.log(`Selected node: ${nodeId}`);
+            alert(`Opening ${nodeId.replace('-', ' ')}...`);
+        }
+        
+        function navClick(btnElement, section) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            btnElement.classList.add('active');
+            
+            // Show feedback
+            console.log(`Navigating to: ${section}`);
+            alert(`Navigating to ${section}...`);
+        }
+    </script>
+</body>
+</html>
+

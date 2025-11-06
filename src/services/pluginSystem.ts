@@ -173,17 +173,19 @@ class PluginStorage {
   }
 }
 
-class PluginEventEmitter {
-  private listeners = new Map<string, Function[]>();
+type EventHandler = (...args: any[]) => void;
 
-  on(event: string, handler: Function): void {
+class PluginEventEmitter {
+  private listeners = new Map<string, EventHandler[]>();
+
+  on(event: string, handler: EventHandler): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
     }
     this.listeners.get(event)!.push(handler);
   }
 
-  off(event: string, handler: Function): void {
+  off(event: string, handler: EventHandler): void {
     const handlers = this.listeners.get(event);
     if (handlers) {
       const index = handlers.indexOf(handler);
@@ -290,6 +292,12 @@ export class PluginManager {
 
       // Clean up UI components
       // TODO: Implement UI cleanup
+      // NOTE: When a plugin is unloaded, we need to:
+      // - Remove plugin UI components from DOM
+      // - Unregister event listeners
+      // - Clean up plugin-specific styles
+      // - Remove plugin routes if any
+      // Priority: Low - Current implementation works but could leak memory with many plugins
 
       // Remove from database
       await supabase.from('plugin_registry').update({ is_active: false }).eq('name', name);

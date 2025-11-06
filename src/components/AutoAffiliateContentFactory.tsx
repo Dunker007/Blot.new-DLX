@@ -11,10 +11,12 @@
  * - Content scheduling
  * - Performance tracking
  */
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import {
   BarChart3,
+  Calendar,
+  Clock,
   Crown,
   DollarSign,
   Eye,
@@ -22,10 +24,14 @@ import {
   Link,
   Pause,
   Play,
+  Plus,
   Settings,
   Share2,
   Target,
   Zap,
+  CheckCircle,
+  X,
+  RefreshCw,
 } from 'lucide-react';
 
 interface ContentStrategy {
@@ -45,6 +51,18 @@ interface AffiliateProgram {
   commission: number;
   products: Product[];
   trackingCode: string;
+  linkPlacements?: LinkPlacement[]; // A/B test placements
+  autoInject?: boolean;
+}
+
+interface LinkPlacement {
+  id: string;
+  name: string;
+  position: 'top' | 'middle' | 'bottom' | 'sidebar';
+  style: 'text' | 'button' | 'banner';
+  ctr: number; // For A/B testing
+  clicks: number;
+  conversions: number;
 }
 
 interface Product {
@@ -61,6 +79,19 @@ interface ContentSchedule {
   articlesPerMonth: number;
   publishTime: string;
   contentTypes: ('review' | 'comparison' | 'guide' | 'listicle')[];
+  batchSize?: number; // Articles per batch generation
+  platforms?: PublishingPlatform[];
+  autoPublish?: boolean;
+}
+
+interface PublishingPlatform {
+  id: string;
+  name: 'WordPress' | 'Medium' | 'Substack' | 'Custom';
+  enabled: boolean;
+  url?: string;
+  apiKey?: string;
+  autoPublish: boolean;
+  seoOptimized: boolean;
 }
 
 interface StrategyPerformance {
@@ -76,10 +107,11 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
   isPremium = false,
   onUpgrade,
 }) => {
-  const [activeTab, setActiveTab] = useState<'strategies' | 'content' | 'analytics' | 'settings'>(
+  const [activeTab, setActiveTab] = useState<'strategies' | 'content' | 'analytics' | 'settings' | 'scheduling' | 'links'>(
     'strategies'
   );
   const [_selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
+  const [scheduledJobs, setScheduledJobs] = useState<any[]>([]);
 
   // Mock data for demonstration
   const mockStrategies: ContentStrategy[] = [
@@ -95,6 +127,12 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
           commission: 4.5,
           products: [],
           trackingCode: 'tag=yourstore-20',
+          autoInject: true,
+          linkPlacements: [
+            { id: 'lp1', name: 'Top Text Link', position: 'top', style: 'text', ctr: 2.8, clicks: 892, conversions: 45 },
+            { id: 'lp2', name: 'Middle Button', position: 'middle', style: 'button', ctr: 3.2, clicks: 634, conversions: 38 },
+            { id: 'lp3', name: 'Bottom Banner', position: 'bottom', style: 'banner', ctr: 1.9, clicks: 445, conversions: 22 },
+          ],
         },
       ],
       contentSchedule: {
@@ -102,6 +140,12 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
         articlesPerMonth: 12,
         publishTime: '09:00',
         contentTypes: ['review', 'comparison', 'guide'],
+        batchSize: 5,
+        autoPublish: true,
+        platforms: [
+          { id: 'wp1', name: 'WordPress', enabled: true, autoPublish: true, seoOptimized: true },
+          { id: 'med1', name: 'Medium', enabled: true, autoPublish: true, seoOptimized: true },
+        ],
       },
       performance: {
         articlesGenerated: 47,
@@ -154,8 +198,8 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Content Strategies</h2>
-          <p className="text-gray-600">Automated affiliate content generation</p>
+          <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-cyan-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">Content Strategies</h2>
+          <p className="text-gray-300">Automated affiliate content generation</p>
         </div>
         <button
           onClick={isPremium ? () => {} : onUpgrade}
@@ -185,46 +229,46 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
         {mockStrategies.map(strategy => (
           <div
             key={strategy.id}
-            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+            className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6 hover:border-cyan-500/50 transition-all"
           >
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-2 mb-2">
-                  <h3 className="text-xl font-semibold text-gray-900">{strategy.name}</h3>
+                  <h3 className="text-xl font-semibold text-white">{strategy.name}</h3>
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${
                       strategy.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-100 text-gray-600'
+                        ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                        : 'bg-slate-700/60 text-gray-400 border border-slate-600/50'
                     }`}
                   >
                     {strategy.isActive ? 'Active' : 'Paused'}
                   </span>
                 </div>
-                <p className="text-gray-600 mb-3">{strategy.niche}</p>
+                <p className="text-gray-300 mb-3">{strategy.niche}</p>
 
                 {/* Performance Metrics */}
                 <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center p-3 bg-gray-50 rounded-lg">
-                    <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-center p-3 bg-slate-800/60 rounded-lg border border-cyan-500/20">
+                    <div className="text-2xl font-bold text-cyan-400">
                       {strategy.performance.articlesGenerated}
                     </div>
-                    <div className="text-sm text-gray-500">Articles</div>
+                    <div className="text-sm text-gray-400">Articles</div>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-2xl font-bold text-green-600">
+                  <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/30">
+                    <div className="text-2xl font-bold text-green-400">
                       ${strategy.performance.totalCommissions.toFixed(0)}
                     </div>
-                    <div className="text-sm text-gray-500">Commissions</div>
+                    <div className="text-sm text-gray-400">Commissions</div>
                   </div>
                 </div>
               </div>
 
               <button
-                className={`p-2 rounded-lg ${
+                className={`p-2 rounded-lg border ${
                   strategy.isActive
-                    ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                    : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    ? 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border-green-500/30'
+                    : 'bg-slate-700/60 text-gray-400 hover:bg-slate-700 border-slate-600/50'
                 }`}
               >
                 {strategy.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
@@ -233,18 +277,18 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
 
             {/* Keywords */}
             <div className="mb-4">
-              <div className="text-sm font-medium text-gray-700 mb-2">Target Keywords:</div>
+              <div className="text-sm font-medium text-cyan-400 mb-2">Target Keywords:</div>
               <div className="flex flex-wrap gap-1">
                 {strategy.targetKeywords.slice(0, 3).map((keyword, index) => (
                   <span
                     key={index}
-                    className="px-2 py-1 bg-indigo-100 text-indigo-700 text-xs rounded"
+                    className="px-2 py-1 bg-cyan-500/20 text-cyan-400 text-xs rounded border border-cyan-500/30"
                   >
                     {keyword}
                   </span>
                 ))}
                 {strategy.targetKeywords.length > 3 && (
-                  <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+                  <span className="px-2 py-1 bg-slate-700/60 text-gray-400 text-xs rounded border border-slate-600/50">
                     +{strategy.targetKeywords.length - 3} more
                   </span>
                 )}
@@ -255,11 +299,11 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
             <div className="flex space-x-2">
               <button
                 onClick={() => setSelectedStrategy(strategy.id)}
-                className="flex-1 bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 font-medium text-sm"
+                className="flex-1 bg-cyan-500/20 text-cyan-400 py-2 px-4 rounded-lg hover:bg-cyan-500/30 font-medium text-sm border border-cyan-500/30"
               >
                 View Details
               </button>
-              <button className="bg-gray-100 text-gray-600 py-2 px-4 rounded-lg hover:bg-gray-200 font-medium text-sm">
+              <button className="bg-slate-700/60 text-gray-300 py-2 px-4 rounded-lg hover:bg-slate-700 font-medium text-sm border border-slate-600/50">
                 <Settings className="w-4 h-4" />
               </button>
             </div>
@@ -273,41 +317,41 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Generated Content</h2>
-          <p className="text-gray-600">AI-generated affiliate articles and performance</p>
+          <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-cyan-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">Generated Content</h2>
+          <p className="text-gray-300">AI-generated affiliate articles and performance</p>
         </div>
       </div>
 
       {/* Content Performance Overview */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-          <FileText className="w-8 h-8 text-indigo-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">79</div>
-          <div className="text-sm text-gray-500">Articles Published</div>
+        <div className="bg-slate-800/60 rounded-lg p-4 border border-cyan-500/30 text-center">
+          <FileText className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-cyan-400">79</div>
+          <div className="text-sm text-gray-400">Articles Published</div>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-          <Eye className="w-8 h-8 text-blue-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">214.6K</div>
-          <div className="text-sm text-gray-500">Total Views</div>
+        <div className="bg-slate-800/60 rounded-lg p-4 border border-cyan-500/30 text-center">
+          <Eye className="w-8 h-8 text-blue-400 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-blue-400">214.6K</div>
+          <div className="text-sm text-gray-400">Total Views</div>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-          <Link className="w-8 h-8 text-green-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">5,427</div>
-          <div className="text-sm text-gray-500">Affiliate Clicks</div>
+        <div className="bg-slate-800/60 rounded-lg p-4 border border-cyan-500/30 text-center">
+          <Link className="w-8 h-8 text-green-400 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-green-400">5,427</div>
+          <div className="text-sm text-gray-400">Affiliate Clicks</div>
         </div>
-        <div className="bg-white rounded-lg p-4 border border-gray-200 text-center">
-          <DollarSign className="w-8 h-8 text-yellow-600 mx-auto mb-2" />
-          <div className="text-2xl font-bold text-gray-900">$2,791</div>
-          <div className="text-sm text-gray-500">Total Commissions</div>
+        <div className="bg-slate-800/60 rounded-lg p-4 border border-cyan-500/30 text-center">
+          <DollarSign className="w-8 h-8 text-yellow-400 mx-auto mb-2" />
+          <div className="text-2xl font-bold text-yellow-400">$2,791</div>
+          <div className="text-sm text-gray-400">Total Commissions</div>
         </div>
       </div>
 
       {/* Recent Articles */}
-      <div className="bg-white rounded-lg border border-gray-200">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Articles</h3>
+      <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30">
+        <div className="px-6 py-4 border-b border-cyan-500/20">
+          <h3 className="text-lg font-semibold text-white">Recent Articles</h3>
         </div>
-        <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-cyan-500/20">
           {[
             {
               title: 'Best Wireless Gaming Mice for 2024',
@@ -334,22 +378,22 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
               status: 'live',
             },
           ].map((article, index) => (
-            <div key={index} className="px-6 py-4 hover:bg-gray-50">
+            <div key={index} className="px-6 py-4 hover:bg-slate-800/60 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex-1">
-                  <h4 className="text-lg font-medium text-gray-900 mb-1">{article.title}</h4>
-                  <div className="flex items-center space-x-4 text-sm text-gray-500">
+                  <h4 className="text-lg font-medium text-white mb-1">{article.title}</h4>
+                  <div className="flex items-center space-x-4 text-sm text-gray-400">
                     <span>Published {article.published}</span>
                     <span>{article.views.toLocaleString()} views</span>
                     <span>{article.clicks} clicks</span>
-                    <span className="text-green-600 font-medium">${article.commissions}</span>
+                    <span className="text-green-400 font-medium">${article.commissions}</span>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full">
+                  <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full border border-green-500/30">
                     {article.status}
                   </span>
-                  <button className="p-2 text-gray-400 hover:text-gray-600">
+                  <button className="p-2 text-gray-400 hover:text-cyan-400 transition-colors">
                     <Share2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -364,25 +408,25 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
   const renderAnalyticsTab = () => (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Performance Analytics</h2>
-        <p className="text-gray-600">Track your content performance and revenue</p>
+        <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-cyan-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">Performance Analytics</h2>
+        <p className="text-gray-300">Track your content performance and revenue</p>
       </div>
 
       {/* Revenue Chart Placeholder */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Revenue Trend (Last 30 Days)</h3>
-        <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+      <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Revenue Trend (Last 30 Days)</h3>
+        <div className="h-64 bg-slate-900/60 rounded-lg flex items-center justify-center border border-cyan-500/20">
           <div className="text-center">
-            <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-            <p className="text-gray-500">Interactive revenue chart would be displayed here</p>
+            <BarChart3 className="w-12 h-12 text-cyan-400/50 mx-auto mb-2" />
+            <p className="text-gray-400">Interactive revenue chart would be displayed here</p>
           </div>
         </div>
       </div>
 
       {/* Top Performing Keywords */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Keywords</h3>
+        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Top Keywords</h3>
           <div className="space-y-3">
             {[
               { keyword: 'best gaming mouse', ranking: 3, clicks: 892, revenue: 234.5 },
@@ -391,21 +435,21 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
             ].map((item, index) => (
               <div key={index} className="flex items-center justify-between py-2">
                 <div>
-                  <div className="font-medium text-gray-900">{item.keyword}</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="font-medium text-white">{item.keyword}</div>
+                  <div className="text-sm text-gray-400">
                     Rank #{item.ranking} • {item.clicks} clicks
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-semibold text-green-600">${item.revenue}</div>
+                  <div className="font-semibold text-green-400">${item.revenue}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Top Converting Articles</h3>
+        <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">Top Converting Articles</h3>
           <div className="space-y-3">
             {[
               { title: 'Best Budget Gaming Setup 2024', ctr: 3.2, revenue: 345.75 },
@@ -413,13 +457,283 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
               { title: 'Home Office Equipment Guide', ctr: 2.4, revenue: 198.25 },
             ].map((item, index) => (
               <div key={index} className="py-2">
-                <div className="font-medium text-gray-900 mb-1">{item.title}</div>
+                <div className="font-medium text-white mb-1">{item.title}</div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">CTR: {item.ctr}%</span>
-                  <span className="font-semibold text-green-600">${item.revenue}</span>
+                  <span className="text-gray-400">CTR: {item.ctr}%</span>
+                  <span className="font-semibold text-green-400">${item.revenue}</span>
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderSchedulingTab = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-cyan-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">Smart Scheduling System</h2>
+          <p className="text-gray-300">Automated batch content generation and publishing</p>
+        </div>
+        {isPremium && (
+          <button className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium">
+            <Plus className="w-4 h-4 mr-2" />
+            New Schedule
+          </button>
+        )}
+      </div>
+
+      {!isPremium && (
+        <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-l-4 border-yellow-500/50 p-4 rounded-lg">
+          <div className="flex items-center">
+            <Crown className="w-5 h-5 text-yellow-400 mr-2" />
+            <span className="text-yellow-300 font-medium">
+              Premium Feature - Schedule automated content generation and publishing
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Generation Settings */}
+      <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+          <Zap className="w-5 h-5 mr-2 text-cyan-400" />
+          Batch Content Generation
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="p-4 bg-gradient-to-br from-purple-500/10 to-indigo-500/10 rounded-lg border border-purple-500/30">
+            <div className="text-sm text-gray-400 mb-1">Batch Size</div>
+            <div className="text-2xl font-bold text-purple-400">5-10</div>
+            <div className="text-xs text-gray-400 mt-1">Articles per batch</div>
+          </div>
+          <div className="p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg border border-green-500/30">
+            <div className="text-sm text-gray-400 mb-1">Next Batch</div>
+            <div className="text-xl font-bold text-green-400">Tonight 2:00 AM</div>
+            <div className="text-xs text-gray-400 mt-1">Automated generation</div>
+          </div>
+          <div className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-lg border border-blue-500/30">
+            <div className="text-sm text-gray-400 mb-1">This Month</div>
+            <div className="text-2xl font-bold text-blue-400">47</div>
+            <div className="text-xs text-gray-400 mt-1">Articles generated</div>
+          </div>
+        </div>
+
+        {/* Scheduling Options */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-slate-800/60 rounded-lg border border-cyan-500/20">
+            <div className="flex items-center">
+              <Clock className="w-5 h-5 text-cyan-400 mr-3" />
+              <div>
+                <div className="font-medium text-white">Nightly Batch Generation</div>
+                <div className="text-sm text-gray-400">Generates 5-10 articles every night at 2:00 AM</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full font-medium border border-green-500/30">Active</span>
+              <button className="p-2 text-gray-400 hover:text-cyan-400 transition-colors">
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between p-4 bg-slate-800/60 rounded-lg border border-cyan-500/20">
+            <div className="flex items-center">
+              <RefreshCw className="w-5 h-5 text-cyan-400 mr-3" />
+              <div>
+                <div className="font-medium text-white">Content Refresh Automator</div>
+                <div className="text-sm text-gray-400">Re-runs old articles through AI for updates every 30 days</div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs rounded-full font-medium border border-green-500/30">Active</span>
+              <button className="p-2 text-gray-400 hover:text-cyan-400 transition-colors">
+                <Settings className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Publishing Platforms */}
+      <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
+          <Share2 className="w-5 h-5 mr-2 text-green-400" />
+          Auto-Publish Platforms
+        </h3>
+        <div className="space-y-3">
+          {[
+            { name: 'WordPress', enabled: true, articles: 32, autoPublish: true, seoOptimized: true },
+            { name: 'Medium', enabled: true, articles: 28, autoPublish: true, seoOptimized: true },
+            { name: 'Substack', enabled: false, articles: 0, autoPublish: false, seoOptimized: false },
+          ].map((platform, index) => (
+            <div key={index} className="flex items-center justify-between p-4 border border-cyan-500/20 rounded-lg bg-slate-800/40">
+              <div className="flex items-center">
+                <div className={`w-3 h-3 rounded-full mr-3 ${platform.enabled ? 'bg-green-400' : 'bg-gray-500'}`} />
+                <div>
+                  <div className="font-medium text-white">{platform.name}</div>
+                  <div className="text-sm text-gray-400">
+                    {platform.articles} articles published • {platform.autoPublish ? 'Auto-publish ON' : 'Manual'} • {platform.seoOptimized ? 'SEO Optimized' : 'Not optimized'}
+                  </div>
+                </div>
+              </div>
+              <button className="text-cyan-400 hover:text-cyan-300 text-sm font-medium transition-colors">
+                Configure
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Upcoming Scheduled Jobs */}
+      <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Upcoming Scheduled Jobs</h3>
+        <div className="space-y-2">
+          {[
+            { time: 'Tonight 2:00 AM', task: 'Generate 5 articles: Tech Gadgets Review Hub', status: 'scheduled' },
+            { time: 'Tomorrow 9:00 AM', task: 'Publish batch to WordPress & Medium', status: 'scheduled' },
+            { time: 'Jan 15, 2:00 AM', task: 'Content refresh: Top 10 articles', status: 'scheduled' },
+          ].map((job, index) => (
+            <div key={index} className="flex items-center justify-between p-3 bg-slate-800/60 rounded-lg border border-cyan-500/20">
+              <div className="flex items-center">
+                <Calendar className="w-4 h-4 text-cyan-400 mr-3" />
+                <div>
+                  <div className="font-medium text-white">{job.task}</div>
+                  <div className="text-sm text-gray-400">{job.time}</div>
+                </div>
+              </div>
+              <span className="px-2 py-1 bg-blue-500/20 text-blue-400 text-xs rounded-full border border-blue-500/30">
+                {job.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderLinkManagerTab = () => (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-white bg-gradient-to-r from-cyan-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">Affiliate Link Manager</h2>
+          <p className="text-gray-300">Auto-inject tracking codes, A/B test placements, track commissions</p>
+        </div>
+        {isPremium && (
+          <button className="flex items-center px-4 py-2 bg-cyan-500/20 text-cyan-400 rounded-lg hover:bg-cyan-500/30 font-medium border border-cyan-500/30">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Tracking Code
+          </button>
+        )}
+      </div>
+
+      {!isPremium && (
+        <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border-l-4 border-yellow-500/50 p-4 rounded-lg">
+          <div className="flex items-center">
+            <Crown className="w-5 h-5 text-yellow-400 mr-2" />
+            <span className="text-yellow-300 font-medium">
+              Premium Feature - Advanced affiliate link management and A/B testing
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Affiliate Programs */}
+      {mockStrategies.map(strategy => (
+        <div key={strategy.id} className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-white">{strategy.name}</h3>
+            <span className={`px-3 py-1 text-xs rounded-full border ${
+              strategy.affiliatePrograms[0]?.autoInject 
+                ? 'bg-green-500/20 text-green-400 border-green-500/30' 
+                : 'bg-slate-700/60 text-gray-400 border-slate-600/50'
+            }`}>
+              {strategy.affiliatePrograms[0]?.autoInject ? 'Auto-Inject ON' : 'Manual'}
+            </span>
+          </div>
+
+          {strategy.affiliatePrograms.map(program => (
+            <div key={program.id} className="space-y-4">
+              <div className="p-4 bg-slate-800/60 rounded-lg border border-cyan-500/20">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-medium text-white">{program.name}</div>
+                  <div className="text-sm text-green-400 font-semibold">{program.commission}% commission</div>
+                </div>
+                <div className="text-sm text-gray-300 mb-3">
+                  Tracking Code: <code className="bg-slate-900/60 px-2 py-1 rounded border border-cyan-500/20 text-cyan-400">{program.trackingCode}</code>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <label className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={program.autoInject} 
+                      className="mr-2"
+                      disabled={!isPremium}
+                    />
+                    <span className="text-sm text-gray-300">Auto-inject tracking codes</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* A/B Test Placements */}
+              {program.linkPlacements && program.linkPlacements.length > 0 && (
+                <div>
+                  <h4 className="text-sm font-semibold text-cyan-400 mb-3">A/B Test Placements</h4>
+                  <div className="space-y-2">
+                    {program.linkPlacements.map(placement => (
+                      <div key={placement.id} className="flex items-center justify-between p-3 border border-cyan-500/20 rounded-lg bg-slate-800/40">
+                        <div className="flex items-center">
+                          <div className={`w-2 h-2 rounded-full mr-3 ${
+                            placement.ctr >= 3 ? 'bg-green-400' : 
+                            placement.ctr >= 2 ? 'bg-yellow-400' : 'bg-red-400'
+                          }`} />
+                          <div>
+                            <div className="font-medium text-white">{placement.name}</div>
+                            <div className="text-xs text-gray-400">
+                              {placement.position} • {placement.style} • CTR: {placement.ctr}%
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-sm font-semibold text-cyan-400">{placement.clicks} clicks</div>
+                          <div className="text-xs text-gray-400">{placement.conversions} conversions</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30">
+                    <div className="text-xs text-blue-300">
+                      <strong>Top Performer:</strong> {program.linkPlacements.reduce((top, p) => 
+                        p.ctr > (top?.ctr || 0) ? p : top
+                      )?.name} ({Math.max(...program.linkPlacements.map(p => p.ctr)).toFixed(1)}% CTR)
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ))}
+
+      {/* Commission Tracking */}
+      <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-lg border border-cyan-500/30 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Commission Tracking</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/30">
+            <div className="text-sm text-gray-400 mb-1">Total Commissions</div>
+            <div className="text-2xl font-bold text-green-400">$2,791</div>
+            <div className="text-xs text-gray-400 mt-1">Last 30 days</div>
+          </div>
+          <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/30">
+            <div className="text-sm text-gray-400 mb-1">Total Clicks</div>
+            <div className="text-2xl font-bold text-blue-400">5,427</div>
+            <div className="text-xs text-gray-400 mt-1">Across all links</div>
+          </div>
+          <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/30">
+            <div className="text-sm text-gray-400 mb-1">Conversion Rate</div>
+            <div className="text-2xl font-bold text-purple-400">2.8%</div>
+            <div className="text-xs text-gray-400 mt-1">Average CTR</div>
           </div>
         </div>
       </div>
@@ -435,8 +749,8 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
             <Zap className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Auto-Affiliate Content Factory</h1>
-            <p className="text-gray-600">AI-powered affiliate content generation on autopilot</p>
+            <h1 className="text-3xl font-bold text-white bg-gradient-to-r from-cyan-300 via-purple-300 to-cyan-300 bg-clip-text text-transparent">Auto-Affiliate Content Factory</h1>
+            <p className="text-gray-300">AI-powered affiliate content generation on autopilot</p>
           </div>
           {!isPremium && (
             <div className="ml-auto">
@@ -453,11 +767,13 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-gray-200 mb-8">
+      <div className="border-b border-cyan-500/20 mb-8">
         <nav className="-mb-px flex space-x-8">
           {[
             { id: 'strategies', label: 'Content Strategies', icon: Target },
             { id: 'content', label: 'Generated Content', icon: FileText },
+            { id: 'scheduling', label: 'Smart Scheduling', icon: Calendar },
+            { id: 'links', label: 'Link Manager', icon: Link },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             { id: 'settings', label: 'Settings', icon: Settings },
           ].map(tab => {
@@ -466,10 +782,10 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
                   activeTab === tab.id
-                    ? 'border-indigo-500 text-indigo-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-cyan-500 text-cyan-400'
+                    : 'border-transparent text-gray-400 hover:text-cyan-400 hover:border-cyan-500/30'
                 }`}
               >
                 <Icon className="w-4 h-4 mr-2" />
@@ -485,11 +801,13 @@ const AutoAffiliateContentFactory: React.FC<{ isPremium?: boolean; onUpgrade?: (
         {activeTab === 'strategies' && renderStrategiesTab()}
         {activeTab === 'content' && renderContentTab()}
         {activeTab === 'analytics' && renderAnalyticsTab()}
+        {activeTab === 'scheduling' && renderSchedulingTab()}
+        {activeTab === 'links' && renderLinkManagerTab()}
         {activeTab === 'settings' && (
           <div className="text-center py-12">
             <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Settings</h3>
-            <p className="text-gray-600">
+            <h3 className="text-lg font-medium text-white mb-2">Settings</h3>
+            <p className="text-gray-300">
               Configure affiliate programs, content templates, and automation settings
             </p>
           </div>

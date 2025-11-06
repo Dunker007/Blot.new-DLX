@@ -4,6 +4,24 @@ import { defineConfig } from 'vite';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api/spaceship': {
+        target: 'https://spaceship.dev',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/spaceship/, '/api'),
+        configure: (proxy, _options) => {
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            // Forward custom headers - Vite lowercases headers, so check both cases
+            const apiKey = req.headers['x-api-key'] || req.headers['X-API-Key'];
+            const apiSecret = req.headers['x-api-secret'] || req.headers['X-API-Secret'];
+            if (apiKey) proxyReq.setHeader('X-API-Key', Array.isArray(apiKey) ? apiKey[0] : apiKey);
+            if (apiSecret) proxyReq.setHeader('X-API-Secret', Array.isArray(apiSecret) ? apiSecret[0] : apiSecret);
+          });
+        },
+      },
+    },
+  },
   optimizeDeps: {
     exclude: ['lucide-react'],
   },

@@ -1,14 +1,12 @@
 import { Suspense, lazy, useState } from 'react';
 
-import CompactLayout from './components/CompactLayout';
+import HybridLayout from './components/HybridLayout';
 
 // Lazy load components for code splitting
 const AICommandCenter = lazy(() => import('./components/AICommandCenter'));
 const ConnectionDashboard = lazy(() => import('./components/ConnectionDashboard'));
 const EnhancedSettings = lazy(() => import('./components/EnhancedSettings'));
 const Projects = lazy(() => import('./components/Projects'));
-const Workspace = lazy(() => import('./components/Workspace'));
-
 // New DLX-Studios-Ultimate modules
 const MonacoEditorPage = lazy(() => import('./modules/monaco-editor/MonacoEditorPage'));
 const AudioTranscriber = lazy(() => import('./modules/multimodal/AudioTranscriber'));
@@ -17,7 +15,9 @@ const MindMapPage = lazy(() => import('./modules/mind-map/MindMapPage'));
 const FeatureFlags = lazy(() => import('./components/FeatureFlags'));
 const IdeaLab = lazy(() => import('./components/IdeaLab'));
 const LabsRouter = lazy(() => import('./modules/labs/LabsRouter'));
-const TaskManagement = lazy(() => import('./components/TaskManagement'));
+const VibeDEEditor = lazy(() => import('./modules/vibe-de/VibeDEEditor'));
+const LayoutPlayground = lazy(() => import('./components/LayoutPlayground'));
+const ProjectFlowTracker = lazy(() => import('./components/ProjectFlowTracker'));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -59,7 +59,7 @@ function App() {
       case 'workspace':
         return (
           <ErrorBoundary level="component">
-            <Workspace />
+            <MonacoEditorPage />
           </ErrorBoundary>
         );
       case 'projects':
@@ -92,6 +92,12 @@ function App() {
             <IdeaLab />
           </ErrorBoundary>
         );
+      case 'vibe-de':
+        return (
+          <ErrorBoundary level="component">
+            <VibeDEEditor />
+          </ErrorBoundary>
+        );
       case 'labs':
         return (
           <ErrorBoundary level="component">
@@ -99,9 +105,11 @@ function App() {
           </ErrorBoundary>
         );
       case 'tasks':
+      case 'punch-list':
+      case 'project-flow':
         return (
           <ErrorBoundary level="component">
-            <TaskManagement />
+            <ProjectFlowTracker />
           </ErrorBoundary>
         );
       case 'monaco-editor':
@@ -146,6 +154,12 @@ function App() {
             <LabsRouter activeLabId="crypto" onSelectLab={() => {}} />
           </ErrorBoundary>
         );
+      case 'layout-playground':
+        return (
+          <ErrorBoundary level="component">
+            <LayoutPlayground />
+          </ErrorBoundary>
+        );
       default:
         return (
           <ErrorBoundary level="component">
@@ -157,12 +171,12 @@ function App() {
 
   return (
     <ErrorBoundary level="page" onError={(error) => console.error('App-level error:', error)}>
-      <CompactLayout currentView={currentView} onViewChange={setCurrentView}>
+      <HybridLayout currentView={currentView} onViewChange={setCurrentView} onLabChange={setActiveLabId}>
         <ErrorBoundary level="component">
           <Suspense fallback={<LoadingFallback />}>{renderView()}</Suspense>
         </ErrorBoundary>
         <AIGuide currentView={currentView} onNavigate={setCurrentView} />
-      </CompactLayout>
+      </HybridLayout>
     </ErrorBoundary>
   );
 }

@@ -9,6 +9,7 @@ import {
   Layers,
   RefreshCw,
   Upload,
+  Wallet,
 } from 'lucide-react';
 
 import { EnvironmentMode, environmentDetector } from '../services/environmentDetector';
@@ -260,6 +261,37 @@ export default function EnvironmentSettings() {
       <div>
         <h2 className="text-2xl font-bold mb-4">Hybrid Mode (bolt.new + .diy)</h2>
         <HybridModePanel />
+      </div>
+
+      <div>
+        <h2 className="text-2xl font-bold mb-4">Crypto Wallet</h2>
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h3 className="font-semibold mb-2 flex items-center gap-2">
+                <Wallet size={20} className="text-purple-400" />
+                Wallet Connection
+              </h3>
+              <p className="text-slate-400 text-sm">
+                Connect your crypto wallet to access DeFi opportunities and crypto-powered features
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                // Navigate to crypto integration view
+                window.location.hash = '#crypto';
+                window.dispatchEvent(new HashChangeEvent('hashchange'));
+              }}
+              className="ml-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-90 text-white rounded-lg text-sm transition-opacity flex items-center gap-2"
+            >
+              <Wallet size={16} />
+              <span>Manage Wallet</span>
+            </button>
+          </div>
+          <div className="text-xs text-slate-500 mt-2">
+            Wallet features include DeFi integration, yield tracking, and portfolio analytics
+          </div>
+        </div>
       </div>
 
       <div>

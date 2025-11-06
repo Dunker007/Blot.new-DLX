@@ -87,6 +87,42 @@ npm run dev
 
 Visit `http://localhost:5173` for development mode.
 
+### PM2 Setup (Permanent Server)
+
+For running the server permanently on your machine:
+
+```powershell
+# Initial setup (one-time)
+npm run pm2:setup
+
+# Start dev server permanently
+npm run pm2:dev
+
+# Or start production server permanently
+npm run pm2:prod
+
+# View logs
+npm run pm2:logs
+
+# Check status
+npm run pm2:status
+
+# Stop server
+npm run pm2:stop
+
+# Restart server
+npm run pm2:restart
+```
+
+**PM2 Benefits:**
+- ✅ Auto-restart on crash
+- ✅ Auto-start on Windows boot (after setup)
+- ✅ Log management
+- ✅ Process monitoring
+- ✅ Memory limit protection
+
+See [PM2 Documentation](#pm2-management) for more details.
+
 ### Production Deployment
 
 See [QUICK_START.md](QUICK_START.md) for fastest deployment path, or [DEPLOYMENT_CHECKLIST.md](DEPLOYMENT_CHECKLIST.md) for complete guide.
@@ -239,6 +275,107 @@ npm run preview      # Preview production build
 npm run typecheck    # Run TypeScript type checking
 npm run lint         # Run ESLint
 npm run check        # Run all checks before deployment
+```
+
+### PM2 Management
+
+PM2 is a process manager for Node.js applications that keeps your server running permanently.
+
+#### Initial Setup
+
+```powershell
+# One-time setup (installs PM2 and configures auto-start)
+npm run pm2:setup
+```
+
+#### Starting Servers
+
+```powershell
+# Start dev server (port 5173)
+npm run pm2:dev
+
+# Start production server (port 3001)
+npm run pm2:prod
+```
+
+#### Managing Processes
+
+```powershell
+# View all PM2 processes
+npm run pm2:status
+
+# View logs (all processes)
+npm run pm2:logs
+
+# View logs for specific process
+pm2 logs dlx-dev
+pm2 logs dlx-prod
+
+# Stop all processes
+npm run pm2:stop
+
+# Restart all processes
+npm run pm2:restart
+
+# Delete processes from PM2
+npm run pm2:delete
+```
+
+#### Advanced PM2 Commands
+
+```powershell
+# Open monitoring dashboard
+npm run pm2:monit
+
+# Restart specific process
+pm2 restart dlx-dev
+pm2 restart dlx-prod
+
+# Stop specific process
+pm2 stop dlx-dev
+pm2 stop dlx-prod
+
+# View detailed info
+pm2 describe dlx-dev
+pm2 describe dlx-prod
+
+# Save current process list (for auto-start)
+pm2 save
+
+# Setup auto-start on Windows boot (requires admin)
+pm2 startup
+```
+
+#### PM2 Configuration
+
+The PM2 configuration is in `ecosystem.config.js`:
+- **dlx-dev**: Development server (Vite) on port 5173
+- **dlx-prod**: Production server (Express) on port 3001
+- Auto-restart on crash
+- Memory limits (1GB dev, 512MB prod)
+- Log rotation to `logs/` directory
+
+#### Troubleshooting
+
+**PM2 not found:**
+```powershell
+npm install -g pm2
+```
+
+**Process won't start:**
+```powershell
+# Check logs
+pm2 logs dlx-dev --lines 50
+
+# Check if port is in use
+netstat -ano | findstr :5173
+netstat -ano | findstr :3001
+```
+
+**Remove PM2 startup:**
+```powershell
+pm2 unstartup
+pm2 kill
 ```
 
 ### Adding a New Provider
